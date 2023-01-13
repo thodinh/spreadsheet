@@ -9,7 +9,7 @@ import { hslaToRGBA, isColorValid, rgbaToHex } from "../../helpers";
 import { chartFontColor } from "../../helpers/figures/charts";
 import { Color } from "../../types";
 import { SpreadsheetChildEnv } from "../../types/env";
-import { css } from "../helpers/css";
+import { css, cssPropertiesToCss } from "../helpers/css";
 
 const PICKER_PADDING = 6;
 
@@ -35,8 +35,9 @@ css/* scss */ `
     z-index: ${ComponentsImportance.ColorPicker};
     box-shadow: 1px 2px 5px 2px rgba(51, 51, 51, 0.15);
     background-color: white;
-    padding: ${PICKER_PADDING}px 0px;
     line-height: 1.2;
+    overflow-y: auto;
+    overflow-x: hidden;
     width: ${GRADIENT_WIDTH + 2 * PICKER_PADDING}px;
 
     .o-color-picker-section-name {
@@ -179,6 +180,7 @@ export interface ColorPickerProps {
   dropdownDirection?: "left" | "right" | "center";
   onColorPicked: (color: Color) => void;
   currentColor: Color;
+  maxHeight?: Number;
 }
 
 interface State {
@@ -211,6 +213,14 @@ export class ColorPicker extends Component<ColorPickerProps, SpreadsheetChildEnv
       top: "0",
     },
   });
+
+  get dropdownStyle() {
+    const height = this.props.maxHeight || 1000;
+    return cssPropertiesToCss({
+      padding: height <= 0 ? "0px" : `${PICKER_PADDING}px 0px`,
+      "max-height": `${height}px`,
+    });
+  }
 
   onColorClick(color: Color) {
     if (color) {
@@ -272,4 +282,5 @@ ColorPicker.props = {
   dropdownDirection: { type: String, optional: true },
   onColorPicked: Function,
   currentColor: { type: String, optional: true },
+  maxHeight: { type: Number, optional: 1000 },
 };

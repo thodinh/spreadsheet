@@ -178,7 +178,7 @@ describe("Simple Spreadsheet Component", () => {
 
     triggerMouseEvent(".o-tool.o-dropdown-button.o-with-color", "click");
     await nextTick();
-    const colorPickerZIndex = getZIndex("div.o-color-picker");
+    const colorPickerZIndex = getZIndex(".o-color-picker");
 
     createChart(model, {}, "thisIsAnId");
     model.dispatch("SELECT_FIGURE", { id: "thisIsAnId" });
