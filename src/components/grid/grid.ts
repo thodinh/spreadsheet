@@ -41,6 +41,7 @@ import { GridComposer } from "../composer/grid_composer/grid_composer";
 import { FilterIconsOverlay } from "../filters/filter_icons_overlay/fitler_icons_overlay";
 import { GridOverlay } from "../grid_overlay/grid_overlay";
 import { GridPopover } from "../grid_popover/grid_popover";
+import { GridSelection } from "../grid_selection/grid_selection";
 import { HeadersOverlay } from "../headers_overlay/headers_overlay";
 import { dragAndDropBeyondTheViewport } from "../helpers/drag_and_drop";
 import { useGridDrawing } from "../helpers/draw_grid_hook";
@@ -98,6 +99,7 @@ export class Grid extends Component<Props, SpreadsheetChildEnv> {
     VerticalScrollBar,
     HorizontalScrollBar,
     FilterIconsOverlay,
+    GridSelection,
   };
   readonly HEADER_HEIGHT = HEADER_HEIGHT;
   readonly HEADER_WIDTH = HEADER_WIDTH;

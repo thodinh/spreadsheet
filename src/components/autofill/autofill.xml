@@ -1,5 +1,8 @@
 <templates>
   <t t-name="o-spreadsheet-Autofill" owl="1">
+    <div class="o-selection-anchor position-absolute" t-att-style="selectionAnchorStyle">
+
+    </div>
     <div
       class="o-autofill"
       t-on-mousedown="onMouseDown"

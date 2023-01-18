@@ -1,0 +1,5 @@
+<templates>
+    <t t-name="o-spreadsheet-Selection" owl="1">
+      <div class="o-selection-anchor position-absolute" t-att-style="selectionAnchorStyle"/>
+    </t>
+  </templates>
