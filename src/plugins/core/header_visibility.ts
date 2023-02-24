@@ -5,6 +5,7 @@ import { CorePlugin } from "../core_plugin";
 
 export class HeaderVisibilityPlugin extends CorePlugin {
   static getters = [
+    "getAllVisibleHeaders",
     "getHiddenColsGroups",
     "getHiddenRowsGroups",
     "isRowHiddenByUser",
@@ -89,6 +90,16 @@ export class HeaderVisibilityPlugin extends CorePlugin {
 
   isColHiddenByUser(sheetId: UID, index: HeaderIndex): boolean {
     return this.hiddenHeaders[sheetId].COL[index];
+  }
+
+  getAllVisibleHeaders(sheetId: UID, dimension: Dimension): HeaderIndex[] {
+    const visibleHeaders: HeaderIndex[] = [];
+    for (let i = 0; i < this.hiddenHeaders[sheetId][dimension].length; i++) {
+      if (!this.hiddenHeaders[sheetId][dimension][i]) {
+        visibleHeaders.push(i);
+      }
+    }
+    return visibleHeaders;
   }
 
   getHiddenColsGroups(sheetId: UID): ConsecutiveIndexes[] {

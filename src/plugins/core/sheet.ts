@@ -1,6 +1,7 @@
 import { FORBIDDEN_IN_EXCEL_REGEX } from "../../constants";
 import {
   createDefaultRows,
+  deepEquals,
   getUnquotedSheetName,
   groupConsecutive,
   isDefined,
@@ -113,9 +114,15 @@ export class SheetPlugin extends CorePlugin<SheetState> implements SheetState {
           cmd.dimension === "COL"
             ? this.getNumberCols(cmd.sheetId)
             : this.getNumberRows(cmd.sheetId);
-        return length > cmd.elements.length
-          ? CommandResult.Success
-          : CommandResult.NotEnoughElements;
+        if (length <= cmd.elements.length) {
+          return CommandResult.NotEnoughElements;
+        }
+        if (
+          deepEquals(cmd.elements, this.getters.getAllVisibleHeaders(cmd.sheetId, cmd.dimension))
+        ) {
+          return CommandResult.NotEnoughElements;
+        }
+        return CommandResult.Success;
       }
       case "FREEZE_ROWS": {
         return this.checkValidations(
