@@ -931,7 +931,7 @@ export const PRODUCT: AddFunctionDescription = {
   ],
   returns: ["NUMBER"],
   computeFormat: (factor1: Arg) => {
-    return Array.isArray(factor1) ? factor1[0][0]?.format : factor1?.format;
+    return Array.isArray(factor1?.format) ? factor1.format[0][0] : factor1?.format;
   },
   compute: function (...factors: ArgValue[]): number {
     let count = 0;
@@ -1194,7 +1194,7 @@ export const SUM: AddFunctionDescription = {
   ],
   returns: ["NUMBER"],
   computeFormat: (value1: Arg) => {
-    return Array.isArray(value1) ? value1[0][0]?.format : value1?.format;
+    return Array.isArray(value1?.format) ? value1.format[0][0] : value1?.format;
   },
   compute: function (...values: ArgValue[]): number {
     return reduceNumbers(values, (acc, a) => acc + a, 0);
