@@ -2,6 +2,7 @@ const git = require("git-rev-sync");
 const { promisify } = require("util");
 const { exec } = require("child_process");
 const { forbiddenPatterns } = require("./forbidden_patterns.json");
+const readline = require("readline");
 
 const execAsync = promisify(exec);
 const COLORS = {
@@ -12,7 +13,7 @@ const COLORS = {
 async function main() {
   const parentBranch = getParentBranch(getCurrentBranch());
 
-  const { stdout } = await execAsync(`git diff -U0 ${parentBranch} -- ":!*/*.json"`);
+  const { stdout } = await execAsync(`git diff -U0 ${parentBranch} -- ":!.husky/*.json"`);
   const addedLines = stdout
     .split("\n")
     .filter((line) => line !== "+" && line.startsWith("+") && !line.startsWith("+++"));
@@ -30,6 +31,17 @@ async function main() {
     );
     warnings.forEach((line) => logInColor(line, COLORS.YELLOW));
   }
+  if (errors.length) {
+    process.exit(1);
+  }
+
+  if (warnings.length) {
+    const answer = await askUserConfirmation("Do you want to continue? [Y/N] ");
+    console.log("answer", answer);
+    if (answer !== "y" && answer !== "Y") {
+      process.exit(1);
+    }
+  }
 }
 
 function getWarningsAndErrors(diff) {
@@ -37,7 +49,7 @@ function getWarningsAndErrors(diff) {
   const errorPatternsRegex = new RegExp(errorPatterns.join("|"), "g");
 
   const warningPatterns = forbiddenPatterns.filter((p) => p.type === "warn").map((p) => p.pattern);
-  const warningPatternsRegex = new RegExp(warningPatterns, "g");
+  const warningPatternsRegex = new RegExp(warningPatterns.join("|"), "g");
 
   const errors = errorPatterns.length ? diff.filter((line) => errorPatternsRegex.test(line)) : [];
   const warnings = warningPatterns.length
@@ -62,6 +74,20 @@ function getCurrentBranch() {
 
 function logInColor(message, color = 0) {
   console.log(`\x1b[${color}m${message}\x1b[0m`);
+}
+
+function askUserConfirmation(message) {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    rl.question(message, (answer) => {
+      rl.close();
+      resolve(answer);
+    });
+  });
 }
 
 main();

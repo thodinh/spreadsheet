@@ -21,7 +21,7 @@
     "build": "npm-run-all build:js bundle:js \"bundle:xml -- --outDir build\"",
     "doc": "typedoc",
     "precommit": "npm run prettier && npm run doc",
-    "test": "jest",
+          "test": "jest",
     "test:watch": "jest --watch",
     "prettier": "prettier . --write",
     "check-formatting": "prettier . --check",
