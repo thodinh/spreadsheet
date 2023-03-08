@@ -183,6 +183,9 @@ export class Model extends EventBus<any> implements CommandDispatcher {
   ) {
     super();
 
+    //TODO
+    //console.log();
+
     stateUpdateMessages = repairInitialMessages(data, stateUpdateMessages);
 
     const workbookData = load(data, verboseImport);

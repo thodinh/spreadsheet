@@ -1,0 +1,9 @@
+{
+  "forbiddenPatterns": [
+    { "pattern": "console.log", "type": "warn" },
+    { "pattern": "TODO", "type": "warn" },
+    { "pattern": "<<<<<<<", "type": "error" },
+    { "pattern": "=======", "type": "error" },
+    { "pattern": ">>>>>>>", "type": "error" }
+  ]
+}
