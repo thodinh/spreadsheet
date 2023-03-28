@@ -4,36 +4,49 @@
 # HUSKY_PRE_COMMIT : if set to 0, disable pre-commit hook
 # HUSKY_INPUT_ENV: if set to 0, disable the possibility of user input for the hook
 
-npx="npx"
-
-# For Windows
+# For Windows Github desktop...
 if [ "$OSTYPE" = "msys" ]; then
     export PATH="/usr/bin:/usr/local/bin:$PATH"
     npx="npx.cmd"
 fi
 . "$(dirname "$0")/_/husky.sh"
 
+enableUserInput=0
+# Check if /dev/tty is available and usable
+# https://stackoverflow.com/questions/69075612/cross-platform-method-to-detect-whether-dev-tty-is-available-functional
+if (sh -c ": >/dev/tty" >/dev/null 2>/dev/null) && [ "$HUSKY_PRE_COMMIT" != 0 ]; then
+    enableUserInput=1
+else
+    enableUserInput=0
+fi
+
 if [ "$HUSKY_PRE_COMMIT" != 0 ]; then
     $npx lint-staged
-
-    consoleregexp='console\.|debugger'
-    if test $(git diff --cached | grep -nE $consoleregexp | wc -l) != 0
-    then
-        if [ "$HUSKY_INPUT_ENV" != 0 ] && [ "$OSTYPE" != "msys" ]; then
-            # activate user inputs
-            exec < /dev/tty
-            exec git diff --cached --color | grep -nE $consoleregexp -A 2 -B 2
-            read -p "There are some occurrences of forbidden patterns at your modification. Are you sure want to continue? (y/n)" yn
-            echo $yn | grep ^[Yy]$
-            if [ $? -eq 0 ]
-            then
-                exit 0; #THE USER WANTS TO CONTINUE
-            else
-                exit 1; # THE USER DONT WANT TO CONTINUE SO ROLLBACK
-            fi
-        else
-            echo -e "\033[1;31mWARNING: Some occurences of forbidden patterns were detected \033[0m"
-            exec git diff --cached --color | grep -nE $consoleregexp -A 2 -B 2
-        fi
+    if [ "$enableUserInput" != 0 ]; then
+        exec < /dev/tty
+        $npx npm run check-forbidden-patterns -- --mode=staged --userInput
+    else
+        $npx npm run check-forbidden-patterns -- --mode=staged
     fi
+
+    # consoleregexp='console\.|debugger'
+    # if test $(git diff --cached | grep -nE $consoleregexp | wc -l) != 0
+    # then
+    #     if [ "$HUSKY_INPUT_ENV" != 0 ] && [ "$OSTYPE" != "msys" ]; then
+    #         # activate user inputs
+    #         exec < /dev/tty
+    #         exec git diff --cached --color | grep -nE $consoleregexp -A 2 -B 2
+    #         read -p "There are some occurrences of forbidden patterns at your modification. Are you sure want to continue? (y/n)" yn
+    #         echo $yn | grep ^[Yy]$
+    #         if [ $? -eq 0 ]
+    #         then
+    #             exit 0; #THE USER WANTS TO CONTINUE
+    #         else
+    #             exit 1; # THE USER DONT WANT TO CONTINUE SO ROLLBACK
+    #         fi
+    #     else
+    #         echo -e "\033[1;31mWARNING: Some occurences of forbidden patterns were detected \033[0m"
+    #         exec git diff --cached --color | grep -nE $consoleregexp -A 2 -B 2
+    #     fi
+    # fi
 fi
