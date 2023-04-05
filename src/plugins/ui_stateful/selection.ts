@@ -198,10 +198,7 @@ export class GridSelectionPlugin extends UIPlugin {
     switch (cmd.type) {
       case "START":
         const firstSheetId = this.getters.getVisibleSheetIds()[0];
-        this.dispatch("ACTIVATE_SHEET", {
-          sheetIdTo: firstSheetId,
-          sheetIdFrom: firstSheetId,
-        });
+        this.activateSheet(firstSheetId, firstSheetId);
         const { col, row } = this.getters.getNextVisibleCellPosition({
           sheetId: firstSheetId,
           col: 0,
@@ -214,24 +211,7 @@ export class GridSelectionPlugin extends UIPlugin {
         this.moveClient({ sheetId: firstSheetId, col: 0, row: 0 });
         break;
       case "ACTIVATE_SHEET": {
-        if (!this.getters.isSheetVisible(cmd.sheetIdTo)) {
-          this.dispatch("SHOW_SHEET", { sheetId: cmd.sheetIdTo });
-        }
-        this.setActiveSheet(cmd.sheetIdTo);
-        this.sheetsData[cmd.sheetIdFrom] = {
-          gridSelection: deepCopy(this.gridSelection),
-        };
-        if (cmd.sheetIdTo in this.sheetsData) {
-          Object.assign(this, this.sheetsData[cmd.sheetIdTo]);
-          this.selection.resetDefaultAnchor(this, deepCopy(this.gridSelection.anchor));
-        } else {
-          const { col, row } = this.getters.getNextVisibleCellPosition({
-            sheetId: cmd.sheetIdTo,
-            col: 0,
-            row: 0,
-          });
-          this.selectCell(col, row);
-        }
+        this.activateSheet(cmd.sheetIdTo, cmd.sheetIdFrom);
         break;
       }
       case "REMOVE_COLUMNS_ROWS": {
@@ -498,6 +478,26 @@ export class GridSelectionPlugin extends UIPlugin {
     return [...new Set(elements)].sort();
   }
 
+  private activateSheet(sheetIdTo: UID, sheetIdFrom: UID) {
+    if (!this.getters.isSheetVisible(sheetIdTo)) {
+      this.dispatch("SHOW_SHEET", { sheetId: sheetIdTo });
+    }
+    this.setActiveSheet(sheetIdTo);
+    this.sheetsData[sheetIdFrom] = {
+      gridSelection: deepCopy(this.gridSelection),
+    };
+    if (sheetIdTo in this.sheetsData) {
+      Object.assign(this, this.sheetsData[sheetIdTo]);
+      this.selection.resetDefaultAnchor(this, deepCopy(this.gridSelection.anchor));
+    } else {
+      const { col, row } = this.getters.getNextVisibleCellPosition({
+        sheetId: sheetIdTo,
+        col: 0,
+        row: 0,
+      });
+      this.selectCell(col, row);
+    }
+  }
   // ---------------------------------------------------------------------------
   // Other
   // ---------------------------------------------------------------------------

@@ -49,8 +49,9 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
     }
 
     switch (cmd.type) {
+      case "START":
       case "ACTIVATE_SHEET":
-        const activeSheet = cmd.sheetIdTo;
+        const activeSheet = this.getters.getActiveSheetId();
         this.computedStyles[activeSheet] = this.computedStyles[activeSheet] || {};
         this.computedIcons[activeSheet] = this.computedIcons[activeSheet] || {};
         this.isStale = true;
