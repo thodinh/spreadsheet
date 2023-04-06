@@ -1,6 +1,6 @@
 import { BACKGROUND_CHART_COLOR } from "../../constants";
 import { chartRuntimeFactory } from "../../helpers/figures/charts";
-import { Color, Range, UID } from "../../types";
+import { Color, Immutable, Range, UID } from "../../types";
 import { ChartRuntime } from "../../types/chart/chart";
 import {
   CoreViewCommand,
@@ -9,10 +9,13 @@ import {
 } from "../../types/commands";
 import { UIPlugin } from "../ui_plugin";
 
-export class EvaluationChartPlugin extends UIPlugin {
+interface EvaluationChartState {
+  readonly charts: Immutable<Record<UID, ChartRuntime | undefined>>;
+}
+export class EvaluationChartPlugin extends UIPlugin<EvaluationChartState> {
   static getters = ["getChartRuntime", "getBackgroundOfSingleCellChart"] as const;
 
-  readonly charts: Record<UID, ChartRuntime | undefined> = {};
+  readonly charts: Immutable<Record<UID, ChartRuntime | undefined>> = {};
 
   private createRuntimeChart = chartRuntimeFactory(this.getters);
 
@@ -24,7 +27,7 @@ export class EvaluationChartPlugin extends UIPlugin {
       cmd.type === "UPDATE_CELL"
     ) {
       for (const chartId in this.charts) {
-        this.charts[chartId] = undefined;
+        this.history.update("charts", chartId, undefined);
       }
     }
 
@@ -32,12 +35,12 @@ export class EvaluationChartPlugin extends UIPlugin {
       case "UPDATE_CHART":
       case "CREATE_CHART":
       case "DELETE_FIGURE":
-        this.charts[cmd.id] = undefined;
+        this.history.update("charts", cmd.id, undefined);
         break;
       case "DELETE_SHEET":
         for (let chartId in this.charts) {
           if (!this.getters.isChartDefined(chartId)) {
-            this.charts[chartId] = undefined;
+            this.history.update("charts", chartId, undefined);
           }
         }
         break;
@@ -50,9 +53,9 @@ export class EvaluationChartPlugin extends UIPlugin {
       if (!chart) {
         throw new Error(`No chart for the given id: ${figureId}`);
       }
-      this.charts[figureId] = this.createRuntimeChart(chart);
+      this.history.update("charts", figureId, this.createRuntimeChart(chart));
     }
-    return this.charts[figureId]!;
+    return this.charts[figureId] as ChartRuntime;
   }
 
   /**

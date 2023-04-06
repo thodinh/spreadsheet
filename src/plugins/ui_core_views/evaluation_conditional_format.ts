@@ -15,6 +15,7 @@ import {
   HeaderIndex,
   IconSetRule,
   IconThreshold,
+  Immutable,
   invalidateCFEvaluationCommands,
   NumberCell,
   Position,
@@ -37,17 +38,17 @@ type ComputedIcons = {
 };
 
 interface EvaluateCFState {
-  isStale: boolean;
-  computedStyles: ComputedStyles;
-  computedIcons: ComputedIcons;
+  readonly isStale: boolean;
+  readonly computedStyles: Immutable<ComputedStyles>;
+  readonly computedIcons: Immutable<ComputedIcons>;
 }
 
 export class EvaluationConditionalFormatPlugin extends UIPlugin<EvaluateCFState> {
   static getters = ["getAdaptedCfRanges", "getConditionalIcon", "getCellComputedStyle"] as const;
-  private isStale: boolean = true;
+  private readonly isStale: boolean = true;
   // stores the computed styles in the format of computedStyles.sheetName[col][row] = Style
-  private computedStyles: { [sheet: string]: { [col: HeaderIndex]: (Style | undefined)[] } } = {};
-  private computedIcons: { [sheet: string]: { [col: HeaderIndex]: (string | undefined)[] } } = {};
+  private readonly computedStyles: Immutable<ComputedStyles> = {};
+  private readonly computedIcons: Immutable<ComputedIcons> = {};
 
   // ---------------------------------------------------------------------------
   // Command Handling
@@ -58,7 +59,7 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin<EvaluateCFState>
       invalidateCFEvaluationCommands.has(cmd.type) ||
       (cmd.type === "UPDATE_CELL" && "content" in cmd)
     ) {
-      this.isStale = true;
+      this.history.update("isStale", true);
     }
   }
 
@@ -67,7 +68,7 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin<EvaluateCFState>
       for (const sheetId of this.getters.getSheetIds()) {
         this.computeStyles(sheetId);
       }
-      this.isStale = false;
+      this.history.update("isStale", false);
     }
   }
 
@@ -116,8 +117,9 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin<EvaluateCFState>
    * If multiple conditional formatting use the same style value, they will be applied in order so that the last applied wins
    */
   private computeStyles(sheetId: UID) {
-    this.computedStyles[sheetId] = {};
-    this.computedIcons[sheetId] = {};
+    this.history.update("computedStyles", sheetId, {});
+    this.history.update("computedIcons", sheetId, {});
+
     const computedStyle = this.computedStyles[sheetId];
     for (let cf of this.getters.getConditionalFormats(sheetId).reverse()) {
       try {
@@ -141,12 +143,12 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin<EvaluateCFState>
                     this.rulePredicate[cf.rule.type];
                   let cell = this.getters.getEvaluatedCell({ sheetId, col, row });
                   if (pr && pr(cell, cf.rule)) {
-                    if (!computedStyle[col]) computedStyle[col] = [];
+                    if (!computedStyle[col]) {
+                      this.history.update("computedStyles", sheetId, col, []);
+                    }
                     // we must combine all the properties of all the CF rules applied to the given cell
-                    computedStyle[col][row] = Object.assign(
-                      computedStyle[col]?.[row] || {},
-                      cf.rule.style
-                    );
+                    const style = Object.assign(computedStyle[col]?.[row] || {}, cf.rule.style);
+                    this.history.update("computedStyles", sheetId, col, row, style);
                   }
                 }
               }
@@ -226,9 +228,9 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin<EvaluateCFState>
           iconSet
         );
         if (!computedIcons[col]) {
-          computedIcons[col] = [];
+          this.history.update("computedIcons", sheetId, col, []);
         }
-        computedIcons[col][row] = icon;
+        this.history.update("computedIcons", sheetId, col, row, icon);
       }
     }
   }
@@ -337,9 +339,18 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin<EvaluateCFState>
               colorCellArgs[0].colorDiffUnit
             );
           }
-          if (!computedStyle[col]) computedStyle[col] = [];
-          computedStyle[col][row] = computedStyle[col]?.[row] || {};
-          computedStyle[col][row]!.fillColor = colorNumberString(color);
+          if (!computedStyle[col]) {
+            this.history.update("computedStyles", sheetId, col, []);
+          }
+          this.history.update("computedStyles", sheetId, col, row, computedStyle[col]?.[row] || {});
+          this.history.update(
+            "computedStyles",
+            sheetId,
+            col,
+            row,
+            "fillColor",
+            colorNumberString(color)
+          );
         }
       }
     }

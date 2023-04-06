@@ -33,6 +33,7 @@ import {
   FormattedValue,
   FormulaCell,
   HeaderIndex,
+  Immutable,
   invalidateEvaluationCommands,
   Lazy,
   MatrixArg,
@@ -48,7 +49,20 @@ const functionMap = functionRegistry.mapping;
 
 type CompilationParameters = [ReferenceDenormalizer, EnsureRange, EvalContext];
 
-export class EvaluationPlugin extends UIPlugin {
+interface EvaluationResult {
+  [sheetId: UID]:
+    | {
+        [col: HeaderIndex]: { [row: HeaderIndex]: Lazy<EvaluatedCell> | undefined } | undefined;
+      }
+    | undefined;
+}
+
+type EvaluationState = {
+  readonly evaluatedCells: Immutable<EvaluationResult>;
+  readonly isUpToDate: boolean;
+};
+
+export class EvaluationPlugin extends UIPlugin<EvaluationState> {
   static getters = [
     "evaluateFormula",
     "getRangeFormattedValues",
@@ -60,14 +74,9 @@ export class EvaluationPlugin extends UIPlugin {
     "getEvaluatedCellsInZone",
   ] as const;
 
-  private isUpToDate = false;
-  private evaluatedCells: {
-    [sheetId: UID]:
-      | {
-          [col: HeaderIndex]: { [row: HeaderIndex]: Lazy<EvaluatedCell> | undefined } | undefined;
-        }
-      | undefined;
-  } = {};
+  private readonly isUpToDate = false;
+  private readonly evaluatedCells: Immutable<EvaluationResult> = {};
+
   private readonly evalContext: EvalContext;
   private readonly lazyEvaluation: boolean;
 
@@ -83,12 +92,12 @@ export class EvaluationPlugin extends UIPlugin {
 
   handle(cmd: CoreViewCommand) {
     if (invalidateEvaluationCommands.has(cmd.type)) {
-      this.isUpToDate = false;
+      this.history.update("isUpToDate", false);
     }
     switch (cmd.type) {
       case "UPDATE_CELL":
         if ("content" in cmd || "format" in cmd) {
-          this.isUpToDate = false;
+          this.history.update("isUpToDate", false);
         }
         break;
       case "EVALUATE_CELLS":
@@ -100,7 +109,7 @@ export class EvaluationPlugin extends UIPlugin {
   finalize() {
     if (!this.isUpToDate) {
       this.evaluate();
-      this.isUpToDate = true;
+      this.history.update("isUpToDate", true);
     }
   }
 
@@ -192,12 +201,12 @@ export class EvaluationPlugin extends UIPlugin {
   private setEvaluatedCell(cellId: UID, evaluatedCell: Lazy<EvaluatedCell>) {
     const { col, row, sheetId } = this.getters.getCellPosition(cellId);
     if (!this.evaluatedCells[sheetId]) {
-      this.evaluatedCells[sheetId] = {};
+      this.history.update("evaluatedCells", sheetId, {});
     }
     if (!this.evaluatedCells[sheetId]![col]) {
-      this.evaluatedCells[sheetId]![col] = {};
+      this.history.update("evaluatedCells", sheetId, col, {});
     }
-    this.evaluatedCells[sheetId]![col]![row] = evaluatedCell;
+    this.history.update("evaluatedCells", sheetId, col, row, evaluatedCell);
     if (!this.lazyEvaluation) {
       this.evaluatedCells[sheetId]![col]![row]!();
     }
@@ -214,7 +223,7 @@ export class EvaluationPlugin extends UIPlugin {
   }
 
   private evaluate() {
-    this.evaluatedCells = {};
+    this.history.update("evaluatedCells", {});
     const cellsBeingComputed = new Set<UID>();
     const computeCell = (cell: Cell): Lazy<EvaluatedCell> => {
       const cellId = cell.id;

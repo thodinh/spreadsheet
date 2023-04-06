@@ -94,8 +94,6 @@ export const invalidateEvaluationCommands = new Set<CoreViewCommandTypes>([
   "CREATE_SHEET",
   "ADD_COLUMNS_ROWS",
   "REMOVE_COLUMNS_ROWS",
-  "UNDO",
-  "REDO",
 ]);
 
 export const invalidateCFEvaluationCommands = new Set<CoreViewCommandTypes>([
@@ -1164,5 +1162,5 @@ export interface CoreCommandDispatcher {
 export type CommandTypes = Command["type"];
 export type CoreCommandTypes = CoreCommand["type"];
 
-export type CoreViewCommand = CoreCommand | EvaluateCellsCommand | UndoCommand | RedoCommand;
+export type CoreViewCommand = CoreCommand | EvaluateCellsCommand;
 export type CoreViewCommandTypes = CoreViewCommand["type"];
