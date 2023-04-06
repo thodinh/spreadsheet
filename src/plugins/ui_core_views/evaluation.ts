@@ -24,7 +24,7 @@ import {
   CellPosition,
   CellValue,
   CellValueType,
-  Command,
+  CoreViewCommand,
   EnsureRange,
   EvalContext,
   EvaluatedCell,
@@ -81,7 +81,7 @@ export class EvaluationPlugin extends UIPlugin {
   // Command Handling
   // ---------------------------------------------------------------------------
 
-  handle(cmd: Command) {
+  handle(cmd: CoreViewCommand) {
     if (invalidateEvaluationCommands.has(cmd.type)) {
       this.isUpToDate = false;
     }

@@ -232,11 +232,11 @@ export class Model extends EventBus<any> implements CommandDispatcher {
       this.setupCorePlugin(Plugin, workbookData);
     }
     Object.assign(this.getters, this.coreGetters);
-    for (let Plugin of statefulUIPluginRegistry.getAll()) {
-      this.statefulUIPlugins.push(this.setupUiPlugin(Plugin));
-    }
     for (let Plugin of coreViewsPluginRegistry.getAll()) {
       this.coreViewsPlugins.push(this.setupUiPlugin(Plugin));
+    }
+    for (let Plugin of statefulUIPluginRegistry.getAll()) {
+      this.statefulUIPlugins.push(this.setupUiPlugin(Plugin));
     }
     for (let Plugin of featurePluginRegistry.getAll()) {
       this.featurePlugins.push(this.setupUiPlugin(Plugin));
@@ -276,7 +276,7 @@ export class Model extends EventBus<any> implements CommandDispatcher {
   }
 
   get allUIPlugins(): UIPlugin[] {
-    return [...this.statefulUIPlugins, ...this.coreViewsPlugins, ...this.featurePlugins];
+    return [...this.coreViewsPlugins, ...this.statefulUIPlugins, ...this.featurePlugins];
   }
 
   joinSession() {

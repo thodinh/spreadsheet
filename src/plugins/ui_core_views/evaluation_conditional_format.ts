@@ -1,6 +1,6 @@
 import { LINK_COLOR } from "../../constants";
 import { parseLiteral } from "../../helpers/cells";
-import { colorNumberString, isInside, percentile, recomputeZones, toXC } from "../../helpers/index";
+import { colorNumberString, percentile, recomputeZones } from "../../helpers/index";
 import { clip } from "../../helpers/misc";
 import { _lt } from "../../translation";
 import {
@@ -10,7 +10,6 @@ import {
   ColorScaleMidPointThreshold,
   ColorScaleRule,
   ColorScaleThreshold,
-  Command,
   ConditionalFormat,
   EvaluatedCell,
   HeaderIndex,
@@ -24,13 +23,27 @@ import {
   Zone,
 } from "../../types/index";
 import { UIPlugin } from "../ui_plugin";
+import { CoreViewCommand } from "./../../types/commands";
 
 // -----------------------------------------------------------------------------
 // Constants
 // -----------------------------------------------------------------------------
 
-export class EvaluationConditionalFormatPlugin extends UIPlugin {
-  static getters = ["getConditionalIcon", "getCellComputedStyle"] as const;
+type ComputedStyles = {
+  [sheet: string]: { [col: HeaderIndex]: (Style | undefined)[] };
+};
+type ComputedIcons = {
+  [sheet: string]: { [col: HeaderIndex]: (string | undefined)[] };
+};
+
+interface EvaluateCFState {
+  isStale: boolean;
+  computedStyles: ComputedStyles;
+  computedIcons: ComputedIcons;
+}
+
+export class EvaluationConditionalFormatPlugin extends UIPlugin<EvaluateCFState> {
+  static getters = ["getAdaptedCfRanges", "getConditionalIcon", "getCellComputedStyle"] as const;
   private isStale: boolean = true;
   // stores the computed styles in the format of computedStyles.sheetName[col][row] = Style
   private computedStyles: { [sheet: string]: { [col: HeaderIndex]: (Style | undefined)[] } } = {};
@@ -40,38 +53,20 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
   // Command Handling
   // ---------------------------------------------------------------------------
 
-  handle(cmd: Command) {
+  handle(cmd: CoreViewCommand) {
     if (
       invalidateCFEvaluationCommands.has(cmd.type) ||
       (cmd.type === "UPDATE_CELL" && "content" in cmd)
     ) {
       this.isStale = true;
     }
-
-    switch (cmd.type) {
-      case "ACTIVATE_SHEET":
-        const activeSheet = cmd.sheetIdTo;
-        this.computedStyles[activeSheet] = this.computedStyles[activeSheet] || {};
-        this.computedIcons[activeSheet] = this.computedIcons[activeSheet] || {};
-        this.isStale = true;
-        break;
-
-      case "AUTOFILL_CELL":
-        const sheetId = this.getters.getActiveSheetId();
-        const cfOrigin = this.getters.getRulesByCell(sheetId, cmd.originCol, cmd.originRow);
-        for (const cf of cfOrigin) {
-          this.adaptRules(sheetId, cf, [toXC(cmd.col, cmd.row)], []);
-        }
-        break;
-      case "PASTE_CONDITIONAL_FORMAT":
-        this.pasteCf(cmd.origin, cmd.target, cmd.operation);
-        break;
-    }
   }
 
   finalize() {
     if (this.isStale) {
-      this.computeStyles();
+      for (const sheetId of this.getters.getSheetIds()) {
+        this.computeStyles(sheetId);
+      }
       this.isStale = false;
     }
   }
@@ -120,8 +115,7 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
    * the resulting style will have the combination of all those values.
    * If multiple conditional formatting use the same style value, they will be applied in order so that the last applied wins
    */
-  private computeStyles() {
-    const sheetId = this.getters.getActiveSheetId();
+  private computeStyles(sheetId: UID) {
     this.computedStyles[sheetId] = {};
     this.computedIcons[sheetId] = {};
     const computedStyle = this.computedStyles[sheetId];
@@ -130,12 +124,12 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
         switch (cf.rule.type) {
           case "ColorScaleRule":
             for (let range of cf.ranges) {
-              this.applyColorScale(range, cf.rule);
+              this.applyColorScale(sheetId, range, cf.rule);
             }
             break;
           case "IconSetRule":
             for (let range of cf.ranges) {
-              this.applyIcon(range, cf.rule);
+              this.applyIcon(sheetId, range, cf.rule);
             }
             break;
           default:
@@ -166,11 +160,11 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
   }
 
   private parsePoint(
+    sheetId: UID,
     range: string,
     threshold: ColorScaleThreshold | ColorScaleMidPointThreshold | IconThreshold,
     functionName?: "min" | "max"
   ): null | number {
-    const sheetId = this.getters.getActiveSheetId();
     const rangeValues = this.getters
       .getEvaluatedCellsInZone(sheetId, this.getters.getRangeFromSheetXC(sheetId, range).zone)
       .filter((cell): cell is NumberCell => cell.type === CellValueType.number)
@@ -196,9 +190,17 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
     }
   }
 
-  private applyIcon(range: string, rule: IconSetRule): void {
-    const lowerInflectionPoint: number | null = this.parsePoint(range, rule.lowerInflectionPoint);
-    const upperInflectionPoint: number | null = this.parsePoint(range, rule.upperInflectionPoint);
+  private applyIcon(sheetId: UID, range: string, rule: IconSetRule): void {
+    const lowerInflectionPoint: number | null = this.parsePoint(
+      sheetId,
+      range,
+      rule.lowerInflectionPoint
+    );
+    const upperInflectionPoint: number | null = this.parsePoint(
+      sheetId,
+      range,
+      rule.upperInflectionPoint
+    );
     if (
       lowerInflectionPoint === null ||
       upperInflectionPoint === null ||
@@ -206,7 +208,6 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
     ) {
       return;
     }
-    const sheetId = this.getters.getActiveSheetId();
     const zone: Zone = this.getters.getRangeFromSheetXC(sheetId, range).zone;
     const computedIcons = this.computedIcons[sheetId];
     const iconSet: string[] = [rule.icons.upper, rule.icons.middle, rule.icons.lower];
@@ -253,10 +254,12 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
 
     return icons[2];
   }
-  private applyColorScale(range: string, rule: ColorScaleRule): void {
-    const minValue: number | null = this.parsePoint(range, rule.minimum, "min");
-    const midValue: number | null = rule.midpoint ? this.parsePoint(range, rule.midpoint) : null;
-    const maxValue: number | null = this.parsePoint(range, rule.maximum, "max");
+  private applyColorScale(sheetId: UID, range: string, rule: ColorScaleRule): void {
+    const minValue: number | null = this.parsePoint(sheetId, range, rule.minimum, "min");
+    const midValue: number | null = rule.midpoint
+      ? this.parsePoint(sheetId, range, rule.midpoint)
+      : null;
+    const maxValue: number | null = this.parsePoint(sheetId, range, rule.maximum, "max");
     if (
       minValue === null ||
       maxValue === null ||
@@ -265,7 +268,6 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
     ) {
       return;
     }
-    const sheetId = this.getters.getActiveSheetId();
     const zone: Zone = this.getters.getRangeFromSheetXC(sheetId, range).zone;
     const computedStyle = this.computedStyles[sheetId];
     const colorCellArgs: {
@@ -442,7 +444,12 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
   /**
    * Add or remove cells to a given conditional formatting rule.
    */
-  private adaptRules(sheetId: UID, cf: ConditionalFormat, toAdd: string[], toRemove: string[]) {
+  getAdaptedCfRanges(
+    sheetId: UID,
+    cf: ConditionalFormat,
+    toAdd: string[],
+    toRemove: string[]
+  ): string[] | undefined {
     if (toAdd.length === 0 && toRemove.length === 0) {
       return;
     }
@@ -454,43 +461,6 @@ export class EvaluationConditionalFormatPlugin extends UIPlugin {
     }
 
     currentRanges = currentRanges.concat(toAdd);
-    const newRangesXC: string[] = recomputeZones(currentRanges, toRemove);
-    this.dispatch("ADD_CONDITIONAL_FORMAT", {
-      cf: {
-        id: cf.id,
-        rule: cf.rule,
-        stopIfTrue: cf.stopIfTrue,
-      },
-      ranges: newRangesXC.map((xc) => this.getters.getRangeDataFromXc(sheetId, xc)),
-      sheetId,
-    });
-  }
-
-  private pasteCf(origin: CellPosition, target: CellPosition, operation: "CUT" | "COPY") {
-    const xc = toXC(target.col, target.row);
-    for (let rule of this.getters.getConditionalFormats(origin.sheetId)) {
-      for (let range of rule.ranges) {
-        if (
-          isInside(
-            origin.col,
-            origin.row,
-            this.getters.getRangeFromSheetXC(origin.sheetId, range).zone
-          )
-        ) {
-          const cf = rule;
-          const toRemoveRange: string[] = [];
-          if (operation === "CUT") {
-            //remove from current rule
-            toRemoveRange.push(toXC(origin.col, origin.row));
-          }
-          if (origin.sheetId === target.sheetId) {
-            this.adaptRules(origin.sheetId, cf, [xc], toRemoveRange);
-          } else {
-            this.adaptRules(target.sheetId, cf, [xc], []);
-            this.adaptRules(origin.sheetId, cf, [], toRemoveRange);
-          }
-        }
-      }
-    }
+    return recomputeZones(currentRanges, toRemove);
   }
 }
