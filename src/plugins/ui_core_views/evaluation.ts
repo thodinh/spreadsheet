@@ -481,7 +481,7 @@ export class EvaluationPlugin extends UIPlugin {
       for (const rcToUpdate of this.rcsToUpdate) {
         extendSet(rcsToUpdateBis, this.findCellsToCompute(rcToUpdate, false));
 
-        const content = this.RcToCell(rcToUpdate)?.content;
+        const content = this.rcToCell(rcToUpdate)?.content;
         // if the content of a cell changes, we need to check:
         if (content) {
           // 1) if we write in an empty cell containing the spread of a formula.
@@ -578,7 +578,7 @@ export class EvaluationPlugin extends UIPlugin {
   getColEvaluatedCells(sheetId: UID, col: HeaderIndex): EvaluatedCell[] {
     return Object.keys(this.evaluatedCells)
       .filter((rc) => {
-        const position = this.getters.getCellPosition(this.RcToCell(rc)!.id);
+        const position = this.getters.getCellPosition(this.rcToCell(rc)!.id);
         return position.sheetId === sheetId && position.col === col;
       })
       .map((rc) => this.evaluatedCells[rc]);
@@ -594,7 +594,7 @@ export class EvaluationPlugin extends UIPlugin {
   // Evaluator
   // ---------------------------------------------------------------------------
   private updateFormulaDependencies(thisRc: string, graphCreation: boolean) {
-    const cell = this.RcToCell(thisRc);
+    const cell = this.rcToCell(thisRc);
     const newDependencies: string[] = [];
     if (cell !== undefined && cell.isFormula) {
       for (const range of cell.dependencies) {
@@ -672,7 +672,7 @@ export class EvaluationPlugin extends UIPlugin {
       }
       this.spreadingRelations.removeNode(rc);
 
-      const cell = this.RcToCell(rc);
+      const cell = this.rcToCell(rc);
       if (cell === undefined) {
         return createEvaluatedCell("");
       }
@@ -960,8 +960,8 @@ export class EvaluationPlugin extends UIPlugin {
     return cellsToCompute;
   }
 
-  private RcToCell(rc: string): Cell | undefined {
-    return this.getters.getCell(RcToCellPosition(rc));
+  private rcToCell(rc: string): Cell | undefined {
+    return this.getters.getCell(rcToCellPosition(rc));
   }
 
   private assertSheetHasEnoughSpaceToSpreadFormulaResult(
@@ -1011,7 +1011,7 @@ function cellPositionToRc(position: CellPosition): string {
   return `${position.sheetId}!${position.col}!${position.row}`;
 }
 
-function RcToCellPosition(rc: string): CellPosition {
+function rcToCellPosition(rc: string): CellPosition {
   const [sheetId, col, row] = rc.split("!");
   return { sheetId, col: toNumber(col), row: toNumber(row) };
 }
