@@ -417,10 +417,10 @@ export class EvaluationPlugin extends UIPlugin {
   private readonly evalContext: EvalContext;
 
   private evaluatedCells: PositionDict<EvaluatedCell> = {};
-  private rcsToUpdate: Set<string> = new Set<string>();
+  private rcsToUpdate = new Set<string>();
 
   private formulaDependencies = new FormulaDependencyGraph();
-  private spreadedArraysFormulas: Set<string> = new Set<string>();
+  private spreadedArraysFormulas = new Set<string>();
   private spreadingRelations = new SpreadingRelation();
 
   private maxIteration = 100;
