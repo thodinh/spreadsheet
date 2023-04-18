@@ -22,16 +22,6 @@ type Node = string[];
 export class FormulaDependencyGraph {
   private readonly nodes: Map<string, Node> = new Map();
 
-  private addNode(rc: string): Node {
-    let node = this.nodes.get(rc);
-    if (node) {
-      return node;
-    }
-    node = [];
-    this.nodes.set(rc, node);
-    return node;
-  }
-
   removeAllDependencies(formulaRc) {
     for (const [rc] of this.nodes) {
       this.removeDependency({ parameterRc: rc, formulaRc: formulaRc });
@@ -43,8 +33,12 @@ export class FormulaDependencyGraph {
    *
    */
   addDependency({ parameterRc, formulaRc }: { parameterRc: string; formulaRc: string }): void {
-    const sourceNode = this.addNode(parameterRc);
-    sourceNode.push(formulaRc);
+    let node = this.nodes.get(parameterRc);
+    if (node) {
+      node.push(formulaRc);
+    } else {
+      this.nodes.set(parameterRc, [formulaRc]);
+    }
   }
 
   /**
