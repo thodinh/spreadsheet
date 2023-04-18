@@ -33,10 +33,8 @@ export class FormulaDependencyGraph {
   }
 
   removeAllDependencies(formulaRc) {
-    for (const rc in this.nodes) {
-      if (!this.nodes.get(rc)?.includes(formulaRc)) {
-        this.removeDependency({ parameterRc: rc, formulaRc: formulaRc });
-      }
+    for (const [rc, node] of this.nodes) {
+      this.removeDependency({ parameterRc: rc, formulaRc: formulaRc });
     }
   }
 
