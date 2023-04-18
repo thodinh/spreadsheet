@@ -23,8 +23,11 @@ export class FormulaDependencyGraph {
   private readonly nodes: Map<string, Node> = new Map();
 
   removeAllDependencies(formulaRc) {
-    for (const [rc] of this.nodes) {
-      this.removeDependency({ parameterRc: rc, formulaRc: formulaRc });
+    for (const node of this.nodes.values()) {
+      const index = node.findIndex((rc) => rc === formulaRc);
+      if (index > -1) {
+        node.splice(index, 1)[0];
+      }
     }
   }
 
@@ -38,20 +41,6 @@ export class FormulaDependencyGraph {
       node.push(formulaRc);
     } else {
       this.nodes.set(parameterRc, [formulaRc]);
-    }
-  }
-
-  /**
-   * Remove a dependency between two rc positions
-   */
-  removeDependency({ parameterRc, formulaRc }: { parameterRc: string; formulaRc: string }): void {
-    const sourceNode = this.nodes.get(parameterRc);
-    if (sourceNode) {
-      const index = sourceNode.findIndex((rc) => rc === formulaRc);
-
-      if (index > -1) {
-        sourceNode.splice(index, 1)[0];
-      }
     }
   }
 
