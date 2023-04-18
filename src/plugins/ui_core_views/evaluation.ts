@@ -947,7 +947,7 @@ export class EvaluationPlugin extends UIPlugin {
     return [refFn, range, evalContext];
   }
 
-  private findCellsToCompute(mainRc: string, selfInclude: boolean = true): Set<string> {
+  private findCellsToCompute(mainRc: string, selfInclude: boolean = true): Iterable<string> {
     const cellsToCompute = new Set<string>();
     if (selfInclude) {
       cellsToCompute.add(mainRc);
@@ -1053,7 +1053,7 @@ function assertFormulaReturnHaConsistentDimensions(formulaReturn: FormulaReturn)
   }
 }
 
-function extendSet<T>(destination: Set<T>, source: Set<T>) {
+function extendSet<T>(destination: Set<T>, source: Iterable<T>) {
   for (const element of source) {
     destination.add(element);
   }
