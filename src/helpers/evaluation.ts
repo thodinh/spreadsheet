@@ -32,6 +32,14 @@ export class FormulaDependencyGraph {
     return node;
   }
 
+  removeAllDependencies(formulaRc) {
+    for (const rc in this.nodes) {
+      if (!this.nodes.get(rc)?.includes(formulaRc)) {
+        this.removeDependency({ parameterRc: rc, formulaRc: formulaRc });
+      }
+    }
+  }
+
   /**
    * Create a dependency between two rc positions
    *

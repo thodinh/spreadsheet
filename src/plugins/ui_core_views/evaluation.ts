@@ -615,11 +615,7 @@ export class EvaluationPlugin extends UIPlugin {
      * notably the performance of the graph creation.
      */
     if (!graphCreation) {
-      for (const dependency in this.formulaDependencies.nodes) {
-        if (!newDependencies.includes(dependency)) {
-          this.formulaDependencies.removeDependency({ parameterRc: dependency, formulaRc: thisRc });
-        }
-      }
+      this.formulaDependencies.removeAllDependencies(thisRc);
     }
 
     for (const dependency of newDependencies) {
