@@ -3,28 +3,8 @@
  * to track relations between formula cells.
  */
 
-/**
- * This class represent a node of a Graph. It contains a value
- * (rc) and a list of nodes. The list represents all the links from
- * this node to the nodes present in the list.
- */
-export class Node {
-  constructor(public rc: string, public adjacent: Node[] = []) {}
-
-  addAdjacent(node: Node): void {
-    this.adjacent.push(node);
-  }
-
-  removeAdjacent(rc: string): Node | null {
-    const index = this.adjacent.findIndex((node) => node.rc === rc);
-
-    if (index > -1) {
-      return this.adjacent.splice(index, 1)[0];
-    }
-
-    return null;
-  }
-}
+// TODO remove type
+type Node = string[];
 
 /**
  * This class is an implementation of a directed Graph.
@@ -47,7 +27,7 @@ export class FormulaDependencyGraph {
     if (node) {
       return node;
     }
-    node = new Node(rc);
+    node = [];
     this.nodes.set(rc, node);
     return node;
   }
@@ -58,8 +38,7 @@ export class FormulaDependencyGraph {
    */
   addDependency({ parameterRc, formulaRc }: { parameterRc: string; formulaRc: string }): void {
     const sourceNode = this.addNode(parameterRc);
-    const destinationNode = this.addNode(formulaRc);
-    sourceNode.addAdjacent(destinationNode);
+    sourceNode.push(formulaRc);
   }
 
   /**
@@ -67,18 +46,22 @@ export class FormulaDependencyGraph {
    */
   removeDependency({ parameterRc, formulaRc }: { parameterRc: string; formulaRc: string }): void {
     const sourceNode = this.nodes.get(parameterRc);
-    const destinationNode = this.nodes.get(formulaRc);
-    if (sourceNode && destinationNode) {
-      sourceNode.removeAdjacent(formulaRc);
+    if (sourceNode) {
+      const index = sourceNode.findIndex((rc) => rc === formulaRc);
+
+      if (index > -1) {
+        sourceNode.splice(index, 1)[0];
+      }
     }
   }
 
-  private visitReferences(node: Node, visited: Set<string>, callback: (rc: string) => void): void {
-    visited.add(node.rc);
+  private visitReferences(rc: string, visited: Set<string>, callback: (rc: string) => void): void {
+    visited.add(rc);
 
-    for (const adjacent of node.adjacent) {
-      if (!visited.has(adjacent.rc)) {
-        callback(adjacent.rc);
+    const node = this.nodes.get(rc) || [];
+    for (const adjacent of node) {
+      if (!visited.has(adjacent)) {
+        callback(adjacent);
         this.visitReferences(adjacent, visited, callback);
       }
     }
@@ -91,11 +74,7 @@ export class FormulaDependencyGraph {
     const visited: Set<string> = new Set<string>();
 
     visited.add(rc);
-    const node = this.nodes.get(rc);
-    if (!node) {
-      return;
-    }
-    this.visitReferences(node, visited, callback);
+    this.visitReferences(rc, visited, callback);
   }
 }
 
