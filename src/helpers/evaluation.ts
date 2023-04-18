@@ -20,9 +20,9 @@ type Node = string[];
  * - (C1) ---> (C2)
  */
 export class FormulaDependencyGraph {
-  nodes: Map<string, Node> = new Map();
+  private readonly nodes: Map<string, Node> = new Map();
 
-  addNode(rc: string): Node {
+  private addNode(rc: string): Node {
     let node = this.nodes.get(rc);
     if (node) {
       return node;
@@ -33,7 +33,7 @@ export class FormulaDependencyGraph {
   }
 
   removeAllDependencies(formulaRc) {
-    for (const [rc, node] of this.nodes) {
+    for (const [rc] of this.nodes) {
       this.removeDependency({ parameterRc: rc, formulaRc: formulaRc });
     }
   }
