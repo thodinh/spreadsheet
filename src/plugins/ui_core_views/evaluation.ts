@@ -1,5 +1,4 @@
 import { compile } from "../../formulas/index";
-import { toNumber } from "../../functions/helpers";
 import { functionRegistry } from "../../functions/index";
 import { createEvaluatedCell, errorCell, evaluateLiteral } from "../../helpers/cells";
 import { FormulaDependencyGraph, SpreadingRelation } from "../../helpers/evaluation";
@@ -1009,7 +1008,7 @@ function cellPositionToRc(position: CellPosition): string {
 
 function rcToCellPosition(rc: string): CellPosition {
   const [sheetId, col, row] = rc.split("!");
-  return { sheetId, col: toNumber(col), row: toNumber(row) };
+  return { sheetId, col: Number(col), row: Number(row) };
 }
 
 function forEachSpreadPositionInMatrix(
