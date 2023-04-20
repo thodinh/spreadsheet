@@ -429,6 +429,9 @@ export class EvaluationPlugin extends UIPlugin {
   constructor(config: UIPluginConfig) {
     super(config);
     this.evalContext = config.custom;
+
+    //@ts-ignore
+    this.ui.timers = {};
   }
 
   // ---------------------------------------------------------------------------
@@ -511,10 +514,20 @@ export class EvaluationPlugin extends UIPlugin {
       const start = performance.now();
       this.evaluate();
       const end = performance.now();
-      console.log("Evaluation time: ", end - start + "ms");
+      // console.log("Evaluation time: ", end - start + "ms");
+      //@ts-ignore
+      if (!this.ui.timers.evaluate) {
+        //@ts-ignore
+        this.ui.timers.evaluate = end - start;
+      }
     }
     const end1 = performance.now();
-    console.log("Finalize time: ", end1 - start1 + "ms");
+    // console.log("Finalize time: ", end1 - start1 + "ms");
+    //@ts-ignore
+    if (!this.ui.timers.finalize) {
+      //@ts-ignore
+      this.ui.timers.finalize = end1 - start1;
+    }
   }
 
   // ---------------------------------------------------------------------------

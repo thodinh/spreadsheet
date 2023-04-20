@@ -32,7 +32,6 @@ const NOTIFICATION_STYLE =
   padding:20px;\
   z-index:10000;\
   width:140px;";
-
 topbarMenuRegistry.addChild("clear", ["file"], {
   name: "Clear & reload",
   sequence: 10,
@@ -112,6 +111,40 @@ class Demo extends Component {
       execute: () => this.notifyUser({ text: "This is a notification", tag: "notif" }),
     });
 
+    topbarMenuRegistry.addChild("test perfs", ["file"], {
+      name: "test perfs",
+      sequence: 10,
+      execute: async (env) => {
+        const iterations = 5;
+        const totalTimes = [];
+        const finalizeEvaluationTimes = [];
+        const evaluateTimes = [];
+
+        for (let i = 0; i < iterations; i++) {
+          const start = performance.now();
+          const model = new Model(makeLargeDataset(26, 10_000, ["formulas"]));
+          finalizeEvaluationTimes.push(model.config.timers.finalize);
+          evaluateTimes.push(model.config.timers.evaluate);
+          totalTimes.push(performance.now() - start);
+          console.log(
+            `[${i}] : Total: ${Math.round(totalTimes[i])}ms, Finalize: ${Math.round(
+              model.config.timers.finalize
+            )}ms, Evaluate: ${Math.round(model.config.timers.evaluate)}ms`
+          );
+        }
+
+        console.log(
+          `[Average] : Total: ${Math.round(getAverage(totalTimes))}ms, Finalize: ${Math.round(
+            getAverage(finalizeEvaluationTimes)
+          )}ms, Evaluate: ${Math.round(getAverage(evaluateTimes))}ms`
+        );
+      },
+    });
+
+    function getAverage(times) {
+      return times.reduce((a, b) => a + b, 0) / times.length;
+    }
+
     topbarMenuRegistry.addChild("xlsxImport", ["file"], {
       name: "Import XLSX",
       sequence: 25,
@@ -179,8 +212,8 @@ class Demo extends Component {
       this.transportService = undefined;
       this.stateUpdateMessages = [];
     }
-    // this.createModel(data || demoData);
-    this.createModel(makeLargeDataset(26, 10_000, ["formulas"]));
+    this.createModel(data || demoData);
+    // this.createModel(makeLargeDataset(26, 10_000, ["formulas"]));
     // this.createModel({});
   }
 
