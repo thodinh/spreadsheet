@@ -10,6 +10,7 @@ import {
   toXC,
   zoneToXc,
 } from "../../helpers/index";
+import { SetWrapper } from "../../helpers/set_wrapper";
 import { _lt } from "../../translation";
 import {
   CellErrorLevel,
@@ -43,6 +44,7 @@ import {
   UID,
   Zone,
 } from "../../types/index";
+
 import { UIPlugin, UIPluginConfig } from "../ui_plugin";
 
 const functionMap = functionRegistry.mapping;
@@ -416,10 +418,10 @@ export class EvaluationPlugin extends UIPlugin {
   private readonly evalContext: EvalContext;
 
   private evaluatedCells: PositionDict<EvaluatedCell> = {};
-  private rcsToUpdate = new Set<string>();
+  private rcsToUpdate = new SetWrapper<string>();
 
   private formulaDependencies = new FormulaDependencyGraph();
-  private spreadedArraysFormulas = new Set<string>();
+  private spreadedArraysFormulas = new SetWrapper<string>();
   private spreadingRelations = new SpreadingRelation();
 
   private maxIteration = 100;
@@ -461,12 +463,13 @@ export class EvaluationPlugin extends UIPlugin {
   }
 
   finalize() {
+    const start1 = performance.now();
     if (this.shouldRecomputeCellsEvaluation) {
       this.evaluatedCells = {};
-      this.rcsToUpdate = this.getSetOfAllCells();
+      this.rcsToUpdate = new SetWrapper(this.getSetOfAllCells());
       if (this.shouldRebuildDependenciesGraph) {
         this.formulaDependencies = new FormulaDependencyGraph();
-        this.spreadedArraysFormulas = new Set<string>();
+        this.spreadedArraysFormulas = new SetWrapper<string>();
         this.spreadingRelations = new SpreadingRelation();
         for (const rc of this.rcsToUpdate) {
           this.updateFormulaDependencies(rc, true);
@@ -475,7 +478,7 @@ export class EvaluationPlugin extends UIPlugin {
       }
       this.shouldRecomputeCellsEvaluation = false;
     } else if (this.rcsToUpdate.size) {
-      const rcsToUpdateBis = new Set<string>();
+      const rcsToUpdateBis = new SetWrapper<string>();
 
       for (const rcToUpdate of this.rcsToUpdate) {
         extendSet(rcsToUpdateBis, this.findCellsToCompute(rcToUpdate, false));
@@ -505,8 +508,13 @@ export class EvaluationPlugin extends UIPlugin {
       extendSet(this.rcsToUpdate, rcsToUpdateBis);
     }
     if (this.rcsToUpdate.size) {
+      const start = performance.now();
       this.evaluate();
+      const end = performance.now();
+      console.log("Evaluation time: ", end - start + "ms");
     }
+    const end1 = performance.now();
+    console.log("Finalize time: ", end1 - start1 + "ms");
   }
 
   // ---------------------------------------------------------------------------
@@ -635,9 +643,9 @@ export class EvaluationPlugin extends UIPlugin {
   }
 
   private evaluate() {
-    const cellsBeingComputed = new Set<UID>();
-    const currentRcsToUpdate = new Set<string>();
-    const nextRcsToUpdate = new Set<string>();
+    const cellsBeingComputed = new SetWrapper<UID>();
+    const currentRcsToUpdate = new SetWrapper<string>();
+    const nextRcsToUpdate = new SetWrapper<string>();
 
     const setEvaluatedCell = (rc: string, evaluatedCell: EvaluatedCell) => {
       if (nextRcsToUpdate.has(rc)) {
@@ -956,7 +964,7 @@ export class EvaluationPlugin extends UIPlugin {
   }
 
   private findCellsToCompute(mainRc: string, selfInclude: boolean = true): Iterable<string> {
-    const cellsToCompute = new Set<string>();
+    const cellsToCompute = new SetWrapper<string>();
     if (selfInclude) {
       cellsToCompute.add(mainRc);
     }
