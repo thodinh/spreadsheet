@@ -25,6 +25,7 @@ import {
   redo,
   selectCell,
   setCellContent,
+  setFormat,
   setStyle,
   undo,
 } from "../test_helpers/commands_helpers";
@@ -1008,6 +1009,26 @@ describe("Multi users synchronisation", () => {
     expect([alice, bob, charlie]).toHaveSynchronizedValue(
       (user) => user.getters.getRowSize("sheet2", 0),
       getDefaultCellHeight(getCell(alice, "A1"))
+    );
+  });
+
+  test("Can remove a format", () => {
+    const sheetId = bob.getters.getActiveSheetId();
+    setFormat(bob, "0.00%", target("A1"));
+    expect([alice, bob, charlie]).toHaveSynchronizedValue(
+      (user) => user.getters.getCell({ sheetId, col: 0, row: 0 })?.format,
+      "0.00%"
+    );
+
+    bob.dispatch("UPDATE_CELL", {
+      sheetId,
+      col: 0,
+      row: 0,
+      format: null,
+    });
+    expect([alice, bob, charlie]).toHaveSynchronizedValue(
+      (user) => user.getters.getCell({ sheetId, col: 0, row: 0 })?.format,
+      undefined
     );
   });
 });

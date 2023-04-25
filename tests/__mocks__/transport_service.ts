@@ -1,5 +1,4 @@
 import { DEFAULT_REVISION_ID } from "../../src/constants";
-import { deepCopy } from "../../src/helpers";
 import { UID, WorkbookData } from "../../src/types";
 import {
   CollaborationMessage,
@@ -9,7 +8,7 @@ import {
 
 export class MockTransportService implements TransportService<CollaborationMessage> {
   private listeners: { id: UID; callback: NewMessageCallback }[] = [];
-  private pendingMessages: CollaborationMessage[] = [];
+  private pendingMessages: string[] = [];
   private isConcurrent: boolean = false;
   private serverRevisionId: string = DEFAULT_REVISION_ID;
   snapshot?: WorkbookData;
@@ -18,8 +17,7 @@ export class MockTransportService implements TransportService<CollaborationMessa
     this.listeners.push({ id, callback });
   }
 
-  sendMessage(message: CollaborationMessage) {
-    const msg: CollaborationMessage = deepCopy(message);
+  sendMessage(msg: CollaborationMessage) {
     switch (msg.type) {
       case "REMOTE_REVISION":
       case "REVISION_UNDONE":
@@ -61,17 +59,18 @@ export class MockTransportService implements TransportService<CollaborationMessa
     this.pendingMessages = [];
   }
 
-  notifyListeners(message: CollaborationMessage) {
+  notifyListeners(message: string) {
     for (const { callback } of this.listeners) {
-      callback(deepCopy(message));
+      callback(JSON.parse(message));
     }
   }
 
   private broadcast(message: CollaborationMessage) {
+    const msg = JSON.stringify(message);
     if (this.isConcurrent) {
-      this.pendingMessages.push(message);
+      this.pendingMessages.push(msg);
     } else {
-      this.notifyListeners(message);
+      this.notifyListeners(msg);
     }
   }
 }

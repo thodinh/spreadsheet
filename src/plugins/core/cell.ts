@@ -126,7 +126,7 @@ export class CellPlugin extends CorePlugin<CoreState> implements CoreState {
           row: cmd.row,
           content: "",
           style: null,
-          format: "",
+          format: null,
         });
         break;
     }

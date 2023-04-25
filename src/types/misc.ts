@@ -112,7 +112,7 @@ export interface UpdateCellData {
   content?: string;
   formula?: string;
   style?: Style | null;
-  format?: Format;
+  format?: Format | null;
 }
 
 export interface Sheet {

@@ -542,7 +542,7 @@ describe("Menu Item actions", () => {
       expect(dispatch).toHaveBeenCalledWith("SET_FORMATTING", {
         sheetId: env.model.getters.getActiveSheetId(),
         target: env.model.getters.getSelectedZones(),
-        format: "",
+        format: null,
       });
     });
 
