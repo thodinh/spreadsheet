@@ -46,7 +46,6 @@ export const formatNumberCurrencyRounded: ActionSpec = {
 
 export const formatCustomCurrency: ActionSpec = {
   name: _lt("Custom currency"),
-  isVisible: (env) => env.loadCurrencies !== undefined,
   execute: ACTIONS.OPEN_CUSTOM_CURRENCY_SIDEPANEL_ACTION,
 };
 

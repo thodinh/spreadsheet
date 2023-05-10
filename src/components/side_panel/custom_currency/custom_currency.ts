@@ -67,7 +67,7 @@ export class CustomCurrencyPanel extends Component<Props, SpreadsheetChildEnv> {
 
   async updateAvailableCurrencies() {
     if (currenciesRegistry.getAll().length === 0) {
-      const currencies = (await this.env.loadCurrencies?.()) || [];
+      const currencies = await this.env.loadCurrencies();
       currencies.forEach((currency, index) => {
         currenciesRegistry.add(index.toString(), currency);
       });

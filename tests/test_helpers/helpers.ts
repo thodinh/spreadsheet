@@ -4,6 +4,7 @@ import format from "xml-formatter";
 import { Action } from "../../src/actions/action";
 import { Spreadsheet, SpreadsheetProps } from "../../src/components/spreadsheet/spreadsheet";
 import { functionRegistry } from "../../src/functions/index";
+import { DEFAULT_CURRENCIES } from "../../src/helpers/currency";
 import { ImageProvider } from "../../src/helpers/figures/images/image_provider";
 import { toCartesian, toUnboundedZone, toXC, toZone } from "../../src/helpers/index";
 import { Model } from "../../src/model";
@@ -16,7 +17,6 @@ import {
   ColorScaleThreshold,
   CommandTypes,
   ConditionalFormat,
-  Currency,
   EvaluatedCell,
   Format,
   RangeData,
@@ -108,11 +108,7 @@ export function makeTestEnv(mockEnv: Partial<SpreadsheetChildEnv> = {}): Spreads
     askConfirmation: mockEnv.askConfirmation || (() => {}),
     editText: mockEnv.editText || (() => {}),
     startCellEdition: mockEnv.startCellEdition || (() => {}),
-    loadCurrencies:
-      mockEnv.loadCurrencies ||
-      (async () => {
-        return [] as Currency[];
-      }),
+    loadCurrencies: mockEnv.loadCurrencies || (async () => DEFAULT_CURRENCIES),
   };
 }
 

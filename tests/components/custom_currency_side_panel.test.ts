@@ -83,15 +83,6 @@ describe("custom currency sidePanel component", () => {
       expect(document.querySelector(selectors.availableCurrencies)).toMatchSnapshot();
     });
 
-    test("if currencies aren't provided in spreadsheet --> remove 'available currencies' section", async () => {
-      // create spreadsheet without loadCurrencies in env
-      currenciesRegistry.content = {};
-      const { parent, fixture } = await mountSpreadsheet();
-      parent.env.openSidePanel("CustomCurrency");
-      await nextTick();
-      expect(fixture.querySelector(selectors.availableCurrencies)).toBe(null);
-    });
-
     // -------------------------------------------------------------------------
     // available currencies selector
     // -------------------------------------------------------------------------

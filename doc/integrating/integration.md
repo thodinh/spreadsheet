@@ -89,7 +89,7 @@ const model = new Model(data, {
 
 ## Custom currency formats
 
-Enable the custom currency format feature by providing an external access to you currencies.
+O-Spreadsheet comes with a default set of currency formats. These currencies can be overridden by providing an external access to your currencies to the model config.
 Your function loading the currencies should return a [`Currency`](https://github.com/odoo/o-spreadsheet/blob/b4c1339c82c3831e76636851116fbf754946ea79/src/types/currency.ts) array.
 
 ```ts

@@ -36,5 +36,5 @@ export interface SpreadsheetChildEnv extends SpreadsheetEnv {
   clipboard: ClipboardInterface;
   _t: TranslationFunction;
   startCellEdition: (content: string) => void;
-  loadCurrencies?: () => Promise<Currency[]>;
+  loadCurrencies: () => Promise<Currency[]>;
 }

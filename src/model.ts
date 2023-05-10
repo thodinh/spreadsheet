@@ -2,6 +2,7 @@ import { markRaw } from "@odoo/owl";
 import { LocalTransportService } from "./collaborative/local_transport_service";
 import { Session } from "./collaborative/session";
 import { DEFAULT_REVISION_ID } from "./constants";
+import { DEFAULT_CURRENCIES } from "./helpers/currency";
 import { EventBus } from "./helpers/event_bus";
 import { deepCopy, UuidGenerator } from "./helpers/index";
 import { buildRevisionLog } from "./history/factory";
@@ -81,6 +82,15 @@ import { getXLSX } from "./xlsx/xlsx_writer";
 
 export type Mode = "normal" | "readonly" | "dashboard";
 
+export interface PartialModelConfig extends Partial<Omit<ModelConfig, "external">> {
+  readonly external?: Partial<ModelConfig["external"]>;
+}
+
+export type ExternalModelConfig = Readonly<{
+  readonly fileStore?: FileStore;
+  readonly loadCurrencies: () => Promise<Currency[]>;
+}>;
+
 export interface ModelConfig {
   readonly mode: Mode;
   /**
@@ -95,10 +105,7 @@ export interface ModelConfig {
    * External dependencies required to enable some features
    * such as uploading images.
    */
-  readonly external: Readonly<{
-    readonly fileStore?: FileStore;
-    readonly loadCurrencies?: () => Promise<Currency[]>;
-  }>;
+  readonly external: ExternalModelConfig;
   readonly moveClient: (position: ClientPosition) => void;
   readonly transportService: TransportService;
   readonly client: Client;
@@ -178,7 +185,7 @@ export class Model extends EventBus<any> implements CommandDispatcher {
 
   constructor(
     data: any = {},
-    config: Partial<ModelConfig> = {},
+    config: PartialModelConfig = {},
     stateUpdateMessages: StateUpdateMessage[] = [],
     uuidGenerator: UuidGenerator = new UuidGenerator(),
     verboseImport = true
@@ -369,7 +376,7 @@ export class Model extends EventBus<any> implements CommandDispatcher {
     });
   }
 
-  private setupConfig(config: Partial<ModelConfig>): ModelConfig {
+  private setupConfig(config: PartialModelConfig): ModelConfig {
     const client = config.client || {
       id: this.uuidGenerator.uuidv4(),
       name: _lt("Anonymous").toString(),
@@ -379,13 +386,22 @@ export class Model extends EventBus<any> implements CommandDispatcher {
       ...config,
       mode: config.mode || "normal",
       custom: config.custom || {},
-      external: config.external || {},
+      external: this.setupExternalConfig(config.external),
       transportService,
       client,
       moveClient: () => {},
       snapshotRequested: false,
       notifyUI: (payload: NotifyUIEvent) => this.trigger("notify-ui", payload),
       lazyEvaluation: "lazyEvaluation" in config ? config.lazyEvaluation! : true,
+    };
+  }
+
+  private setupExternalConfig(
+    externalConfig: Partial<ExternalModelConfig> | undefined
+  ): ExternalModelConfig {
+    return {
+      fileStore: externalConfig?.fileStore,
+      loadCurrencies: externalConfig?.loadCurrencies || (async () => DEFAULT_CURRENCIES),
     };
   }
 

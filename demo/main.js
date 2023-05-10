@@ -1,7 +1,6 @@
 // Don't remove unused import
 // organize-imports-ignore
 import { demoData, makeLargeDataset } from "./data.js";
-import { currenciesData } from "./currencies.js";
 import { WebsocketTransport } from "./transport.js";
 import { FileStore } from "./file_store.js";
 
@@ -198,7 +197,6 @@ class Demo extends Component {
       data,
       {
         external: {
-          loadCurrencies: async () => currenciesData,
           fileStore: this.fileStore,
         },
         custom: {},

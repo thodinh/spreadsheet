@@ -5,7 +5,7 @@ import { DEFAULT_FONT_SIZE } from "../../src/constants";
 import { toZone, zoneToXc } from "../../src/helpers";
 import { Model } from "../../src/model";
 import { topbarComponentRegistry, topbarMenuRegistry } from "../../src/registries";
-import { ConditionalFormat, Currency, Pixel, SpreadsheetChildEnv, Style } from "../../src/types";
+import { ConditionalFormat, Pixel, SpreadsheetChildEnv, Style } from "../../src/types";
 import {
   addCellToSelection,
   createFilter,
@@ -631,9 +631,7 @@ test("Can show/hide a TopBarComponent based on condition", async () => {
 
 describe("TopBar - Custom currency", () => {
   test("can open custom currency sidepanel from tool", async () => {
-    const { fixture } = await mountSpreadsheet({
-      model: new Model({}, { external: { loadCurrencies: async () => [] as Currency[] } }),
-    });
+    const { fixture } = await mountSpreadsheet();
     await click(fixture, ".o-menu-item-button[title='More formats']");
     await click(fixture, ".o-menu-item[title='Custom currency']");
     expect(fixture.querySelector(".o-custom-currency")).toBeTruthy();

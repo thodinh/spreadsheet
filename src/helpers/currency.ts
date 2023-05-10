@@ -1,4 +1,6 @@
-export const currenciesData = [
+import { Currency } from "../types";
+
+export const DEFAULT_CURRENCIES: Currency[] = [
   { decimalPlaces: 2, name: "Afghan afghani", code: "AFN", symbol: "Afs", position: "after" },
   { decimalPlaces: 2, name: "Albanian lek", code: "ALL", symbol: "L", position: "after" },
   { decimalPlaces: 2, name: "Algerian dinar", code: "DZD", symbol: "DA", position: "after" },
