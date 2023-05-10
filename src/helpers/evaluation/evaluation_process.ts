@@ -40,15 +40,23 @@ export class EvaluationProcess {
     this.getters = getters;
   }
 
-  evaluatedCells: PositionDict<EvaluatedCell> = {};
+  private evaluatedCells: PositionDict<EvaluatedCell> = {};
 
   private formulaDependencies = new FormulaDependencyGraph();
   private spreadingFormulas = new Set<string>();
   private spreadingRelations = new SpreadingRelation();
 
+  getEvaluatedCellFromRc(rc: string): EvaluatedCell {
+    return this.evaluatedCells[rc] || createEvaluatedCell("");
+  }
+
   getSpreadingFormulaRc(rc: string): string | undefined {
     const arrayFormulas = this.spreadingRelations.getArrayFormulasRc(rc);
     return Array.from(arrayFormulas).find((rc) => this.spreadingFormulas.has(rc));
+  }
+
+  getRcs(): string[] {
+    return Object.keys(this.evaluatedCells);
   }
 
   // ----------------------------------------------------------
@@ -74,14 +82,12 @@ export class EvaluationProcess {
       const content = this.rcToCell(rc)?.content;
       // if the content of a cell changes, we need to check:
       if (content) {
-        for (const arrayFormula of this.spreadingRelations.getArrayFormulasRc(rc)) {
-          if (this.spreadingFormulas.has(arrayFormula)) {
-            // 1) if we write in an empty cell containing the spread of a formula.
-            //    In this case, it is necessary to indicate to recalculate the concerned
-            //    formula to take into account the new collisions.
-            extendSet(cells, this.findCellsToCompute(arrayFormula));
-            break; // there can be only one formula spreading on a cell
-          }
+        const formulaRc = this.getSpreadingFormulaRc(rc);
+        if (formulaRc) {
+          // 1) if we write in an empty cell containing the spread of a formula.
+          //    In this case, it is necessary to indicate to recalculate the concerned
+          //    formula to take into account the new collisions.
+          extendSet(cells, this.findCellsToCompute(formulaRc));
         }
       } else if (this.spreadingRelations.hasResult(rc)) {
         // 2) if we put an empty content on a cell which blocks the spread
@@ -304,7 +310,10 @@ export class EvaluationProcess {
     return (i: number, j: number) => {
       const position = { sheetId: sheetId, col: i + col, row: j + row };
       const rawCell = this.getters.getCell(position);
-      if (rawCell?.content || this.getEvaluatedCell(position).type !== CellValueType.empty) {
+      if (
+        rawCell?.content ||
+        this.getters.getEvaluatedCell(position).type !== CellValueType.empty
+      ) {
         throw new Error(
           _lt(
             "Array result was not expanded because it would overwrite data in %s.",

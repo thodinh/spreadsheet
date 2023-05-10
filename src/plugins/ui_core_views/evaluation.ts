@@ -1,6 +1,5 @@
 import { compile } from "../../formulas/index";
 import { functionRegistry } from "../../functions/index";
-import { createEvaluatedCell } from "../../helpers/cells";
 import { EvaluationProcess } from "../../helpers/evaluation/evaluation_process";
 import { cellPositionToRc, rcToCellPosition } from "../../helpers/evaluation/misc";
 import {
@@ -40,6 +39,8 @@ const functionMap = functionRegistry.mapping;
 const functions = functionRegistry.content;
 
 type CompilationParameters = [ReferenceDenormalizer, EnsureRange, EvalContext];
+
+//#region
 
 // ---------------------------------------------------------------------------
 // INTRODUCTION
@@ -389,6 +390,7 @@ type CompilationParameters = [ReferenceDenormalizer, EnsureRange, EvalContext];
 //       5 - We then iterate over the array of values (and formats if it's also an array)
 //           and we set the value and the format of the corresponding cell.
 
+//#endregion
 export class EvaluationPlugin extends UIPlugin {
   static getters = [
     "evaluateFormula",
@@ -457,7 +459,9 @@ export class EvaluationPlugin extends UIPlugin {
 
   evaluateFormula(formulaString: string, sheetId: UID = this.getters.getActiveSheetId()): any {
     const compiledFormula = compile(formulaString);
-    const params = this.getCompilationParameters((cell) => this.getEvaluatedCellFromRc(cell));
+    const params = this.getCompilationParameters((cell) =>
+      this.evalProcess.getEvaluatedCellFromRc(cell)
+    );
 
     const ranges: Range[] = [];
     for (let xc of compiledFormula.dependencies) {
@@ -496,11 +500,7 @@ export class EvaluationPlugin extends UIPlugin {
   }
 
   getEvaluatedCell(cellPosition: CellPosition): EvaluatedCell {
-    return this.getEvaluatedCellFromRc(cellPositionToRc(cellPosition));
-  }
-
-  getEvaluatedCellFromRc(rc: string): EvaluatedCell {
-    return this.evalProcess.evaluatedCells[rc] || createEvaluatedCell("");
+    return this.evalProcess.getEvaluatedCellFromRc(cellPositionToRc(cellPosition));
   }
 
   getEvaluatedCells(sheetId: UID): Record<UID, EvaluatedCell> {
@@ -697,8 +697,8 @@ export class EvaluationPlugin extends UIPlugin {
   }
 
   exportForExcel(data: ExcelWorkbookData) {
-    for (const rc in this.evalProcess.evaluatedCells) {
-      const evaluatedCell = this.evalProcess.evaluatedCells[rc];
+    for (const rc of this.evalProcess.getRcs()) {
+      const evaluatedCell = this.evalProcess.getEvaluatedCellFromRc(rc);
 
       const position = rcToCellPosition(rc);
       const xc = toXC(position.col, position.row);
