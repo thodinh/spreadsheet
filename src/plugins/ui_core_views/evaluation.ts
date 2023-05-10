@@ -26,7 +26,6 @@ import {
   Format,
   FormattedValue,
   FormulaCell,
-  HeaderIndex,
   invalidateDependenciesCommands,
   MatrixArg,
   PrimitiveArg,
@@ -41,8 +40,6 @@ const functionMap = functionRegistry.mapping;
 const functions = functionRegistry.content;
 
 type CompilationParameters = [ReferenceDenormalizer, EnsureRange, EvalContext];
-
-type PositionDict<T> = { [rc: string]: T };
 
 // ---------------------------------------------------------------------------
 // INTRODUCTION
@@ -400,7 +397,6 @@ export class EvaluationPlugin extends UIPlugin {
     "getRangeFormats",
     "getEvaluatedCell",
     "getEvaluatedCells",
-    "getColEvaluatedCells",
     "getEvaluatedCellsInZone",
   ] as const;
 
@@ -515,18 +511,6 @@ export class EvaluationPlugin extends UIPlugin {
       record[cellId] = this.getEvaluatedCell(position);
     }
     return record;
-  }
-
-  /**
-   * Returns all the evaluated cells of a col
-   */
-  getColEvaluatedCells(sheetId: UID, col: HeaderIndex): EvaluatedCell[] {
-    return Object.keys(this.evalProcess.evaluatedCells)
-      .filter((rc) => {
-        const position = rcToCellPosition(rc);
-        return position.sheetId === sheetId && position.col === col;
-      })
-      .map((rc) => this.evalProcess.evaluatedCells[rc]);
   }
 
   getEvaluatedCellsInZone(sheetId: UID, zone: Zone): EvaluatedCell[] {
@@ -696,10 +680,7 @@ export class EvaluationPlugin extends UIPlugin {
       return undefined;
     }
 
-    const arrayFormulasRc = this.spreadingRelations.getArrayFormulasRc(rc);
-    const spreadingFormulaRc = Array.from(arrayFormulasRc).find((rc) =>
-      this.spreadingFormulas.has(rc)
-    );
+    const spreadingFormulaRc = this.evalProcess.getSpreadingFormulaRc(rc);
 
     if (!spreadingFormulaRc) {
       return undefined;

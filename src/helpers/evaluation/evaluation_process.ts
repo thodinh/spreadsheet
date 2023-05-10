@@ -46,8 +46,13 @@ export class EvaluationProcess {
   private spreadingFormulas = new Set<string>();
   private spreadingRelations = new SpreadingRelation();
 
+  getSpreadingFormulaRc(rc: string): string | undefined {
+    const arrayFormulas = this.spreadingRelations.getArrayFormulasRc(rc);
+    return Array.from(arrayFormulas).find((rc) => this.spreadingFormulas.has(rc));
+  }
+
   // ----------------------------------------------------------
-  //        METHOD RELATING TO SPECIFIC CELL EVALUATION
+  //        METHOD RELATING TO SPECIFIC CELLS EVALUATION
   // ----------------------------------------------------------
 
   updateDependencies(rc: string) {
