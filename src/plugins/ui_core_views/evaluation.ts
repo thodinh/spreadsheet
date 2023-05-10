@@ -1,23 +1,13 @@
 import { compile } from "../../formulas/index";
 import { functionRegistry } from "../../functions/index";
+import { CompilationParameters } from "../../helpers/evaluation/compilation_parameters";
 import { EvaluationProcess } from "../../helpers/evaluation/evaluation_process";
 import { cellPositionToRc, rcToCellPosition } from "../../helpers/evaluation/misc";
-import {
-  getItemId,
-  intersection,
-  isZoneValid,
-  positions,
-  toXC,
-  zoneToXc,
-} from "../../helpers/index";
-import { _lt } from "../../translation";
-import { InvalidReferenceError } from "../../types/errors";
+import { getItemId, positions, toXC } from "../../helpers/index";
 import {
   CellPosition,
   CellValue,
-  CellValueType,
   Command,
-  EnsureRange,
   EvalContext,
   EvaluatedCell,
   ExcelCellData,
@@ -26,19 +16,13 @@ import {
   FormattedValue,
   FormulaCell,
   invalidateDependenciesCommands,
-  MatrixArg,
-  PrimitiveArg,
   Range,
-  ReferenceDenormalizer,
   UID,
   Zone,
 } from "../../types/index";
 import { UIPlugin, UIPluginConfig } from "../ui_plugin";
 
-const functionMap = functionRegistry.mapping;
 const functions = functionRegistry.content;
-
-type CompilationParameters = [ReferenceDenormalizer, EnsureRange, EvalContext];
 
 //#region
 
@@ -49,12 +33,12 @@ type CompilationParameters = [ReferenceDenormalizer, EnsureRange, EvalContext];
 // The evaluation plugin is in charge of computing the values of the cells.
 // This is a fairly complex task for several reasons:
 
-// Reason n°1: Cells can contain formulas that must be interpreted to know
+// Reason 1: Cells can contain formulas that must be interpreted to know
 // the final value of the cell. And these formulas can depend on other cells.
 // ex A1:"=SUM(B1:B2)" we have to evaluate B1:B2 first to be able to evaluate A1.
 // We say here that we have a 'formula dependency' between A1 and B1:B2.
 
-// Reason n°2: A cell can assign value to other cells that haven't content.
+// Reason 2: A cell can assign value to other cells that haven't content.
 // This concerns cells containing a formula that returns an array of values.
 // ex A1:"=SPLIT('Odoo','d')" Evaluating A1 must assign the value "O" to A1 and
 // "oo" to B1. We say here that we have a 'spread relation' between A1 and B1.
@@ -405,12 +389,13 @@ export class EvaluationPlugin extends UIPlugin {
   private shouldRebuildDependenciesGraph = true;
   private readonly evalContext: EvalContext;
 
-  private evalProcess = new EvaluationProcess(this.getters);
+  private evalProcess: EvaluationProcess;
   private rcsToUpdate = new Set<string>();
 
   constructor(config: UIPluginConfig) {
     super(config);
     this.evalContext = config.custom;
+    this.evalProcess = new EvaluationProcess(this.getters, this.evalContext);
   }
 
   // ---------------------------------------------------------------------------
@@ -459,9 +444,11 @@ export class EvaluationPlugin extends UIPlugin {
 
   evaluateFormula(formulaString: string, sheetId: UID = this.getters.getActiveSheetId()): any {
     const compiledFormula = compile(formulaString);
-    const params = this.getCompilationParameters((cell) =>
-      this.evalProcess.getEvaluatedCellFromRc(cell)
+    const compilationParams = new CompilationParameters(
+      this.evalProcess.getEvaluatedCellFromRc,
+      this.getters
     );
+    const params = compilationParams.getParameters(this.evalContext);
 
     const ranges: Range[] = [];
     for (let xc of compiledFormula.dependencies) {
@@ -517,147 +504,6 @@ export class EvaluationPlugin extends UIPlugin {
     return positions(zone).map(({ col, row }) =>
       this.getters.getEvaluatedCell({ sheetId, col, row })
     );
-  }
-
-  /**
-   * Return all functions necessary to properly evaluate a formula:
-   * - a refFn function to read any reference, cell or range of a normalized formula
-   * - a range function to convert any reference to a proper value array
-   * - an evaluation context
-   */
-  private getCompilationParameters(
-    computeCell: (rc: string) => EvaluatedCell
-  ): CompilationParameters {
-    const evalContext = Object.assign(Object.create(functionMap), this.evalContext, {
-      getters: this.getters,
-    });
-    const getters = this.getters;
-
-    function readCell(range: Range): PrimitiveArg {
-      if (!getters.tryGetSheet(range.sheetId)) {
-        throw new Error(_lt("Invalid sheet name"));
-      }
-      const position = { sheetId: range.sheetId, col: range.zone.left, row: range.zone.top };
-      const evaluatedCell = getEvaluatedCellIfNotEmpty(position);
-      if (evaluatedCell === undefined) {
-        return { value: null };
-      }
-      return evaluatedCell;
-    }
-
-    const getEvaluatedCellIfNotEmpty = (position: CellPosition): EvaluatedCell | undefined => {
-      const rc = cellPositionToRc(position);
-      const evaluatedCell = getEvaluatedCell(rc);
-      if (evaluatedCell.type === CellValueType.empty) {
-        const cell = getters.getCell(position);
-        if (!cell || cell.content === "") {
-          return undefined;
-        }
-      }
-      return evaluatedCell;
-    };
-
-    const getEvaluatedCell = (rc: string): EvaluatedCell => {
-      const evaluatedCell = computeCell(rc);
-      if (evaluatedCell.type === CellValueType.error) {
-        throw evaluatedCell.error;
-      }
-      return evaluatedCell;
-    };
-
-    /**
-     * Return the values of the cell(s) used in reference, but always in the format of a range even
-     * if a single cell is referenced. It is a list of col values. This is useful for the formulas that describe parameters as
-     * range<number> etc.
-     *
-     * Note that each col is possibly sparse: it only contain the values of cells
-     * that are actually present in the grid.
-     */
-    function range({ sheetId, zone }: Range): MatrixArg {
-      if (!isZoneValid(zone)) {
-        throw new InvalidReferenceError();
-      }
-
-      // Performance issue: Avoid fetching data on positions that are out of the spreadsheet
-      // e.g. A1:ZZZ9999 in a sheet with 10 cols and 10 rows should ignore everything past J10 and return a 10x10 array
-      const sheetZone = getters.getSheetZone(sheetId);
-      const _zone = intersection(zone, sheetZone);
-      if (!_zone) {
-        return { value: [[]], format: [[]] };
-      }
-
-      const height = _zone.bottom - _zone.top + 1;
-      const width = _zone.right - _zone.left + 1;
-      const value: CellValue[][] = Array.from({ length: width }, () =>
-        Array.from({ length: height })
-      );
-      const format: Format[][] = Array.from({ length: width }, () =>
-        Array.from({ length: height })
-      );
-
-      // Performance issue: nested loop is faster than a map here
-      for (let col = _zone.left; col <= _zone.right; col++) {
-        for (let row = _zone.top; row <= _zone.bottom; row++) {
-          const evaluatedCell = getEvaluatedCellIfNotEmpty({ sheetId: sheetId, col, row });
-          if (evaluatedCell) {
-            const colIndex = col - _zone.left;
-            const rowIndex = row - _zone.top;
-            value[colIndex][rowIndex] = evaluatedCell.value;
-            if (evaluatedCell.format !== undefined) {
-              format[colIndex][rowIndex] = evaluatedCell.format;
-            }
-          }
-        }
-      }
-      return { value, format };
-    }
-
-    /**
-     * Returns the value of the cell(s) used in reference
-     *
-     * @param range the references used
-     * @param isMeta if a reference is supposed to be used in a `meta` parameter as described in the
-     *        function for which this parameter is used, we just return the string of the parameter.
-     *        The `compute` of the formula's function must process it completely
-     */
-    function refFn(
-      range: Range,
-      isMeta: boolean,
-      functionName: string,
-      paramNumber?: number
-    ): PrimitiveArg {
-      if (isMeta) {
-        // Use zoneToXc of zone instead of getRangeString to avoid sending unbounded ranges
-        return { value: zoneToXc(range.zone) };
-      }
-
-      if (!isZoneValid(range.zone)) {
-        throw new InvalidReferenceError();
-      }
-
-      // if the formula definition could have accepted a range, we would pass through the _range function and not here
-      if (range.zone.bottom !== range.zone.top || range.zone.left !== range.zone.right) {
-        throw new Error(
-          paramNumber
-            ? _lt(
-                "Function %s expects the parameter %s to be a single value or a single cell reference, not a range.",
-                functionName.toString(),
-                paramNumber.toString()
-              )
-            : _lt(
-                "Function %s expects its parameters to be single values or single cell references, not ranges.",
-                functionName.toString()
-              )
-        );
-      }
-
-      if (range.invalidSheetName) {
-        throw new Error(_lt("Invalid sheet name: %s", range.invalidSheetName));
-      }
-
-      return readCell(range);
-    }
-    return [refFn, range, evalContext];
   }
 
   // ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import {
   CellPosition,
   CellValue,
   CellValueType,
+  EvalContext,
   EvaluatedCell,
   Format,
   FormulaCell,
@@ -25,6 +26,7 @@ import {
 import { createEvaluatedCell, errorCell, evaluateLiteral } from "../cells";
 import { toXC } from "../coordinates";
 import { mapToPositionsInZone } from "../zones";
+import { CompilationParameters, Parameters } from "./compilation_parameters";
 import { FormulaDependencyGraph } from "./formula_dependency_graph";
 import { cellPositionToRc, rcToCellPosition } from "./misc";
 import { SpreadingRelation } from "./spreading_relation";
@@ -35,9 +37,12 @@ const MAX_CYCLE_ITERATION = 100;
 
 export class EvaluationProcess {
   getters: Getters;
+  evalContext: EvalContext;
+  compilationParameters: Parameters = [() => {}, {}];
 
-  constructor(getters: Getters) {
+  constructor(getters: Getters, evalContext: EvalContext) {
     this.getters = getters;
+    this.evalContext = evalContext;
   }
 
   private evaluatedCells: PositionDict<EvaluatedCell> = {};
@@ -146,7 +151,8 @@ export class EvaluationProcess {
     this.cellsBeingComputed = new Set<UID>();
     this.nextRcsToUpdate = cells;
 
-    const compilationParameters = this.getCompilationParameters(computeCell);
+    const compilationParams = new CompilationParameters(this.computeCell, this.getters);
+    this.compilationParameters = compilationParams.getParameters(this.evalContext);
 
     let currentCycle = 0;
     while (this.nextRcsToUpdate.size && currentCycle < MAX_CYCLE_ITERATION) {
@@ -221,7 +227,7 @@ export class EvaluationProcess {
     }
     const msg = e?.errorType || CellErrorType.GenericError;
     // apply function name
-    const __lastFnCalled = compilationParameters[2].__lastFnCalled || "";
+    const __lastFnCalled = this.compilationParameters[2].__lastFnCalled || "";
     const error = new EvaluationError(
       msg,
       e.message.replace("[[FUNCTION_NAME]]", __lastFnCalled),
@@ -232,14 +238,14 @@ export class EvaluationProcess {
 
   private computeFormulaCell = (cellData: FormulaCell): EvaluatedCell => {
     const cellId = cellData.id;
-    compilationParameters[2].__originCellXC = () => {
+    this.compilationParameters[2].__originCellXC = () => {
       // compute the value lazily for performance reasons
-      const position = compilationParameters[2].getters.getCellPosition(cellId);
+      const position = this.compilationParameters[2].getters.getCellPosition(cellId);
       return toXC(position.col, position.row);
     };
     const formulaReturn = cellData.compiledFormula.execute(
       cellData.dependencies,
-      ...compilationParameters
+      ...this.compilationParameters
     );
 
     assertFormulaReturnHasConsistentDimensions(formulaReturn);
