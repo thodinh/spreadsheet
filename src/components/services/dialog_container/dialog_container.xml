@@ -1,0 +1,7 @@
+<templates>
+  <t t-name="o-spreadsheet-DialogContainer" owl="1">
+    <t t-foreach="dialogs" t-as="dialogId" t-key="dialogId">
+      <t t-component="dialogId_value.dialogComponent" t-props="dialogId_value.dialogProps"/>
+    </t>
+  </t>
+</templates>

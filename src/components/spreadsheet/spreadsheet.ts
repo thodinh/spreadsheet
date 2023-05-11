@@ -3,6 +3,7 @@ import {
   onMounted,
   onPatched,
   onWillUnmount,
+  reactive,
   useExternalListener,
   useState,
   useSubEnv,
@@ -26,6 +27,8 @@ import {
 import { ImageProvider } from "../../helpers/figures/images/image_provider";
 import { Model } from "../../model";
 import { ComposerSelection } from "../../plugins/ui_stateful/edition";
+import { DialogService } from "../../services/dialog_service";
+import { NotificationService } from "../../services/notification_service";
 import { _lt } from "../../translation";
 import { Pixel, SpreadsheetChildEnv } from "../../types";
 import { NotifyUIEvent } from "../../types/ui";
@@ -33,6 +36,8 @@ import { BottomBar } from "../bottom_bar/bottom_bar";
 import { SpreadsheetDashboard } from "../dashboard/dashboard";
 import { Grid } from "../grid/grid";
 import { css } from "../helpers/css";
+import { ComponentContainer } from "../services/components_container/components_container";
+import { SimpleDialog } from "../services/dialog_container/simple_dialog";
 import { SidePanel } from "../side_panel/side_panel/side_panel";
 import { TopBar } from "../top_bar/top_bar";
 import { instantiateClipboard } from "./../../helpers/clipboard/navigator_clipboard_wrapper";
@@ -179,7 +184,14 @@ interface ComposerState {
 
 export class Spreadsheet extends Component<SpreadsheetProps, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-Spreadsheet";
-  static components = { TopBar, Grid, BottomBar, SidePanel, SpreadsheetDashboard };
+  static components = {
+    TopBar,
+    Grid,
+    BottomBar,
+    SidePanel,
+    SpreadsheetDashboard,
+    ComponentContainer,
+  };
   static _t = t;
 
   sidePanel!: SidePanelState;
@@ -213,6 +225,11 @@ export class Spreadsheet extends Component<SpreadsheetProps, SpreadsheetChildEnv
       "CTRL+F": () => this.toggleSidePanel("FindAndReplace", {}),
     };
     const fileStore = this.model.config.external.fileStore;
+    const services = {
+      notification: reactive(new NotificationService()),
+      dialog: reactive(new DialogService()),
+    };
+
     useSubEnv({
       model: this.model,
       imageProvider: fileStore ? new ImageProvider(fileStore) : undefined,
@@ -223,6 +240,9 @@ export class Spreadsheet extends Component<SpreadsheetProps, SpreadsheetChildEnv
       _t: Spreadsheet._t,
       clipboard: this.env.clipboard || instantiateClipboard(),
       startCellEdition: (content: string) => this.onGridComposerCellFocused(content),
+      spreadsheetServices: services,
+      notifyUser: (opts) => services.notification.add(opts.text, {}),
+      askConfirmation: (opts) => services.dialog.add(SimpleDialog, {}),
     });
 
     useExternalListener(window as any, "resize", () => this.render(true));

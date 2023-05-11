@@ -1,0 +1,5 @@
+<templates>
+  <t t-name="o-spreadsheet-SimpleDialog" owl="1">
+    <div class="w-25 h-25 bg-white">Coucou</div>
+  </t>
+</templates>

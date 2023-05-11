@@ -1,0 +1,9 @@
+<templates>
+  <t t-name="o-spreadsheet-ComponentContainer" owl="1">
+    <div class="o-component-container position-absolute">
+      <t t-foreach="components" t-as="c" t-key="c.key">
+        <t t-component="c.Component" t-props="c.props"/>
+      </t>
+    </div>
+  </t>
+</templates>

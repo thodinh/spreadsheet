@@ -1,5 +1,7 @@
 import { Model } from "..";
 import { ClipboardInterface } from "../helpers/clipboard/navigator_clipboard_wrapper";
+import { DialogService } from "../services/dialog_service";
+import { NotificationService } from "../services/notification_service";
 import { TranslationFunction } from "../translation";
 import { Currency } from "./currency";
 import { ImageProviderInterface } from "./files";
@@ -25,6 +27,10 @@ export interface SpreadsheetEnv {
     callback: (text: string | null) => any,
     options?: EditTextOptions
   ) => any;
+  spreadsheetServices: {
+    notification: NotificationService;
+    dialog: DialogService;
+  };
 }
 
 export interface SpreadsheetChildEnv extends SpreadsheetEnv {

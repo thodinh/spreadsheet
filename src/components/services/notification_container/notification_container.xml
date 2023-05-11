@@ -1,0 +1,17 @@
+<templates>
+  <t t-name="o-spreadsheet-NotificationContainer" owl="1">
+    <div class="o-notification-container position-absolute">
+      <t t-foreach="notifications" t-as="notifKey" t-key="notifKey">
+        <div
+          class="o-notification bg-white p-3"
+          t-att-class="{
+            'o-notification-error': notifKey_value.type === 'error',
+            'o-notification-warning': notifKey_value.type === 'warning',
+          }"
+          t-on-click="() => this.onNotificationClick(notifKey)">
+          <span t-esc="notifKey_value.message"/>
+        </div>
+      </t>
+    </div>
+  </t>
+</templates>

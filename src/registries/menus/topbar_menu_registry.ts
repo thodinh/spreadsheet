@@ -383,4 +383,14 @@ topbarMenuRegistry
   .addChild("remove_data_filter", ["data"], {
     ...ACTION_DATA.removeDataFilter,
     sequence: 10,
+  })
+  .addChild("testNotify", ["data"], {
+    name: _lt("Notify"),
+    sequence: 10,
+    execute: (env) => env.notifyUser({ text: "lol", tag: "lmao" }),
+  })
+  .addChild("testOpenDialog", ["data"], {
+    name: _lt("Open Dialog"),
+    sequence: 10,
+    execute: (env) => env.askConfirmation("okay ? ", () => {}),
   });
