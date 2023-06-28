@@ -59,7 +59,6 @@ export interface WorkbookData {
   styles: { [key: number]: Style };
   formats: { [key: number]: Format };
   borders: { [key: number]: Border };
-  entities: { [key: string]: { [key: string]: any } };
   revisionId: UID;
   uniqueFigureIds: boolean;
   settings: WorkbookSettings;
