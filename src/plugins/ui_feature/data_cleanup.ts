@@ -2,6 +2,7 @@ import { deepEquals, positions, range, zoneToDimension } from "../../helpers";
 import { ClipboardCellsState } from "../../helpers/clipboard/clipboard_cells_state";
 import { _t } from "../../translation";
 import {
+  CellPosition,
   Command,
   CommandResult,
   HeaderIndex,
@@ -37,6 +38,9 @@ export class DataCleanupPlugin extends UIPlugin {
     switch (cmd.type) {
       case "REMOVE_DUPLICATES":
         this.removeDuplicates(cmd.columns, cmd.hasHeader);
+        break;
+      case "TRIM_WHITESPACE":
+        this.trimWhitespace();
         break;
     }
   }
@@ -201,5 +205,44 @@ export class DataCleanupPlugin extends UIPlugin {
       return CommandResult.DuplicatesColumnsSelected;
     }
     return CommandResult.Success;
+  }
+
+  private trimWhitespace() {
+    const zones = this.getters.getSelectedZones();
+    const sheetId = this.getters.getActiveSheetId();
+    let count = 0;
+    for (const zone of zones) {
+      positions(zone).map(({ col, row }) => {
+        count += this.trimCell({ col, row, sheetId }) ? 1 : 0;
+      });
+    }
+    const text = count
+      ? _t("Trimmed whitespace from %s cells.", count)
+      : _t("No selected cells had whitespace trimmed.");
+    this.ui.notifyUI({
+      type: "info",
+      text: text.toString(),
+      sticky: false,
+    });
+  }
+
+  // Trims whitespace from cell content and returns true if the content has changed.
+  private trimCell({ col, row, sheetId }: CellPosition): boolean {
+    const cell = this.getters.getCell({ col, row, sheetId });
+    if (!cell) {
+      return false;
+    }
+    const contentLines = cell.content.split("\n");
+    const trimmedContent = contentLines.map((line) => line.trim().replace(/\s+/g, " ")).join("\n");
+    if (trimmedContent === cell.content) {
+      return false;
+    }
+    this.dispatch("UPDATE_CELL", {
+      sheetId,
+      col,
+      row,
+      content: trimmedContent,
+    });
+    return true;
   }
 }

@@ -506,6 +506,10 @@ export interface RemoveDuplicatesCommand {
   hasHeader: boolean;
 }
 
+export interface TrimWhitespaceCommand {
+  type: "TRIM_WHITESPACE";
+}
+
 //#endregion
 
 //#region Local Commands
@@ -1033,7 +1037,8 @@ export type LocalCommand =
   | ActivatePreviousSheetCommand
   | UpdateFilterCommand
   | SplitTextIntoColumnsCommand
-  | RemoveDuplicatesCommand;
+  | RemoveDuplicatesCommand
+  | TrimWhitespaceCommand;
 
 export type Command = CoreCommand | LocalCommand;
 

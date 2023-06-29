@@ -385,6 +385,10 @@ topbarMenuRegistry
     ...ACTION_DATA.removeDuplicates,
     sequence: 10,
   })
+  .addChild("trim_whitespace", ["data", "data_cleanup"], {
+    ...ACTION_DATA.trimWhitespace,
+    sequence: 20,
+  })
   .addChild("split_to_columns", ["data"], {
     ...ACTION_DATA.splitToColumns,
     sequence: 20,
