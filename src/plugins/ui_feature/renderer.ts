@@ -21,6 +21,7 @@ import {
   MIN_CF_ICON_MARGIN,
   TEXT_HEADER_COLOR,
 } from "../../constants";
+import { isVisibleErrorCell } from "../../helpers/cells";
 import {
   computeTextFont,
   computeTextFontSizeInPixels,
@@ -33,7 +34,6 @@ import {
   positionToZone,
   union,
 } from "../../helpers/index";
-import { CellErrorLevel } from "../../types/errors";
 import {
   Align,
   Box,
@@ -166,7 +166,7 @@ export class RendererPlugin extends UIPlugin {
         ctx.fillStyle = style.fillColor || "#ffffff";
         ctx.fillRect(box.x, box.y, box.width, box.height);
       }
-      if (box.error) {
+      if (box.isError) {
         ctx.fillStyle = "red";
         ctx.beginPath();
         ctx.moveTo(box.x + box.width - 5, box.y);
@@ -631,6 +631,11 @@ export class RendererPlugin extends UIPlugin {
       verticalAlign,
     };
 
+    /** Error */
+    if (isVisibleErrorCell(cell) || this.getters.isDataValidationInvalid({ sheetId, col, row })) {
+      box.isError = true;
+    }
+
     if (cell.type === CellValueType.empty) {
       return box;
     }
@@ -668,11 +673,6 @@ export class RendererPlugin extends UIPlugin {
       width: wrapping === "overflow" ? textWidth : width,
       align,
     };
-
-    /** Error */
-    if (cell.type === CellValueType.error && cell.error.logLevel > CellErrorLevel.silent) {
-      box.error = cell.error.message;
-    }
 
     /** ClipRect */
     const isOverflowing = contentWidth > width || fontSizePX > height;

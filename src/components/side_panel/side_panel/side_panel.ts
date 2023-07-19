@@ -102,8 +102,21 @@ css/* scss */ `
       margin-right: 0px;
     }
 
+    .o-sidePanel-btn-link {
+      font-size: 14px;
+      padding: 20px 24px 11px 24px;
+      height: 44px;
+      cursor: pointer;
+      text-decoration: none;
+      &:hover {
+        color: #003a39;
+        text-decoration: none;
+      }
+    }
+
     .o-input {
       color: #666666;
+      border-width: 1px;
       border-radius: 4px;
       min-width: 0px;
       padding: 4px 6px;

@@ -1,0 +1,41 @@
+<templates>
+  <t t-name="o-spreadsheet-DataValidationForm" owl="1">
+    <div class="o-dv-form w-100 h-100">
+      <div class="o-section o-dv-range">
+        <div class="o-section-title">Apply to range</div>
+        <SelectionInput
+          ranges="() => state.dvRule.ranges"
+          class="'o-range'"
+          isInvalid="isRangeValid"
+          onSelectionChanged="(ranges) => this.onRangesChanged(ranges)"
+          required="true"
+        />
+
+        <div class="o-subsection">
+          <div class="o-section-title">Criteria</div>
+          <select class="o-input mb-4" t-on-change="onCriterionTypeChanged">
+            <option
+              t-foreach="dvCriterionItems"
+              t-as="dvCriterionItem"
+              t-key="dvCriterionItem.type"
+              t-att-value="dvCriterionItem.type"
+              t-esc="dvCriterionItem.name"
+              t-att-selected="dvCriterionItem.type === state.dvRule.criterion.type"
+            />
+          </select>
+        </div>
+
+        <t
+          t-component="criterionComponent"
+          initialValues="state.dvRule.criterion.values"
+          onValuesChanged.bind="onValuesChanged"
+        />
+
+        <div class="o-sidePanelButtons">
+          <button t-on-click="props.onExit" class="o-sidePanelButton o-dv-cancel">Cancel</button>
+          <button t-on-click="onSave" class="o-sidePanelButton o-dv-save">Save</button>
+        </div>
+      </div>
+    </div>
+  </t>
+</templates>

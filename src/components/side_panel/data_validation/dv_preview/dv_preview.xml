@@ -1,0 +1,21 @@
+<templates>
+  <t t-name="o-spreadsheet-DataValidationPreview" owl="1">
+    <div class="o-dv-preview w-100 p-3" t-on-click="() => this.props.onClick()">
+      <div class="d-flex h-100 justify-content-between">
+        <div class="o-dv-container h-100 d-flex flex-column justify-content-between">
+          <div class="o-dv-preview-description fw-bold text-truncate">
+            <span t-esc="descriptionString"/>
+          </div>
+          <div class="o-dv-preview-range text-truncate">
+            <span t-esc="rangesString"/>
+          </div>
+        </div>
+        <div class="o-dv-preview-delete d-flex align-items-center px-3">
+          <div class="text-muted" t-on-click.stop="deleteDataValidation">
+            <t t-call="o-spreadsheet-Icon.TRASH"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </t>
+</templates>

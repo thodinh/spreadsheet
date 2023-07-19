@@ -6,7 +6,15 @@ import { ClipboardPasteOptions } from "./clipboard";
 import { UpDown } from "./conditional_formatting";
 import { FigureSize } from "./figure";
 import { Image } from "./image";
-import { ConditionalFormat, Figure, Format, Locale, Style, Zone } from "./index";
+import {
+  ConditionalFormat,
+  DataValidationRule,
+  Figure,
+  Format,
+  Locale,
+  Style,
+  Zone,
+} from "./index";
 import {
   Border,
   BorderData,
@@ -205,6 +213,9 @@ export const coreTypes = new Set<CoreCommandTypes>([
   "CREATE_IMAGE",
 
   "UPDATE_LOCALE",
+
+  "ADD_DATA_VALIDATION_RULE",
+  "REMOVE_DATA_VALIDATION_RULE",
 ]);
 
 export function isCoreCommand(cmd: Command): cmd is CoreCommand {
@@ -494,6 +505,16 @@ export interface SetDecimalCommand extends TargetDependentCommand {
 export interface UpdateLocaleCommand {
   type: "UPDATE_LOCALE";
   locale: Locale;
+}
+
+export interface AddDataValidationCommand extends SheetDependentCommand, RangesDependentCommand {
+  type: "ADD_DATA_VALIDATION_RULE";
+  dv: Omit<DataValidationRule, "ranges">;
+}
+
+export interface RemoveDataValidationCommand extends SheetDependentCommand {
+  type: "REMOVE_DATA_VALIDATION_RULE";
+  id: string;
 }
 
 //#endregion
@@ -952,12 +973,18 @@ export type CoreCommand =
   | CreateChartCommand
   | UpdateChartCommand
 
-  /** Image */
+  /** IMAGE */
   | CreateImageOverCommand
 
   /** FILTERS */
   | CreateFilterTableCommand
   | RemoveFilterTableCommand
+
+  /** DATA VALIDATION */
+  | AddDataValidationCommand
+  | RemoveDataValidationCommand
+
+  /** MISC */
   | UpdateLocaleCommand;
 
 export type LocalCommand =
@@ -1163,6 +1190,7 @@ export const enum CommandResult {
   NoActiveSheet,
   InvalidLocale,
   AlreadyInPaintingFormatMode,
+  UnknownDataValidationRule,
 }
 
 export interface CommandHandler<T> {

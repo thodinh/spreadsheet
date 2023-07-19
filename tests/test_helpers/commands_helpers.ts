@@ -6,6 +6,7 @@ import {
   ChartDefinition,
   ClipboardPasteOptions,
   CreateSheetCommand,
+  DataValidationCriterion,
   DispatchResult,
   Locale,
   SortDirection,
@@ -23,7 +24,7 @@ import { ScorecardChartDefinition } from "../../src/types/chart/scorecard_chart"
 import { Image } from "../../src/types/image";
 import { SelectionDirection, SelectionStep } from "../../src/types/selection";
 import { FigureSize } from "./../../src/types/figure";
-import { target } from "./helpers";
+import { target, toRangesData } from "./helpers";
 
 /**
  * Dispatch an UNDO to the model
@@ -883,4 +884,23 @@ export function splitTextToColumns(
 
 export function updateLocale(model: Model, locale: Locale) {
   return model.dispatch("UPDATE_LOCALE", { locale });
+}
+
+export function addDataValidation(
+  model: Model,
+  xc: string,
+  id: UID,
+  criterion: DataValidationCriterion = { type: "textContains", values: ["test"] },
+  sheetId: UID = model.getters.getActiveSheetId()
+) {
+  const ranges = toRangesData(sheetId, xc);
+  return model.dispatch("ADD_DATA_VALIDATION_RULE", { sheetId, ranges, dv: { id, criterion } });
+}
+
+export function removeDataValidation(
+  model: Model,
+  id: UID,
+  sheetId: UID = model.getters.getActiveSheetId()
+) {
+  return model.dispatch("REMOVE_DATA_VALIDATION_RULE", { sheetId, id });
 }
