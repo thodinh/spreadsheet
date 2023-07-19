@@ -1,0 +1,19 @@
+<templates>
+  <t t-name="o-spreadsheet-DataValidationDoubleInput" owl="1">
+    <input
+      type="text"
+      class="o-input"
+      placeholder="Value"
+      t-att-value="value1"
+      t-on-input="onFirstValueChanged"
+    />
+    <div class="o-section-subtitle ms-1 my-2">and</div>
+    <input
+      type="text"
+      class="o-input"
+      placeholder="Value"
+      t-att-value="value2"
+      t-on-input="onSecondValueChanged"
+    />
+  </t>
+</templates>

@@ -1,0 +1,21 @@
+<templates>
+  <t t-name="o-spreadsheet-DataValidationPanel" owl="1">
+    <div class="o-data-validation w-100">
+      <t t-if="state.mode === 'list'">
+        <div class="o-dv-preview-list w-100">
+          <t t-foreach="validationRules" t-as="dvRule" t-key="dvRule.id">
+            <DataValidationPreview dvRule="dvRule" onClick="() => this.onPreviewClick(dvRule.id)"/>
+          </t>
+        </div>
+        <div
+          class="btn btn-link o-sidePanel-btn-link float-end"
+          t-on-click.prevent.stop="addDataValidationRule">
+          + Add another rule
+        </div>
+      </t>
+      <t t-else="">
+        <DataValidationForm dvRule="state.activeRule" onExit.bind="onExitForm"/>
+      </t>
+    </div>
+  </t>
+</templates>

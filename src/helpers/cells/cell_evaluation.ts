@@ -12,7 +12,7 @@ import {
   LocaleFormat,
   NumberCell,
 } from "../../types";
-import { CellErrorType, EvaluationError } from "../../types/errors";
+import { CellErrorLevel, CellErrorType, EvaluationError } from "../../types/errors";
 import { isDateTime } from "../dates";
 import { detectDateFormat, detectNumberFormat, formatValue, isDateTimeFormat } from "../format";
 import { detectLink } from "../links";
@@ -199,3 +199,7 @@ const builders: EvaluatedCellBuilder[] = [
     return undefined;
   },
 ];
+
+export function isVisibleErrorCell(cell: EvaluatedCell): cell is ErrorCell {
+  return cell.type === CellValueType.error && cell.error.logLevel > CellErrorLevel.silent;
+}

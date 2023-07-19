@@ -27,7 +27,7 @@ export interface Box extends Rect {
   border?: Border;
   isFilterHeader?: boolean;
   clipRect?: Rect;
-  error?: string;
+  isError?: boolean;
   image?: Image;
   isMerge?: boolean;
   verticalAlign?: VerticalAlign;

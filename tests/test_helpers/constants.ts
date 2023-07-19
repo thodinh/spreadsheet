@@ -294,6 +294,23 @@ export const TEST_COMMANDS: CommandMapping = {
     type: "UPDATE_LOCALE",
     locale: DEFAULT_LOCALE,
   },
+  ADD_DATA_VALIDATION_RULE: {
+    type: "ADD_DATA_VALIDATION_RULE",
+    sheetId: "sheetId",
+    ranges: toRangesData("sheetId", "A1"),
+    dv: {
+      id: "dvId",
+      criterion: {
+        type: "textContains",
+        values: ["1"],
+      },
+    },
+  },
+  REMOVE_DATA_VALIDATION_RULE: {
+    type: "REMOVE_DATA_VALIDATION_RULE",
+    sheetId: "sheetId",
+    id: "dvId",
+  },
 };
 
 export const OT_TESTS_SINGLE_CELL_COMMANDS = [

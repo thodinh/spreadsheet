@@ -235,6 +235,7 @@ export class Spreadsheet extends Component<SpreadsheetProps, SpreadsheetChildEnv
 
     onMounted(() => {
       this.checkViewportSize();
+      this.env.openSidePanel("DataValidationPanel");
     });
     onWillUnmount(() => this.unbindModelEvents());
     onPatched(() => {

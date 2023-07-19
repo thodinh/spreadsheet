@@ -13,18 +13,20 @@
         </div>
         <t t-if="state.mode === 'list'">
           <div
-            class="btn btn-link o-cf-btn-link o-cf-add"
+            class="btn btn-link o-sidePanel-btn-link o-cf-add"
             t-on-click.prevent.stop="addConditionalFormat">
             + Add another rule
           </div>
           <div
-            class="btn btn-link o-cf-btn-link o-cf-reorder"
+            class="btn btn-link o-sidePanel-btn-link o-cf-reorder"
             t-on-click="reorderConditionalFormats">
             Reorder rules
           </div>
         </t>
         <t t-if="state.mode === 'reorder'">
-          <div class="btn btn-link o-cf-btn-link o-cf-exit-reorder" t-on-click="switchToList">
+          <div
+            class="btn btn-link o-sidePanel-btn-link o-cf-exit-reorder"
+            t-on-click="switchToList">
             Stop reordering rules
           </div>
         </t>

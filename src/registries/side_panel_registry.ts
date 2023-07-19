@@ -6,6 +6,7 @@ import { SettingsPanel } from "../components/side_panel/settings/settings_panel"
 import { SplitIntoColumnsPanel } from "../components/side_panel/split_to_columns_panel/split_to_columns_panel";
 import { _t } from "../translation";
 import { SpreadsheetChildEnv } from "../types";
+import { DataValidationPanel } from "./../components/side_panel/data_validation/data_validation_panel";
 import { Registry } from "./registry";
 
 //------------------------------------------------------------------------------
@@ -47,4 +48,9 @@ sidePanelRegistry.add("SplitToColumns", {
 sidePanelRegistry.add("Settings", {
   title: _t("Spreadsheet settings"),
   Body: SettingsPanel,
+});
+
+sidePanelRegistry.add("DataValidationPanel", {
+  title: _lt("Data validation"),
+  Body: DataValidationPanel,
 });

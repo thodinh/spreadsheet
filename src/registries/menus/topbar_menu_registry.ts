@@ -389,4 +389,11 @@ topbarMenuRegistry
   .addChild("remove_data_filter", ["data"], {
     ...ACTION_DATA.removeDataFilter,
     sequence: 30,
+  })
+  .addChild("data_validation", ["data"], {
+    name: _lt("Data Validation"),
+    execute: (env) => {
+      env.openSidePanel("DataValidationPanel");
+    },
+    sequence: 40,
   });
