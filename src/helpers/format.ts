@@ -1,4 +1,5 @@
 import { _t } from "../translation";
+import { toNumber } from "../functions/helpers";
 import { CellValue, Currency, Format, FormattedValue, Locale, LocaleFormat } from "../types";
 import { DEFAULT_LOCALE } from "./../types/locale";
 import { INITIAL_1900_DAY, isDateTime, numberToJsDate, parseDateTime } from "./dates";
@@ -757,4 +758,16 @@ function convertInternalFormatToFormat(internalFormat: InternalFormat): Format {
     format += currentFormat;
   }
   return format;
+}
+
+/** Transform the value into a date in the locale format */
+export function getFormattedDate(value: string, locale: Locale): string {
+  if (isNumber(value, locale)) {
+    return formatValue(toNumber(value, locale), { format: locale.dateFormat, locale });
+  }
+  const internalDate = parseDateTime(value, locale);
+  if (!internalDate) {
+    return "";
+  }
+  return formatValue(internalDate.value, { format: locale.dateFormat, locale });
 }

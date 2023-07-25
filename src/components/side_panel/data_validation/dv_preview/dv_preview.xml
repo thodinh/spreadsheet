@@ -6,12 +6,14 @@
           <div class="o-dv-preview-description fw-bold text-truncate">
             <span t-esc="descriptionString"/>
           </div>
-          <div class="o-dv-preview-range text-truncate">
+          <div class="o-dv-preview-ranges text-truncate">
             <span t-esc="rangesString"/>
           </div>
         </div>
-        <div class="o-dv-preview-delete d-flex align-items-center px-3">
-          <div class="text-muted" t-on-click.stop="deleteDataValidation">
+        <div
+          class="o-dv-preview-delete d-flex align-items-center px-3"
+          t-on-click.stop="deleteDataValidation">
+          <div class="text-muted">
             <t t-call="o-spreadsheet-Icon.TRASH"/>
           </div>
         </div>

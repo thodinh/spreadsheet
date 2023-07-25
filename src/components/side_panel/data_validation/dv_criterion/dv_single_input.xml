@@ -1,0 +1,11 @@
+<templates>
+  <t t-name="o-spreadsheet-DataValidationSingleInput" owl="1">
+    <input
+      type="text"
+      class="o-input"
+      placeholder="Value"
+      t-att-value="this.value"
+      t-on-input="onValueChanged"
+    />
+  </t>
+</templates>

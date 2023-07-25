@@ -529,3 +529,20 @@ export function getTimeDifferenceInWholeYears(startDate: Date, endDate: Date) {
 export function areTwoDatesWithinOneYear(startDate: number, endDate: number) {
   return getYearFrac(startDate, endDate, 1) < 1;
 }
+
+export function areDatesSameDay(startDate: number, endDate: number) {
+  const jsStartDate = numberToJsDate(startDate);
+  const jsEndDate = numberToJsDate(endDate);
+  return (
+    jsStartDate.getFullYear() === jsEndDate.getFullYear() &&
+    jsStartDate.getMonth() === jsEndDate.getMonth() &&
+    jsStartDate.getDate() === jsEndDate.getDate()
+  );
+}
+
+export function isDateBetween(date: number, startDate: number, endDate: number) {
+  if (startDate > endDate) {
+    return isDateBetween(date, endDate, startDate);
+  }
+  return date >= startDate && date <= endDate;
+}

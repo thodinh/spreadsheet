@@ -1,4 +1,4 @@
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, useState } from "@odoo/owl";
 import { DataValidationRule, SpreadsheetChildEnv, UID } from "../../../types";
 import { css } from "../../helpers/css";
 import { DataValidationForm } from "./dv_form/dv_form";
@@ -22,9 +22,9 @@ export class DataValidationPanel extends Component<Props, SpreadsheetChildEnv> {
 
   setup() {
     //ADRM TODO : delete dis
-    onWillStart(() => {
-      this.onPreviewClick("1");
-    });
+    // onWillStart(() => {
+    //   this.onPreviewClick("1");
+    // });
   }
 
   onPreviewClick(id: UID) {

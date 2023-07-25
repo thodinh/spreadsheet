@@ -16,6 +16,7 @@ import { Model } from "../../src/model";
 import { Align, ClipboardMIMEType, HeaderDimensions, UID } from "../../src/types";
 import { getClipboardEvent, MockClipboardData } from "../test_helpers/clipboard";
 import {
+  addDataValidation,
   copy,
   createChart,
   createFilter,
@@ -1071,6 +1072,19 @@ describe("error tooltip", () => {
     setCellContent(model, "A1", "=1/0");
     await hoverCell(model, "A1", 400);
     expect(document.querySelector(".o-error-tooltip")).not.toBeNull();
+  });
+
+  test("can display invalid data validation error", async () => {
+    addDataValidation(model, "A1", "id", { type: "textContains", values: ["1"] });
+    await hoverCell(model, "A1", 400);
+    expect(document.querySelector(".o-error-tooltip")).not.toBeNull();
+  });
+
+  test("can display both cell error and data validation error", async () => {
+    setCellContent(model, "A1", "=1/0");
+    addDataValidation(model, "A1", "id", { type: "textContains", values: ["1"] });
+    await hoverCell(model, "A1", 400);
+    expect(document.querySelectorAll(".o-error-tooltip-title")).toHaveLength(2);
   });
 
   test("don't display error on #N/A", async () => {

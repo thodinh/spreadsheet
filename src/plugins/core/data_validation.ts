@@ -19,6 +19,19 @@ interface DataValidationState {
   readonly dvRules: { [sheet: string]: DataValidationInternal[] };
 }
 
+/**
+ *
+ * TODO:
+ *
+ * - props validation
+ * - custom formula
+ * - checkbox
+ * - dropdown
+ * - blocking validation
+ *
+ * To discuss:
+ * - custom error message ??
+ */
 export class DataValidationPlugin
   extends CorePlugin<DataValidationState>
   implements DataValidationState
@@ -176,26 +189,26 @@ export class DataValidationPlugin
       this.dvRules[sheetId] = [];
     }
 
-    for (const { id: sheetId } of data.sheets) {
-      this.dvRules[sheetId] = [
-        {
-          id: "0",
-          ranges: [this.getters.getRangeFromSheetXC(sheetId, "A1:D1")],
-          criterion: {
-            type: "textContains",
-            values: ["test"],
-          },
-        },
-        {
-          id: "1",
-          ranges: [this.getters.getRangeFromSheetXC(sheetId, "A1:C1")],
-          criterion: {
-            type: "isBetween",
-            values: ["5", "9"],
-          },
-        },
-      ];
-    }
+    // for (const { id: sheetId } of data.sheets) {
+    //   this.dvRules[sheetId] = [
+    //     {
+    //       id: "0",
+    //       ranges: [this.getters.getRangeFromSheetXC(sheetId, "A1:D1")],
+    //       criterion: {
+    //         type: "textContains",
+    //         values: ["test"],
+    //       },
+    //     },
+    //     {
+    //       id: "1",
+    //       ranges: [this.getters.getRangeFromSheetXC(sheetId, "A1:C1")],
+    //       criterion: {
+    //         type: "isBetween",
+    //         values: ["5", "9"],
+    //       },
+    //     },
+    //   ];
+    // }
   }
 
   export(data: Partial<WorkbookData>) {}

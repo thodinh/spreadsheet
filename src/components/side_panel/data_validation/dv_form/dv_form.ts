@@ -1,6 +1,10 @@
 import { Component, ComponentConstructor, useState } from "@odoo/owl";
 import { zoneToXc } from "../../../../helpers";
-import { DataValidationRule, SpreadsheetChildEnv } from "../../../../types";
+import {
+  DataValidationCriterion,
+  DataValidationRule,
+  SpreadsheetChildEnv,
+} from "../../../../types";
 import { css } from "../../../helpers";
 import {
   DataValidationCriterionItem,
@@ -28,7 +32,6 @@ export class DataValidationForm extends Component<Props, SpreadsheetChildEnv> {
   state = useState<State>({ dvRule: this.defaultDataValidationRule });
 
   setup() {
-    console.log(this.props);
     if (this.props.dvRule) {
       this.state.dvRule = this.props.dvRule;
       this.state.dvRule.criterion.type = this.props.dvRule.criterion.type;
@@ -36,7 +39,6 @@ export class DataValidationForm extends Component<Props, SpreadsheetChildEnv> {
   }
 
   onCriterionTypeChanged(ev: Event) {
-    console.log("onCriterionTypeChanged");
     const type = (ev.target as HTMLInputElement).value as DataValidationCriterionItem["type"];
     this.state.dvRule.criterion.type = type;
   }
@@ -45,14 +47,11 @@ export class DataValidationForm extends Component<Props, SpreadsheetChildEnv> {
     this.state.dvRule.ranges = ranges;
   }
 
-  onValuesChanged(values: string[]) {
-    console.log("onValuesChanged", values);
-    this.state.dvRule.criterion.values = values;
+  onCriterionChanged(criterion: DataValidationCriterion) {
+    this.state.dvRule.criterion = criterion;
   }
 
   onSave() {
-    // ADRM TODO
-    console.log("onSave");
     const sheetId = this.env.model.getters.getActiveSheetId();
     this.env.model.dispatch("ADD_DATA_VALIDATION_RULE", {
       sheetId,
@@ -96,6 +95,6 @@ export class DataValidationForm extends Component<Props, SpreadsheetChildEnv> {
 }
 
 DataValidationForm.props = {
-  dataValidation: { type: Object, optional: true },
+  dvRule: { type: Object, optional: true },
   onExit: Function,
 };
