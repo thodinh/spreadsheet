@@ -1,5 +1,6 @@
 import { _lt } from "../translation";
 import {
+  DataValidationCriterion,
   DataValidationDateCriterion,
   DateCriterionValue,
   HeaderIndex,
@@ -37,9 +38,15 @@ export function getPositionsInRanges(ranges: Range[]): Position[] {
     .flat();
 }
 
-export function getCriterionDateValue(criterion: DataValidationDateCriterion): number | string {
+export function isDateCriterion(
+  criterion: DataValidationCriterion
+): criterion is DataValidationDateCriterion {
+  return "dateValue" in criterion;
+}
+
+export function getCriterionDateValue(dateValue: Exclude<DateCriterionValue, "exactDate">): number {
   const today = new Date();
-  switch (criterion.dateValue) {
+  switch (dateValue) {
     case "today":
       return jsDateToRoundNumber(today);
     case "yesterday":
@@ -52,8 +59,6 @@ export function getCriterionDateValue(criterion: DataValidationDateCriterion): n
       return jsDateToRoundNumber(new Date(today.setMonth(today.getMonth() - 1)));
     case "lastYear":
       return jsDateToRoundNumber(new Date(today.setFullYear(today.getFullYear() - 1)));
-    case "exactDate":
-      return criterion.values[0];
   }
 }
 

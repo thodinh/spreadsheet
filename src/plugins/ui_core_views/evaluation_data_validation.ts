@@ -1,7 +1,19 @@
 import { isDefined, lazy } from "../../helpers";
-import { getPositionsInRanges } from "../../helpers/dv_helpers";
+import {
+  getCriterionDateValue,
+  getPositionsInRanges,
+  isDateCriterion,
+} from "../../helpers/dv_helpers";
 import { getCriterionErrorString } from "../../registries/data_validation_registry";
-import { CellPosition, DataValidationError, HeaderIndex, Lazy, UID } from "../../types";
+import {
+  CellPosition,
+  CellValue,
+  DataValidationCriterion,
+  DataValidationError,
+  HeaderIndex,
+  Lazy,
+  UID,
+} from "../../types";
 import { CoreViewCommand } from "../../types/commands";
 import { UIPlugin } from "../ui_plugin";
 
@@ -35,6 +47,19 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
       this.validationResults[sheetId] = this.computeSheetValidationResultsForSheet(sheetId);
     }
     return this.validationResults[sheetId]()[col]?.[row]?.();
+  }
+
+  getResolvedCriterionValues(
+    sheetId: UID,
+    criterion: DataValidationCriterion
+  ): (CellValue | undefined)[] {
+    if (isDateCriterion(criterion) && criterion.dateValue !== "exactDate") {
+      return [getCriterionDateValue(criterion.dateValue)];
+    }
+
+    return criterion.values.map((value) => {
+      return value.startsWith("=") ? this.getters.evaluateFormula(sheetId, value) : value;
+    });
   }
 
   private computeSheetValidationResultsForSheet(sheetId: UID): Lazy<ValidationResult> {

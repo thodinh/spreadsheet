@@ -103,13 +103,13 @@ dataValidationCriterionMatcher.add("dateIs", {
       return false;
     }
 
-    let dateValue = getCriterionDateValue(criterion);
-    if (typeof dateValue === "string") {
-      const numberDate = dateCellValueToNumber(dateValue, getters.getLocale());
-      if (!numberDate) {
-        return true;
-      }
-      dateValue = numberDate;
+    let dateValue =
+      criterion.dateValue === "exactDate"
+        ? dateCellValueToNumber(cellValue, getters.getLocale())
+        : getCriterionDateValue(criterion.dateValue);
+
+    if (!dateValue) {
+      return false;
     }
 
     if (["lastWeek", "lastMonth", "lastYear"].includes(criterion.dateValue)) {
