@@ -19,10 +19,6 @@ css/* scss */ `
         font-size: 13px;
       }
 
-      .o-dv-preview-ranges {
-        font-size: 12px;
-      }
-
       &:hover {
         background-color: rgba(0, 0, 0, 0.08);
         cursor: pointer;
@@ -59,11 +55,11 @@ export class DataValidationPreview extends Component<Props, SpreadsheetChildEnv>
     if (!item) {
       throw new Error(`No component found for criterion type ${this.props.dvRule.criterion.type}`);
     }
-    return item.getDescription(this.props.dvRule.criterion.values);
+    return item.getDescription(this.props.dvRule.criterion, this.env);
   }
 }
 
 DataValidationPreview.props = {
   onClick: Function,
-  dataValidation: Object,
+  dvRule: Object,
 };

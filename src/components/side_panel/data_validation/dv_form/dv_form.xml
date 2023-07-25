@@ -11,9 +11,9 @@
           required="true"
         />
 
-        <div class="o-subsection">
+        <div class="o-subsection o-dv-settings">
           <div class="o-section-title">Criteria</div>
-          <select class="o-input mb-4" t-on-change="onCriterionTypeChanged">
+          <select class="o-dv-type o-input mb-4" t-on-change="onCriterionTypeChanged">
             <option
               t-foreach="dvCriterionItems"
               t-as="dvCriterionItem"
@@ -23,13 +23,13 @@
               t-att-selected="dvCriterionItem.type === state.dvRule.criterion.type"
             />
           </select>
-        </div>
 
-        <t
-          t-component="criterionComponent"
-          initialValues="state.dvRule.criterion.values"
-          onValuesChanged.bind="onValuesChanged"
-        />
+          <t
+            t-component="criterionComponent"
+            initialCriterion="state.dvRule.criterion"
+            onCriterionChanged.bind="onCriterionChanged"
+          />
+        </div>
 
         <div class="o-sidePanelButtons">
           <button t-on-click="props.onExit" class="o-sidePanelButton o-dv-cancel">Cancel</button>
