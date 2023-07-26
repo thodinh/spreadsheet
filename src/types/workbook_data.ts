@@ -1,4 +1,4 @@
-import { CellValue, Format, Locale } from ".";
+import { CellValue, DataValidationRule, Format, Locale } from ".";
 import { ExcelChartDefinition } from "./chart/chart";
 import { ConditionalFormat } from "./conditional_formatting";
 import { Image } from "./image";
@@ -43,6 +43,7 @@ export interface SheetData {
   cols: { [key: number]: HeaderData };
   rows: { [key: number]: HeaderData };
   conditionalFormats: ConditionalFormat[];
+  dataValidation?: DataValidationRule[];
   filterTables: FilterTableData[];
   areGridLinesVisible?: boolean;
   isVisible: boolean;

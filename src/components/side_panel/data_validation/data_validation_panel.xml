@@ -8,7 +8,7 @@
           </t>
         </div>
         <div
-          class="btn btn-link o-sidePanel-btn-link float-end"
+          class="o-dv-add btn btn-link o-sidePanel-btn-link float-end"
           t-on-click.prevent.stop="addDataValidationRule">
           + Add another rule
         </div>

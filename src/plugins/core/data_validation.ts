@@ -7,7 +7,6 @@ import {
   CoreCommand,
   DataValidationInternal,
   DataValidationRule,
-  ExcelWorkbookData,
   Range,
   UID,
   WorkbookData,
@@ -183,36 +182,35 @@ export class DataValidationPlugin
     };
   }
 
-  import(data: WorkbookData) {
-    for (const { id: sheetId } of data.sheets) {
-      this.dvRules[sheetId] = [];
-    }
-
-    // for (const { id: sheetId } of data.sheets) {
-    //   this.dvRules[sheetId] = [
-    //     {
-    //       id: "0",
-    //       ranges: [this.getters.getRangeFromSheetXC(sheetId, "A1:D1")],
-    //       criterion: {
-    //         type: "textContains",
-    //         values: ["test"],
-    //       },
-    //     },
-    //     {
-    //       id: "1",
-    //       ranges: [this.getters.getRangeFromSheetXC(sheetId, "A1:C1")],
-    //       criterion: {
-    //         type: "isBetween",
-    //         values: ["5", "9"],
-    //       },
-    //     },
-    //   ];
-    // }
+  private toDataValidationInternal(sheetId: UID, dv: DataValidationRule): DataValidationInternal {
+    return {
+      id: dv.id,
+      criterion: dv.criterion,
+      ranges: dv.ranges.map((range) => this.getters.getRangeFromSheetXC(sheetId, range)),
+    };
   }
 
-  export(data: Partial<WorkbookData>) {}
+  import(data: WorkbookData) {
+    for (const sheet of data.sheets) {
+      this.dvRules[sheet.id] = [];
+      if (!sheet.dataValidation) {
+        continue;
+      }
+      for (const dv of sheet.dataValidation) {
+        this.dvRules[sheet.id].push(this.toDataValidationInternal(sheet.id, dv));
+      }
+    }
+  }
 
-  exportForExcel(data: ExcelWorkbookData) {
-    this.export(data);
+  export(data: Partial<WorkbookData>) {
+    if (!data.sheets) {
+      return;
+    }
+    for (const sheet of data.sheets) {
+      sheet.dataValidation = [];
+      for (const dv of this.dvRules[sheet.id]) {
+        sheet.dataValidation.push(this.toDataValidationRule(sheet.id, dv));
+      }
+    }
   }
 }

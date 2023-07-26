@@ -31,12 +31,12 @@ describe("data validation sidePanel component", () => {
   });
 
   test.each([
-    { type: "textContains", values: ["str"], preview: 'Text contains "str"' },
-    { type: "textNotContains", values: ["str"], preview: 'Text does not contain "str"' },
-    { type: "isBetween", values: ["5", "6"], preview: "Value is between 5 and 6" },
-    { type: "dateIs", values: ["1/1/2020"], preview: "Date is 1/1/2020" },
-  ])("Add a data validation rule %s", async ({ type, values, preview }) => {
-    await simulateClick(".btn.btn-link");
+    ["textContains", { values: ["str"] }, 'Text contains "str"'],
+    ["textNotContains", { values: ["str"] }, 'Text does not contain "str"'],
+    ["isBetween", { values: ["5", "6"] }, "Value is between 5 and 6"],
+    ["dateIs", { values: ["1/1/2020"], dateValue: "exactDate" }, "Date is 1/1/2020"],
+  ])("Add a data validation rule %s", async (type, criterion, preview) => {
+    await simulateClick(".o-dv-add");
     await nextTick();
     setInputValueAndTrigger(".o-dv-type", type, "change");
     await nextTick();
@@ -44,9 +44,9 @@ describe("data validation sidePanel component", () => {
     setInputValueAndTrigger(".o-selection-input input", "A1:A5", "input");
 
     const valuesInputs = document.querySelectorAll(".o-dv-settings input");
-    setInputValueAndTrigger(valuesInputs[0], values[0], "input");
-    if (values.length > 1) {
-      setInputValueAndTrigger(valuesInputs[1], values[1], "input");
+    setInputValueAndTrigger(valuesInputs[0], criterion.values[0], "input");
+    if (criterion.values.length > 1) {
+      setInputValueAndTrigger(valuesInputs[1], criterion.values[1], "input");
     }
 
     await simulateClick(".o-dv-save");
@@ -54,12 +54,32 @@ describe("data validation sidePanel component", () => {
     expect(model.getters.getDataValidationRules(sheetId)).toEqual([
       {
         id: expect.any(String),
-        criterion: { type, values },
+        criterion: { type, ...criterion },
         ranges: ["A1:A5"],
       },
     ]);
 
     expect(document.querySelector(".o-dv-preview-description")?.textContent).toEqual(preview);
     expect(document.querySelector(".o-dv-preview-ranges")?.textContent).toEqual("A1:A5");
+  });
+
+  test("Date criteria have a dateValue select input", async () => {
+    await simulateClick(".o-dv-add");
+    await nextTick();
+    setInputValueAndTrigger(".o-selection-input input", "A1:A5", "input");
+    setInputValueAndTrigger(".o-dv-type", "dateIs", "change");
+    await nextTick();
+
+    expect(document.querySelector(".o-dv-date-value")).toBeTruthy();
+    setInputValueAndTrigger(".o-dv-date-value", "tomorrow", "change");
+
+    await simulateClick(".o-dv-save");
+    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+      {
+        id: expect.any(String),
+        criterion: { type: "dateIs", dateValue: "tomorrow", values: [""] },
+        ranges: ["A1:A5"],
+      },
+    ]);
   });
 });
