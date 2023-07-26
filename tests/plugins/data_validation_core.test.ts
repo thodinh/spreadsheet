@@ -104,4 +104,26 @@ describe("Data validation", () => {
     redo(model);
     expect(model.getters.getDataValidationRules(sheetId)).toEqual([]);
   });
+
+  test("Can import/export data validation rules", () => {
+    addDataValidation(model, "A1", "id", { type: "textContains", values: ["1"] });
+    const exported = model.exportData();
+
+    expect(exported.sheets[0].dataValidation).toEqual([
+      {
+        id: "id",
+        criterion: { type: "textContains", values: ["1"] },
+        ranges: ["A1"],
+      },
+    ]);
+
+    const newModel = new Model(exported);
+    expect(newModel.getters.getDataValidationRules(sheetId)).toEqual([
+      {
+        id: "id",
+        criterion: { type: "textContains", values: ["1"] },
+        ranges: ["A1"],
+      },
+    ]);
+  });
 });

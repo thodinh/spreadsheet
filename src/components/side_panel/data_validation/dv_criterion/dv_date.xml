@@ -1,6 +1,6 @@
 <templates>
   <t t-name="o-spreadsheet-DataValidationDateCriterion" owl="1">
-    <select class="o-dv-type o-input mb-4" t-on-change="onDateValueChanged">
+    <select class="o-dv-date-value o-input mb-4" t-on-change="onDateValueChanged">
       <option
         t-foreach="dateValues"
         t-as="dateVal"

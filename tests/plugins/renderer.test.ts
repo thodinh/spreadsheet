@@ -1431,21 +1431,21 @@ describe("renderer", () => {
     });
     model.drawGrid(ctx);
     const boxA1 = getBoxFromText(model, "#N/A"); //NotAvailableError => Shouldn't display
-    expect(boxA1.error).toBeUndefined();
+    expect(boxA1.isError).toBeFalsy();
     const boxB1 = getBoxFromText(model, "#CYCLE"); //CycleError => Should display
-    expect(boxB1.error).toBe("Circular reference");
+    expect(boxB1.isError).toBeTruthy();
     expect(filled[0][0]).toBe(boxB1.x + boxB1.width - 5);
     expect(filled[0][1]).toBe(boxB1.y);
     const boxC1 = getBoxFromText(model, "#REF"); //BadReferenceError => Should display
-    expect(boxC1.error).toBe("Invalid reference");
+    expect(boxB1.isError).toBeTruthy();
     expect(filled[1][0]).toBe(boxC1.x + boxC1.width - 5);
     expect(filled[1][1]).toBe(boxC1.y);
     const boxD1 = getBoxFromText(model, "#BAD_EXPR"); //BadExpressionError => Should display
-    expect(boxD1.error).toBeTruthy();
+    expect(boxD1.isError).toBeTruthy();
     expect(filled[2][0]).toBe(boxD1.x + boxD1.width - 5);
     expect(filled[2][1]).toBe(boxD1.y);
     const boxE1 = getBoxFromText(model, "#ERROR"); // GeneralError => Should display
-    expect(boxE1.error).toBeTruthy();
+    expect(boxE1.isError).toBeTruthy();
     expect(filled[3][0]).toBe(boxE1.x + boxE1.width - 5);
     expect(filled[3][1]).toBe(boxE1.y);
   });

@@ -14,14 +14,14 @@ exports[`UI of conditional formats Conditional format list simple snapshot 1`] =
         <div
           class="o-cf-preview o-cf-cursor-ptr"
         >
-
+          
           <div
             class="o-cf-preview-image"
             style="font-weight:normal; text-decoration:none; font-style:normal; color:none; background-color:#FF0000;"
           >
             123
           </div>
-
+          
           <div
             class="o-cf-preview-description"
           >
@@ -40,7 +40,7 @@ exports[`UI of conditional formats Conditional format list simple snapshot 1`] =
               A1:A2
             </div>
           </div>
-
+          
           <div
             class="o-cf-delete"
           >
@@ -59,21 +59,21 @@ exports[`UI of conditional formats Conditional format list simple snapshot 1`] =
               </svg>
             </div>
           </div>
-
+          
         </div>
       </div>
       <div>
         <div
           class="o-cf-preview o-cf-cursor-ptr"
         >
-
+          
           <div
             class="o-cf-preview-image"
             style="background-image: linear-gradient(to right, #FF00FF, #123456)"
           >
             123
           </div>
-
+          
           <div
             class="o-cf-preview-description"
           >
@@ -92,7 +92,7 @@ exports[`UI of conditional formats Conditional format list simple snapshot 1`] =
               B1:B5
             </div>
           </div>
-
+          
           <div
             class="o-cf-delete"
           >
@@ -111,25 +111,25 @@ exports[`UI of conditional formats Conditional format list simple snapshot 1`] =
               </svg>
             </div>
           </div>
-
+          
         </div>
       </div>
-
+      
     </div>
     <div
       class="btn btn-link o-sidePanel-btn-link o-cf-add"
     >
-       + Add another rule
+       + Add another rule 
     </div>
     <div
       class="btn btn-link o-sidePanel-btn-link o-cf-reorder"
     >
-       Reorder rules
+       Reorder rules 
     </div>
-
-
-
-
+    
+    
+    
+    
   </div>
 </div>
 `;
