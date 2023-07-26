@@ -5,7 +5,6 @@ import {
   Command,
   CommandResult,
   CoreCommand,
-  DataValidationCriterion,
   DataValidationInternal,
   DataValidationRule,
   ExcelWorkbookData,
@@ -40,7 +39,7 @@ export class DataValidationPlugin
     "getDataValidationRanges",
     "getDataValidationRule",
     "getDataValidationRules",
-    "getValidationCriteriaForCell",
+    "getValidationRulesForCell",
   ] as const;
 
   readonly dvRules: { [sheet: string]: DataValidationInternal[] } = {};
@@ -163,17 +162,17 @@ export class DataValidationPlugin
     return this.dvRules[sheetId].map((dv) => dv.ranges).flat();
   }
 
-  getValidationCriteriaForCell({ sheetId, col, row }: CellPosition): DataValidationCriterion[] {
+  getValidationRulesForCell({ sheetId, col, row }: CellPosition): DataValidationInternal[] {
     const rules = this.dvRules[sheetId];
-    const criteria: DataValidationCriterion[] = [];
+    const result: DataValidationInternal[] = [];
     for (const rule of rules) {
       for (const range of rule.ranges) {
         if (isInside(col, row, range.zone)) {
-          criteria.push(rule.criterion);
+          result.push(rule);
         }
       }
     }
-    return criteria;
+    return result;
   }
 
   private toDataValidationRule(sheetId: UID, dv: DataValidationInternal): DataValidationRule {

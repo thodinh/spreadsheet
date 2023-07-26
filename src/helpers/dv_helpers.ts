@@ -1,12 +1,17 @@
+import { compile } from "../formulas";
 import { _lt } from "../translation";
 import {
+  CellValue,
   DataValidationCriterion,
   DataValidationDateCriterion,
   DateCriterionValue,
+  Getters,
   HeaderIndex,
   Locale,
+  Offset,
   Position,
   Range,
+  UID,
 } from "../types";
 import { parseLiteral } from "./cells";
 import { jsDateToRoundNumber } from "./dates";
@@ -62,13 +67,76 @@ export function getCriterionDateValue(dateValue: Exclude<DateCriterionValue, "ex
   }
 }
 
-export function dateCellValueToNumber(value: number | string, locale: Locale): number | undefined {
+export function cellValueToNumber(
+  value: CellValue | undefined,
+  locale: Locale
+): number | undefined {
   if (typeof value === "number") {
     return value;
+  } else if (typeof value === "string") {
+    const parsed = parseLiteral(value, locale);
+    return typeof parsed === "number" ? parsed : undefined;
   }
-  const dateValue = parseLiteral(value, locale);
-  if (typeof dateValue !== "number") {
-    return undefined;
+  return undefined;
+}
+
+export function getEvaluatedCriterionValues(
+  sheetId: UID,
+  offset: Offset,
+  criterion: DataValidationCriterion,
+  getters: Getters
+): (CellValue | undefined)[] {
+  // if (isDateCriterion(criterion) && criterion.dateValue !== "exactDate") {
+  //   return [getCriterionDateValue(criterion.dateValue)];
+  // }
+
+  return criterion.values.map((value) => {
+    if (!value.startsWith("=")) {
+      return value;
+    }
+
+    const formula = compile(value);
+    const translatedFormula = getters.getTranslatedCellFormula(
+      sheetId,
+      offset.col,
+      offset.row,
+      formula,
+      formula.dependencies.map((d) => getters.getRangeFromSheetXC(sheetId, d))
+    );
+    return getters.evaluateFormula(sheetId, translatedFormula);
+  });
+}
+
+export function getEvaluatedDateCriterionValues(
+  sheetId: UID,
+  offset: Offset,
+  criterion: DataValidationCriterion,
+  getters: Getters
+): (number | undefined)[] {
+  if (isDateCriterion(criterion) && criterion.dateValue !== "exactDate") {
+    return [getCriterionDateValue(criterion.dateValue)];
   }
-  return dateValue;
+
+  const values = getEvaluatedCriterionValues(sheetId, offset, criterion, getters);
+  return values.map((value) => cellValueToNumber(value, getters.getLocale()));
+}
+
+export function getEvaluatedStringCriterionValues(
+  sheetId: UID,
+  offset: Offset,
+  criterion: DataValidationCriterion,
+  getters: Getters
+): string[] {
+  const values = getEvaluatedCriterionValues(sheetId, offset, criterion, getters);
+  return values.map((value) => (value ? value.toString() : ""));
+}
+
+export function getEvaluatedNumberCriterionValues(
+  sheetId: UID,
+  offset: Offset,
+  criterion: DataValidationCriterion,
+  getters: Getters
+): (number | undefined)[] {
+  const values = getEvaluatedCriterionValues(sheetId, offset, criterion, getters);
+  return values.map((value) => cellValueToNumber(value, getters.getLocale()));
 }

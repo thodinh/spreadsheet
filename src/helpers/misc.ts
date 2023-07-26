@@ -487,3 +487,10 @@ export function insertItemsAtIndex<T>(array: readonly T[], items: T[], index: nu
   newArray.splice(index, 0, ...items);
   return newArray;
 }
+
+export function isNumberBetween(value: number, min: number, max: number): boolean {
+  if (min > max) {
+    return isNumberBetween(value, max, min);
+  }
+  return value >= min && value <= max;
+}

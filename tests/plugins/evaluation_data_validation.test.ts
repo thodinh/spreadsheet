@@ -63,9 +63,7 @@ describe("Data validation evaluation", () => {
 
     // Empty cell
     expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
-    expect(getValidationErrorMessages(model, A1)).toEqual([
-      "The value must be a number between 5 and 10",
-    ]);
+    expect(getValidationErrorMessages(model, A1)).toEqual(["The value must be between 5 and 10"]);
 
     // Non-number value
     setCellContent(model, "A1", "test");
@@ -85,7 +83,11 @@ describe("Data validation evaluation", () => {
   });
 
   test("Date is", () => {
-    addDataValidation(model, "A1", "id", { type: "dateIs", values: ["1/1/2020"] });
+    addDataValidation(model, "A1", "id", {
+      type: "dateIs",
+      values: ["1/1/2020"],
+      dateValue: "exactDate",
+    });
 
     // Empty cell
     expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
@@ -104,22 +106,17 @@ describe("Data validation evaluation", () => {
     // Non-matching date value
     setCellContent(model, "A1", "1/2/2020");
     expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
-
-    // Date number in data validation rule
-    const numberDate = jsDateToRoundNumber(new Date("1/1/2020"));
-    addDataValidation(model, "A2", "id", { type: "dateIs", values: [numberDate.toString()] });
-    setCellContent(model, "A1", "1/1/2020 12:00:00");
-    expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
-    expect(getValidationErrorMessages(model, A1)).toEqual([
-      "The value must be a date equal to 1/1/2020",
-    ]);
   });
 
   test.each([{ type: "dateIs", values: ["1/1/2020"] }])(
     "Date validation rule accept both string date and number dates %s",
     ({ type, values }) => {
       // String date
-      addDataValidation(model, "A1", "id", { type, values } as DataValidationCriterion);
+      addDataValidation(model, "A1", "id", {
+        type,
+        values,
+        dateValue: "exactDate",
+      } as DataValidationCriterion);
       setCellContent(model, "A1", "1/1/2020 12:00:00");
       expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
 
@@ -131,6 +128,7 @@ describe("Data validation evaluation", () => {
       addDataValidation(model, "A1", "id", {
         type: type as DataValidationCriterionType,
         values: numberValues,
+        dateValue: "exactDate",
       });
       setCellContent(model, "A1", "1/1/2020 12:00:00");
       expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
@@ -142,4 +140,67 @@ describe("Data validation evaluation", () => {
       }
     }
   );
+
+  describe("Formula values", () => {
+    test("Can use formula values", () => {
+      addDataValidation(model, "A1", "id", {
+        type: "textContains",
+        values: ['=CONCAT("te", "st")'],
+      });
+
+      setCellContent(model, "A1", "random text");
+      expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
+
+      setCellContent(model, "A1", "random test");
+      expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
+    });
+
+    test("Can use references in formula values", () => {
+      addDataValidation(model, "A1", "id", {
+        type: "isBetween",
+        values: ["=B1", "=B2"],
+      });
+      setCellContent(model, "B1", "5");
+      setCellContent(model, "B2", "10");
+
+      setCellContent(model, "A1", "4");
+      expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
+
+      setCellContent(model, "A1", "5");
+      expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
+    });
+
+    test("References in formula are translated based on the cell offset in the validation rule", () => {
+      addDataValidation(model, "A1:B2", "id", {
+        type: "dateIs",
+        values: ["=C1"],
+        dateValue: "exactDate",
+      });
+      setCellContent(model, "C1", "1/1/2020");
+      setCellContent(model, "D2", "1/2/2020");
+
+      setCellContent(model, "A1", "1/1/2020");
+      setCellContent(model, "B2", "1/2/2020");
+      expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
+      expect(model.getters.isDataValidationInvalid({ sheetId, col: 1, row: 1 })).toEqual(false);
+    });
+
+    test("References in formula are not shifted with fixed references", () => {
+      addDataValidation(model, "A1:B2", "id", {
+        type: "dateIs",
+        values: ["=$C$1"],
+        dateValue: "exactDate",
+      });
+      setCellContent(model, "C1", "1/1/2020");
+      setCellContent(model, "D2", "1/2/2020");
+
+      setCellContent(model, "A1", "1/1/2020");
+      setCellContent(model, "B2", "1/2/2020");
+      expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
+      expect(model.getters.isDataValidationInvalid({ sheetId, col: 1, row: 1 })).toEqual(true);
+
+      setCellContent(model, "B2", "1/1/2020");
+      expect(model.getters.isDataValidationInvalid({ sheetId, col: 1, row: 1 })).toEqual(false);
+    });
+  });
 });
