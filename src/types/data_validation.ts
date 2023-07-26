@@ -11,9 +11,6 @@ export interface DataValidationRule extends Omit<DataValidationInternal, "ranges
   ranges: string[];
 }
 
-//ADRM TODO : useful ?
-export type DataValidationError = string;
-
 export type TextContainsCriterion = {
   type: "textContains";
   values: string[];
