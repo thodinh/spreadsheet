@@ -1,7 +1,15 @@
 import { isDefined, isInside, lazy } from "../../helpers";
 import { getPositionsInRanges } from "../../helpers/dv_helpers";
 import { dataValidationCriterionMatcher } from "../../registries/data_validation_registry";
-import { CellPosition, DataValidationInternal, HeaderIndex, Lazy, Offset, UID } from "../../types";
+import {
+  CellPosition,
+  DataValidationCriterionType,
+  DataValidationInternal,
+  HeaderIndex,
+  Lazy,
+  Offset,
+  UID,
+} from "../../types";
 import { CoreViewCommand } from "../../types/commands";
 import { UIPlugin } from "../ui_plugin";
 import { _lt } from "./../../translation";
@@ -9,7 +17,11 @@ import { _lt } from "./../../translation";
 type ValidationResult = { [col: HeaderIndex]: Array<Lazy<string[]>> };
 
 export class EvaluationDataValidationPlugin extends UIPlugin {
-  static getters = ["isDataValidationInvalid", "getInvalidDataValidationMessages"] as const;
+  static getters = [
+    "isDataValidationInvalid",
+    "getInvalidDataValidationMessages",
+    "getDataValidationInvalidCriterionValueMessage",
+  ] as const;
 
   readonly validationResults: Record<UID, Lazy<ValidationResult>> = {};
 
@@ -30,6 +42,17 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
 
   getInvalidDataValidationMessages(cellPosition: CellPosition): string[] {
     return this.getValidationResultsForCell(cellPosition);
+  }
+
+  getDataValidationInvalidCriterionValueMessage(
+    criterionType: DataValidationCriterionType,
+    value: string
+  ): string | undefined {
+    const evaluator = dataValidationCriterionMatcher.get(criterionType);
+    if (!evaluator) {
+      throw new Error(_lt("Unknown criterion type: %s", criterionType));
+    }
+    return evaluator.checkCriterionValueIsValid(value);
   }
 
   private getValidationResultsForCell({ sheetId, col, row }: CellPosition): string[] {

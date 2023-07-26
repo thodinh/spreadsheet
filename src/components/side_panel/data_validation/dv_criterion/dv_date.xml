@@ -11,13 +11,11 @@
       />
     </select>
 
-    <input
+    <DataValidationInput
       t-if="dateValue === 'exactDate'"
-      type="text"
-      class="o-input"
-      placeholder="Value"
-      t-att-value="this.value"
-      t-on-input="onValueChanged"
+      initialValue="this.value"
+      onValueChanged.bind="onValueChanged"
+      criterionType="props.initialCriterion.type"
     />
   </t>
 </templates>

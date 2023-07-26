@@ -18,6 +18,7 @@ import {
   DataValidationCriterion,
   DataValidationCriterionType,
   DateIsCriterion,
+  DEFAULT_LOCALE,
   Getters,
   NumberBetweenCriterion,
   Offset,
@@ -38,6 +39,7 @@ interface DataValidationEvaluatorArgs {
 type DataValidationCriterionEvaluator = {
   type: DataValidationCriterionType;
   isValueValid: (criterion: DataValidationCriterion, args: DataValidationEvaluatorArgs) => boolean;
+  checkCriterionValueIsValid: (value: string) => string | undefined;
   getErrorString: (criterion: DataValidationCriterion, args: DataValidationEvaluatorArgs) => string;
 };
 
@@ -56,6 +58,7 @@ dataValidationCriterionMatcher.add("textContains", {
   getErrorString: (criterion: TextContainsCriterion) => {
     return _lt('The value must be a text that contains: "%s"', criterion.values[0]);
   },
+  checkCriterionValueIsValid: (value: string) => undefined,
 });
 
 dataValidationCriterionMatcher.add("textNotContains", {
@@ -72,13 +75,14 @@ dataValidationCriterionMatcher.add("textNotContains", {
   getErrorString: (criterion: TextNotContainsCriterion) => {
     return _lt('The value must be a text that does not contain: "%s"', criterion.values[0]);
   },
+  checkCriterionValueIsValid: (value: string) => undefined,
 });
 
 dataValidationCriterionMatcher.add("isBetween", {
   type: "isBetween",
   isValueValid: (criterion: NumberBetweenCriterion, args: DataValidationEvaluatorArgs) => {
     const { sheetId, offset, getters, cellValue } = args;
-    const value = cellValueToNumber(cellValue, getters.getLocale());
+    const value = cellValueToNumber(cellValue, DEFAULT_LOCALE);
     const criterionValues = getEvaluatedNumberCriterionValues(sheetId, offset, criterion, getters);
 
     if (!value || !criterionValues[0] || !criterionValues[1]) {
@@ -89,6 +93,7 @@ dataValidationCriterionMatcher.add("isBetween", {
   getErrorString: (criterion: NumberBetweenCriterion) => {
     return _lt("The value must be between %s and %s", criterion.values[0], criterion.values[1]);
   },
+  checkCriterionValueIsValid: checkValueIsNumber,
 });
 
 dataValidationCriterionMatcher.add("dateIs", {
@@ -114,7 +119,7 @@ dataValidationCriterionMatcher.add("dateIs", {
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     if (criterion.dateValue === "exactDate") {
       const { sheetId, offset, getters } = args;
-      const locale = getters.getLocale();
+      const locale = DEFAULT_LOCALE;
       const value = getEvaluatedDateCriterionValues(sheetId, offset, criterion, getters)[0];
       return _lt(
         "The value must be a date equal to %s",
@@ -129,4 +134,15 @@ dataValidationCriterionMatcher.add("dateIs", {
       DATES_VALUES[criterion.dateValue].toString()
     );
   },
+  checkCriterionValueIsValid: checkValueIsDate,
 });
+
+function checkValueIsDate(value: string): string | undefined {
+  const valueAsNumber = cellValueToNumber(value, DEFAULT_LOCALE);
+  return valueAsNumber === undefined ? _lt("The value must be a date") : undefined;
+}
+
+function checkValueIsNumber(value: string): string | undefined {
+  const valueAsNumber = cellValueToNumber(value, DEFAULT_LOCALE);
+  return valueAsNumber === undefined ? _lt("The value must be a number") : undefined;
+}

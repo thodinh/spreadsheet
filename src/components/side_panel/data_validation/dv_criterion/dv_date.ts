@@ -6,6 +6,7 @@ import {
   DateCriterionValue,
   SpreadsheetChildEnv,
 } from "../../../../types";
+import { DataValidationInput } from "./dv_input";
 
 interface Props {
   initialCriterion: DataValidationDateCriterion;
@@ -14,6 +15,7 @@ interface Props {
 
 export class DataValidationDateCriterionForm extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-DataValidationDateCriterion";
+  static components = { DataValidationInput };
 
   value = "";
   dateValue: DateCriterionValue = "exactDate";

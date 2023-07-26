@@ -1,5 +1,6 @@
 import { Component } from "@odoo/owl";
 import { DataValidationCriterion, SpreadsheetChildEnv } from "../../../../types";
+import { DataValidationInput } from "./dv_input";
 
 interface Props {
   initialCriterion: DataValidationCriterion;
@@ -8,6 +9,7 @@ interface Props {
 
 export class DataValidationSingleInputCriterionForm extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-DataValidationSingleInput";
+  static components = { DataValidationInput };
 
   value = "";
 
