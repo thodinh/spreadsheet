@@ -2,7 +2,7 @@ import { Component } from "@odoo/owl";
 import { FIGURE_BORDER_COLOR } from "../../../../constants";
 import { DataValidationRule, SpreadsheetChildEnv } from "../../../../types";
 import { css } from "../../../helpers";
-import { dataValidationPanelCriteria } from "../../../helpers/dv_panel_helper";
+import { dataValidationPanelCriteriaRegistry } from "../../../helpers/dv_panel_helper";
 
 css/* scss */ `
   .o-sidepanel {
@@ -49,9 +49,7 @@ export class DataValidationPreview extends Component<Props, SpreadsheetChildEnv>
   }
 
   get descriptionString(): string {
-    const item = dataValidationPanelCriteria.find(
-      (item) => item.type === this.props.dvRule.criterion.type
-    );
+    const item = dataValidationPanelCriteriaRegistry.get(this.props.dvRule.criterion.type);
     if (!item) {
       throw new Error(`No component found for criterion type ${this.props.dvRule.criterion.type}`);
     }

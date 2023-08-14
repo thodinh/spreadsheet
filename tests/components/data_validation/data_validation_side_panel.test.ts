@@ -1,9 +1,9 @@
 import { Component, onMounted, onWillUnmount, xml } from "@odoo/owl";
-import { Model } from "../../src";
-import { SpreadsheetChildEnv, UID } from "../../src/types";
-import { setInputValueAndTrigger, simulateClick } from "../test_helpers/dom_helper";
-import { mountComponent, nextTick } from "../test_helpers/helpers";
-import { DataValidationPanel } from "./../../src/components/side_panel/data_validation/data_validation_panel";
+import { Model } from "../../../src";
+import { DataValidationPanel } from "../../../src/components/side_panel/data_validation/data_validation_panel";
+import { SpreadsheetChildEnv, UID } from "../../../src/types";
+import { setInputValueAndTrigger, simulateClick } from "../../test_helpers/dom_helper";
+import { mountComponent, nextTick } from "../../test_helpers/helpers";
 
 interface ParentProps {
   onCloseSidePanel: () => void;
@@ -81,5 +81,38 @@ describe("data validation sidePanel component", () => {
         ranges: ["A1:A5"],
       },
     ]);
+  });
+
+  test("Invalid input values with single input", async () => {
+    await simulateClick(".o-dv-add");
+    await nextTick();
+    setInputValueAndTrigger(".o-dv-type", "dateIs", "change");
+    await nextTick();
+
+    setInputValueAndTrigger(".o-selection-input input", "A1:A5", "input");
+
+    const valuesInput = document.querySelector(".o-dv-settings input");
+    setInputValueAndTrigger(valuesInput, "thisIsNotADate", "input");
+    await nextTick();
+
+    expect(document.querySelector(".o-input.o-invalid")).toBeTruthy();
+    expect(document.querySelector(".o-dv-save")!.classList).toContain("o-disabled");
+  });
+
+  test("Invalid input values with two inputs", async () => {
+    await simulateClick(".o-dv-add");
+    await nextTick();
+    setInputValueAndTrigger(".o-dv-type", "isBetween", "change");
+    await nextTick();
+
+    setInputValueAndTrigger(".o-selection-input input", "A1:A5", "input");
+
+    const valuesInputs = document.querySelectorAll(".o-dv-settings input");
+    setInputValueAndTrigger(valuesInputs[0], "Not a number", "input");
+    setInputValueAndTrigger(valuesInputs[1], "Neither is this", "input");
+    await nextTick();
+
+    expect(document.querySelectorAll(".o-input.o-invalid")).toHaveLength(2);
+    expect(document.querySelector(".o-dv-save")!.classList).toContain("o-disabled");
   });
 });

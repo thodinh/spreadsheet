@@ -1191,6 +1191,9 @@ export const enum CommandResult {
   InvalidLocale,
   AlreadyInPaintingFormatMode,
   UnknownDataValidationRule,
+  UnknownDataValidationCriterionType,
+  InvalidDataValidationCriterionValue,
+  InvalidNumberOfCriterionValues,
 }
 
 export interface CommandHandler<T> {

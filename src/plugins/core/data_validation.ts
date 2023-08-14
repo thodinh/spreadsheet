@@ -1,4 +1,5 @@
 import { deepCopy, isInside } from "../../helpers";
+import { dataValidationCriterionMatcher } from "../../registries/data_validation_registry";
 import {
   ApplyRangeChange,
   CellPosition,
@@ -7,6 +8,7 @@ import {
   CoreCommand,
   DataValidationInternal,
   DataValidationRule,
+  DEFAULT_LOCALE,
   Range,
   UID,
   WorkbookData,
@@ -26,9 +28,10 @@ interface DataValidationState {
  * - checkbox
  * - dropdown
  * - blocking validation
+ * - localize inputs before sending them to the plugin
  *
  * To discuss:
- * - custom error message ??
+ * - input in error at start when empty
  */
 export class DataValidationPlugin
   extends CorePlugin<DataValidationState>
@@ -93,11 +96,30 @@ export class DataValidationPlugin
 
   allowDispatch(cmd: Command) {
     switch (cmd.type) {
+      case "ADD_DATA_VALIDATION_RULE":
+        const criterion = cmd.dv.criterion;
+        if (!dataValidationCriterionMatcher.contains(criterion.type)) {
+          return CommandResult.UnknownDataValidationCriterionType;
+        }
+        const criterionMatched = dataValidationCriterionMatcher.get(criterion.type);
+        if (
+          criterion.values.some(
+            (value) =>
+              !value.startsWith("=") &&
+              !criterionMatched.isCriterionValueValid(value, DEFAULT_LOCALE)
+          )
+        ) {
+          return CommandResult.InvalidDataValidationCriterionValue;
+        }
+        if (criterion.values.length !== criterionMatched.numberOfValues) {
+          return CommandResult.InvalidNumberOfCriterionValues;
+        }
+        break;
       case "REMOVE_DATA_VALIDATION_RULE":
         if (!this.dvRules[cmd.sheetId].find((dv) => dv.id === cmd.id)) {
           return CommandResult.UnknownDataValidationRule;
         }
-        return CommandResult.Success;
+        break;
     }
     return CommandResult.Success;
   }

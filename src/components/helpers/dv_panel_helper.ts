@@ -1,6 +1,7 @@
 import { ComponentConstructor } from "@odoo/owl";
 import { getFormattedDate } from "../../helpers";
 import { DATES_VALUES } from "../../helpers/dv_helpers";
+import { Registry } from "../../registries/registry";
 import { _lt } from "../../translation";
 import {
   DataValidationCriterion,
@@ -22,9 +23,10 @@ export type DataValidationCriterionItem = {
 };
 
 // ADRM DISCUSS: here (array) vs dataValidationCriterionMatcher (Registry), which do we want ?
-export const dataValidationPanelCriteria: Array<DataValidationCriterionItem> = [];
+export const dataValidationPanelCriteriaRegistry: Registry<DataValidationCriterionItem> =
+  new Registry();
 
-dataValidationPanelCriteria.push({
+dataValidationPanelCriteriaRegistry.add("textContains", {
   type: "textContains",
   component: DataValidationSingleInputCriterionForm,
   name: _lt("Text contains"),
@@ -32,7 +34,7 @@ dataValidationPanelCriteria.push({
     _lt('Text contains "%s"', criterion.values[0]),
 });
 
-dataValidationPanelCriteria.push({
+dataValidationPanelCriteriaRegistry.add("textNotContains", {
   type: "textNotContains",
   component: DataValidationSingleInputCriterionForm,
   name: _lt("Text contains"),
@@ -40,7 +42,7 @@ dataValidationPanelCriteria.push({
     _lt('Text does not contain "%s"', criterion.values[0]),
 });
 
-dataValidationPanelCriteria.push({
+dataValidationPanelCriteriaRegistry.add("isBetween", {
   type: "isBetween",
   component: DataValidationDoubleInputCriterionForm,
   name: _lt("Is between"),
@@ -48,12 +50,16 @@ dataValidationPanelCriteria.push({
     _lt("Value is between %s and %s", criterion.values[0], criterion.values[1]),
 });
 
-dataValidationPanelCriteria.push({
+dataValidationPanelCriteriaRegistry.add("dateIs", {
   type: "dateIs",
   component: DataValidationDateCriterionForm,
   name: _lt("Date is"),
   getDescription: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
     if (criterion.dateValue === "exactDate") {
+      if (criterion.values[0].startsWith("=")) {
+        return _lt("Date is %s", criterion.values[0]);
+      }
+
       return _lt(
         "Date is %s",
         getFormattedDate(criterion.values[0], env.model.getters.getLocale())

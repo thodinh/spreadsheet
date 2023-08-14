@@ -14,7 +14,7 @@
         </div>
       </t>
       <t t-else="">
-        <DataValidationForm dvRule="state.activeRule" onExit.bind="onExitForm"/>
+        <DataValidationEditor dvRule="state.activeRule" onExit.bind="onExitForm"/>
       </t>
     </div>
   </t>

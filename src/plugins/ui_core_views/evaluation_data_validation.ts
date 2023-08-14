@@ -5,6 +5,7 @@ import {
   CellPosition,
   DataValidationCriterionType,
   DataValidationInternal,
+  DEFAULT_LOCALE,
   HeaderIndex,
   Lazy,
   Offset,
@@ -52,7 +53,9 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
     if (!evaluator) {
       throw new Error(_lt("Unknown criterion type: %s", criterionType));
     }
-    return evaluator.checkCriterionValueIsValid(value);
+    return value.startsWith("=") || evaluator.isCriterionValueValid(value, DEFAULT_LOCALE)
+      ? undefined
+      : evaluator.getCriterionValueErrorString(value);
   }
 
   private getValidationResultsForCell({ sheetId, col, row }: CellPosition): string[] {

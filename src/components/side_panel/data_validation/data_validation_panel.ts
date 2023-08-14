@@ -1,7 +1,7 @@
 import { Component, useState } from "@odoo/owl";
 import { DataValidationRule, SpreadsheetChildEnv, UID } from "../../../types";
 import { css } from "../../helpers/css";
-import { DataValidationForm } from "./dv_form/dv_form";
+import { DataValidationEditor } from "./dv_editor/dv_editor";
 import { DataValidationPreview } from "./dv_preview/dv_preview";
 
 css/* scss */ ``;
@@ -16,7 +16,7 @@ interface State {
 
 export class DataValidationPanel extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-DataValidationPanel";
-  static components = { DataValidationPreview, DataValidationForm };
+  static components = { DataValidationPreview, DataValidationEditor };
 
   state = useState<State>({ mode: "list", activeRule: undefined });
 

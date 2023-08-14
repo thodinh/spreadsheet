@@ -1,5 +1,6 @@
 import { Component, ComponentConstructor, useState } from "@odoo/owl";
 import { zoneToXc } from "../../../../helpers";
+import { dataValidationCriterionMatcher } from "../../../../registries/data_validation_registry";
 import {
   DataValidationCriterion,
   DataValidationRule,
@@ -8,7 +9,7 @@ import {
 import { css } from "../../../helpers";
 import {
   DataValidationCriterionItem,
-  dataValidationPanelCriteria,
+  dataValidationPanelCriteriaRegistry,
 } from "../../../helpers/dv_panel_helper";
 import { SelectionInput } from "../../../selection_input/selection_input";
 
@@ -25,8 +26,8 @@ interface State {
   dvRule: DataValidationRule;
 }
 
-export class DataValidationForm extends Component<Props, SpreadsheetChildEnv> {
-  static template = "o-spreadsheet-DataValidationForm";
+export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> {
+  static template = "o-spreadsheet-DataValidationEditor";
   static components = { SelectionInput };
 
   state = useState<State>({ dvRule: this.defaultDataValidationRule });
@@ -53,23 +54,40 @@ export class DataValidationForm extends Component<Props, SpreadsheetChildEnv> {
   }
 
   onSave() {
-    const sheetId = this.env.model.getters.getActiveSheetId();
-    this.env.model.dispatch("ADD_DATA_VALIDATION_RULE", {
-      sheetId,
-      ranges: this.state.dvRule.ranges.map((xc) =>
-        this.env.model.getters.getRangeDataFromXc(sheetId, xc)
-      ),
-      dv: {
-        id: this.state.dvRule.id,
-        criterion: this.state.dvRule.criterion,
-      },
-    });
+    if (!this.canSave) {
+      return;
+    }
+    this.env.model.dispatch("ADD_DATA_VALIDATION_RULE", this.currentDvRule);
 
     this.props.onExit();
   }
 
+  get canSave(): boolean {
+    return this.env.model.canDispatch("ADD_DATA_VALIDATION_RULE", this.currentDvRule).isSuccessful;
+  }
+
+  get currentDvRule() {
+    const dvRule = this.state.dvRule;
+    const criterion = this.state.dvRule.criterion;
+
+    const criterionMatcher = dataValidationCriterionMatcher.get(criterion.type);
+
+    const sheetId = this.env.model.getters.getActiveSheetId();
+    return {
+      sheetId,
+      ranges: dvRule.ranges.map((xc) => this.env.model.getters.getRangeDataFromXc(sheetId, xc)),
+      dv: {
+        id: this.state.dvRule.id,
+        criterion: {
+          ...criterion,
+          values: criterion.values.slice(0, criterionMatcher.numberOfValues),
+        },
+      },
+    };
+  }
+
   get dvCriterionItems(): DataValidationCriterionItem[] {
-    return dataValidationPanelCriteria;
+    return dataValidationPanelCriteriaRegistry.getAll();
   }
 
   get defaultDataValidationRule(): DataValidationRule {
@@ -85,9 +103,7 @@ export class DataValidationForm extends Component<Props, SpreadsheetChildEnv> {
   }
 
   get criterionComponent(): ComponentConstructor {
-    const item = dataValidationPanelCriteria.find(
-      (item) => item.type === this.state.dvRule.criterion.type
-    );
+    const item = dataValidationPanelCriteriaRegistry.get(this.state.dvRule.criterion.type);
     if (!item) {
       throw new Error(`No component found for criterion type ${this.state.dvRule.criterion.type}`);
     }
@@ -95,7 +111,7 @@ export class DataValidationForm extends Component<Props, SpreadsheetChildEnv> {
   }
 }
 
-DataValidationForm.props = {
+DataValidationEditor.props = {
   dvRule: { type: Object, optional: true },
   onExit: Function,
 };
