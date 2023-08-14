@@ -1,5 +1,5 @@
 <templates>
-  <t t-name="o-spreadsheet-DataValidationForm" owl="1">
+  <t t-name="o-spreadsheet-DataValidationEditor" owl="1">
     <div class="o-dv-form w-100 h-100">
       <div class="o-section o-dv-range">
         <div class="o-section-title">Apply to range</div>
@@ -33,7 +33,12 @@
 
         <div class="o-sidePanelButtons">
           <button t-on-click="props.onExit" class="o-sidePanelButton o-dv-cancel">Cancel</button>
-          <button t-on-click="onSave" class="o-sidePanelButton o-dv-save">Save</button>
+          <button
+            t-on-click="onSave"
+            class="o-sidePanelButton o-dv-save"
+            t-att-class="{'o-disabled': !canSave }">
+            Save
+          </button>
         </div>
       </div>
     </div>

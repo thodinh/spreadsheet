@@ -23,20 +23,25 @@ css/* scss */ `
 export class DataValidationInput extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-DataValidationInput";
 
-  state = useState({ value: this.props.initialValue });
+  state = useState({
+    value: this.props.initialValue,
+    shouldDisplayError: !!this.props.initialValue, // Don't display error if user inputted nothing yet
+  });
 
   onValueChanged(ev: Event) {
     this.state.value = (ev.target as HTMLInputElement).value;
-    console.log("this.state.value", this.state.value);
+    this.state.shouldDisplayError = true;
     this.props.onValueChanged(ev);
   }
 
   get errorMessage(): string | undefined {
+    if (!this.state.shouldDisplayError) {
+      return undefined;
+    }
     const error = this.env.model.getters.getDataValidationInvalidCriterionValueMessage(
       this.props.criterionType,
       this.state.value
     );
-    console.log("error", error);
     return error;
   }
 }

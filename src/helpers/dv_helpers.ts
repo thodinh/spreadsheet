@@ -107,6 +107,7 @@ export function getEvaluatedCriterionValues(
   });
 }
 
+/** Get all the dates values of a criterion converted to numbers, possibly evaluating the formulas  */
 export function getEvaluatedDateCriterionValues(
   sheetId: UID,
   offset: Offset,

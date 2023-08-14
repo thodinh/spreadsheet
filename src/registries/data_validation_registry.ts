@@ -20,6 +20,7 @@ import {
   DateIsCriterion,
   DEFAULT_LOCALE,
   Getters,
+  Locale,
   NumberBetweenCriterion,
   Offset,
   TextContainsCriterion,
@@ -39,8 +40,10 @@ interface DataValidationEvaluatorArgs {
 type DataValidationCriterionEvaluator = {
   type: DataValidationCriterionType;
   isValueValid: (criterion: DataValidationCriterion, args: DataValidationEvaluatorArgs) => boolean;
-  checkCriterionValueIsValid: (value: string) => string | undefined;
   getErrorString: (criterion: DataValidationCriterion, args: DataValidationEvaluatorArgs) => string;
+  isCriterionValueValid: (value: string, locale: Locale) => boolean;
+  getCriterionValueErrorString: (value: string) => string;
+  numberOfValues: number;
 };
 
 export const dataValidationCriterionMatcher = new Registry<DataValidationCriterionEvaluator>();
@@ -58,7 +61,9 @@ dataValidationCriterionMatcher.add("textContains", {
   getErrorString: (criterion: TextContainsCriterion) => {
     return _lt('The value must be a text that contains: "%s"', criterion.values[0]);
   },
-  checkCriterionValueIsValid: (value: string) => undefined,
+  isCriterionValueValid: (value: string) => true,
+  getCriterionValueErrorString: (value: string) => "",
+  numberOfValues: 1,
 });
 
 dataValidationCriterionMatcher.add("textNotContains", {
@@ -75,7 +80,9 @@ dataValidationCriterionMatcher.add("textNotContains", {
   getErrorString: (criterion: TextNotContainsCriterion) => {
     return _lt('The value must be a text that does not contain: "%s"', criterion.values[0]);
   },
-  checkCriterionValueIsValid: (value: string) => undefined,
+  isCriterionValueValid: (value: string) => true,
+  getCriterionValueErrorString: (value: string) => "",
+  numberOfValues: 1,
 });
 
 dataValidationCriterionMatcher.add("isBetween", {
@@ -85,15 +92,28 @@ dataValidationCriterionMatcher.add("isBetween", {
     const value = cellValueToNumber(cellValue, DEFAULT_LOCALE);
     const criterionValues = getEvaluatedNumberCriterionValues(sheetId, offset, criterion, getters);
 
-    if (!value || !criterionValues[0] || !criterionValues[1]) {
+    if (
+      value === undefined ||
+      criterionValues[0] === undefined ||
+      criterionValues[1] === undefined
+    ) {
       return false;
     }
     return isNumberBetween(value, criterionValues[0], criterionValues[1]);
   },
-  getErrorString: (criterion: NumberBetweenCriterion) => {
-    return _lt("The value must be between %s and %s", criterion.values[0], criterion.values[1]);
+  getErrorString: (criterion: NumberBetweenCriterion, args: DataValidationEvaluatorArgs) => {
+    const { sheetId, offset, getters } = args;
+    const criterionValues = getEvaluatedNumberCriterionValues(
+      sheetId,
+      offset,
+      criterion,
+      getters
+    ).map((value) => (value !== undefined ? value.toString() : CellErrorType.InvalidReference));
+    return _lt("The value must be between %s and %s", criterionValues[0], criterionValues[1]);
   },
-  checkCriterionValueIsValid: checkValueIsNumber,
+  isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
+  getCriterionValueErrorString: () => _lt("The value must be a number"),
+  numberOfValues: 2,
 });
 
 dataValidationCriterionMatcher.add("dateIs", {
@@ -123,7 +143,7 @@ dataValidationCriterionMatcher.add("dateIs", {
       const value = getEvaluatedDateCriterionValues(sheetId, offset, criterion, getters)[0];
       return _lt(
         "The value must be a date equal to %s",
-        value
+        value !== undefined
           ? formatValue(value, { locale, format: locale.dateFormat })
           : CellErrorType.InvalidReference
       );
@@ -134,15 +154,17 @@ dataValidationCriterionMatcher.add("dateIs", {
       DATES_VALUES[criterion.dateValue].toString()
     );
   },
-  checkCriterionValueIsValid: checkValueIsDate,
+  isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
+  getCriterionValueErrorString: () => _lt("The value must be a date"),
+  numberOfValues: 1,
 });
 
-function checkValueIsDate(value: string): string | undefined {
-  const valueAsNumber = cellValueToNumber(value, DEFAULT_LOCALE);
-  return valueAsNumber === undefined ? _lt("The value must be a date") : undefined;
+function checkValueIsDate(value: string, locale: Locale): boolean {
+  const valueAsNumber = cellValueToNumber(value, locale);
+  return valueAsNumber !== undefined;
 }
 
-function checkValueIsNumber(value: string): string | undefined {
-  const valueAsNumber = cellValueToNumber(value, DEFAULT_LOCALE);
-  return valueAsNumber === undefined ? _lt("The value must be a number") : undefined;
+function checkValueIsNumber(value: string, locale: Locale): boolean {
+  const valueAsNumber = cellValueToNumber(value, locale);
+  return valueAsNumber !== undefined;
 }

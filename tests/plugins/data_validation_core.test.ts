@@ -17,6 +17,33 @@ describe("Data validation", () => {
   });
 
   describe("allowDispatch results", () => {
+    test("Cannot add unknown criterion type", () => {
+      const result = addDataValidation(model, "A1", "id", { type: "random" as any, values: ["1"] });
+      expect(result).toBeCancelledBecause(CommandResult.UnknownDataValidationCriterionType);
+    });
+
+    test("Cannot add invalid criterion values", () => {
+      const result = addDataValidation(model, "A1", "id", {
+        type: "isBetween",
+        values: ["abc", "oi"],
+      });
+      expect(result).toBeCancelledBecause(CommandResult.InvalidDataValidationCriterionValue);
+    });
+
+    test("Cannot have too few or too many criterion values", () => {
+      let result = addDataValidation(model, "A1", "id", {
+        type: "isBetween",
+        values: ["5"],
+      });
+      expect(result).toBeCancelledBecause(CommandResult.InvalidNumberOfCriterionValues);
+
+      result = addDataValidation(model, "A1", "id", {
+        type: "isBetween",
+        values: ["5", "8", "78"],
+      });
+      expect(result).toBeCancelledBecause(CommandResult.InvalidNumberOfCriterionValues);
+    });
+
     test("Cannot remove invalid data validation", () => {
       const result = removeDataValidation(model, "notAnExistingId");
       expect(result).toBeCancelledBecause(CommandResult.UnknownDataValidationRule);
