@@ -1,6 +1,6 @@
 import { ComponentConstructor } from "@odoo/owl";
 import { getFormattedDate } from "../../helpers";
-import { DATES_VALUES } from "../../helpers/dv_helpers";
+import { getCriterionDateDescription } from "../../helpers/dv_helpers";
 import { Registry } from "../../registries/registry";
 import { _lt } from "../../translation";
 import {
@@ -64,6 +64,25 @@ dataValidationPanelCriteriaRegistry.add("dateIs", {
         getFormattedDate(criterion.values[0], env.model.getters.getLocale())
       );
     }
-    return _lt("Date is %s", DATES_VALUES[criterion.dateValue].toString());
+    return _lt("Date is %s", getCriterionDateDescription(criterion));
+  },
+});
+
+dataValidationPanelCriteriaRegistry.add("dateIsBefore", {
+  type: "dateIsBefore",
+  component: DataValidationDateCriterionForm,
+  name: _lt("Date is before"),
+  getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
+    if (criterion.dateValue === "exactDate") {
+      if (criterion.values[0].startsWith("=")) {
+        return _lt("Date is before %s", criterion.values[0]);
+      }
+
+      return _lt(
+        "Date is %s",
+        getFormattedDate(criterion.values[0], env.model.getters.getLocale())
+      );
+    }
+    return _lt("Date is %s", getCriterionDateDescription(criterion));
   },
 });

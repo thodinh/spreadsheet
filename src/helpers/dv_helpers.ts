@@ -92,3 +92,27 @@ export function getDateCriterionValues(
 export function getCriterionValuesAsNumber(criterion: DataValidationCriterion, locale: Locale) {
   return criterion.values.map((value) => cellValueToNumber(value, locale));
 }
+
+export function getCriterionDateDescription(criterion: DataValidationDateCriterion): string {
+  if (criterion.dateValue === "exactDate") {
+    return _lt("the date %s", criterion.values[0]);
+  }
+
+  switch (criterion.type) {
+    case "dateIs":
+      return DATES_VALUES[criterion.dateValue];
+    case "dateIsBefore":
+      switch (criterion.dateValue) {
+        case "today":
+        case "yesterday":
+        case "tomorrow":
+          return _lt("before %s", DATES_VALUES[criterion.dateValue]);
+        case "lastWeek":
+          return _lt("earlier than one week ago");
+        case "lastMonth":
+          return _lt("earlier than one month ago");
+        case "lastYear":
+          return _lt("earlier than one year ago");
+      }
+  }
+}

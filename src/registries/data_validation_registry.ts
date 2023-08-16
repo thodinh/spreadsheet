@@ -7,7 +7,7 @@ import {
 } from "../helpers";
 import {
   cellValueToNumber,
-  DATES_VALUES,
+  getCriterionDateDescription,
   getCriterionValuesAsNumber,
   getDateCriterionValues,
 } from "../helpers/dv_helpers";
@@ -149,10 +149,7 @@ dataValidationEvaluatorRegistry.add("dateIs", {
       );
     }
 
-    return _lt(
-      "The value must be a date equal to %s",
-      DATES_VALUES[criterion.dateValue].toString()
-    );
+    return _lt("The value must be %s", getCriterionDateDescription(criterion));
   },
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
   getCriterionValueErrorString: () => _lt("The value must be a date"),

@@ -14,6 +14,15 @@ describe("Data validation registry", () => {
   };
   const locale = model.getters.getLocale();
 
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("01/01/2021"));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   describe("Text contains", () => {
     const evaluator = dataValidationEvaluatorRegistry.get("textContains");
     const criterion: DataValidationCriterion = { type: "textContains", values: ["test"] };
@@ -124,16 +133,7 @@ describe("Data validation registry", () => {
       expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(false);
     });
 
-    test("Error string", () => {
-      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date equal to 1/1/2021"
-      );
-    });
-
     describe("Different date values", () => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date("01/01/2021"));
-
       test("date is today", () => {
         const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "today" };
         let dateNumber = jsDateToRoundNumber(new Date("01/01/2021"));
@@ -193,6 +193,27 @@ describe("Data validation registry", () => {
         dateNumber = jsDateToRoundNumber(new Date("12/31/2019"));
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
       });
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date equal to 1/1/2021"
+      );
+
+      let dateCriterion: DataValidationCriterion = { ...criterion, values: ["2"] };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date equal to 1/1/1900"
+      );
+
+      dateCriterion = { ...criterion, values: [], dateValue: "today" };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be today"
+      );
+
+      dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be in the past week"
+      );
     });
 
     test("Valid criterion values", () => {
