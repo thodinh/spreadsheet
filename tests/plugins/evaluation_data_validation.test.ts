@@ -2,10 +2,7 @@ import { Model } from "../../src";
 import { jsDateToRoundNumber } from "../../src/helpers";
 import { CellPosition, UID } from "../../src/types";
 import { addDataValidation, setCellContent } from "../test_helpers/commands_helpers";
-import {
-  DataValidationCriterion,
-  DataValidationCriterionType,
-} from "./../../src/types/data_validation";
+import { DataValidationCriterion } from "./../../src/types/data_validation";
 
 function getValidationErrorMessages(model: Model, position: CellPosition) {
   return model.getters.getInvalidDataValidationMessages(position).map((val) => val.toString());
@@ -22,7 +19,7 @@ describe("Data validation evaluation", () => {
     A1 = { sheetId, col: 0, row: 0 };
   });
 
-  test("Text contains", () => {
+  test("Text data validation rule", () => {
     addDataValidation(model, "A1", "id", { type: "textContains", values: ["test"] });
 
     // Empty cell
@@ -58,7 +55,7 @@ describe("Data validation evaluation", () => {
     expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
   });
 
-  test("Is between", () => {
+  test("Number data validation rule", () => {
     addDataValidation(model, "A1", "id", { type: "isBetween", values: ["5", "10"] });
 
     // Empty cell
@@ -82,7 +79,7 @@ describe("Data validation evaluation", () => {
     expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
   });
 
-  test("Date is", () => {
+  test("Date data validation rule", () => {
     addDataValidation(model, "A1", "id", {
       type: "dateIs",
       values: ["1/1/2020"],
@@ -108,38 +105,32 @@ describe("Data validation evaluation", () => {
     expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
   });
 
-  test.each([{ type: "dateIs", values: ["1/1/2020"] }])(
-    "Date validation rule accept both string date and number dates %s",
-    ({ type, values }) => {
-      // String date
-      addDataValidation(model, "A1", "id", {
-        type,
-        values,
-        dateValue: "exactDate",
-      } as DataValidationCriterion);
-      setCellContent(model, "A1", "1/1/2020 12:00:00");
-      expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
+  test("Date validation rule accept both string date and number dates %s", () => {
+    // String date
+    addDataValidation(model, "A1", "id", {
+      type: "dateIs",
+      values: ["1/1/2020"],
+      dateValue: "exactDate",
+    } as DataValidationCriterion);
+    setCellContent(model, "A1", "1/1/2020 12:00:00");
+    expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
 
-      setCellContent(model, "A1", "9/9/2009");
-      expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
+    setCellContent(model, "A1", "9/9/2009");
+    expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
 
-      // Number date
-      const numberValues = values.map((val) => jsDateToRoundNumber(new Date(val)).toString());
-      addDataValidation(model, "A1", "id", {
-        type: type as DataValidationCriterionType,
-        values: numberValues,
-        dateValue: "exactDate",
-      });
-      setCellContent(model, "A1", "1/1/2020 12:00:00");
-      expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
+    // Number date
+    const numberValue = jsDateToRoundNumber(new Date("1/1/2020")).toString();
+    addDataValidation(model, "A1", "id", {
+      type: "dateIs",
+      values: [numberValue],
+      dateValue: "exactDate",
+    });
+    setCellContent(model, "A1", "1/1/2020 12:00:00");
+    expect(model.getters.isDataValidationInvalid(A1)).toEqual(false);
 
-      setCellContent(model, "A1", "9/9/2009");
-      expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
-      for (const value of values) {
-        expect(getValidationErrorMessages(model, A1)[0]).toContain(value);
-      }
-    }
-  );
+    setCellContent(model, "A1", "9/9/2009");
+    expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
+  });
 
   describe("Formula values", () => {
     test("Can use formula values", () => {

@@ -77,7 +77,7 @@ describe("data validation sidePanel component", () => {
     expect(model.getters.getDataValidationRules(sheetId)).toEqual([
       {
         id: expect.any(String),
-        criterion: { type: "dateIs", dateValue: "tomorrow", values: [""] },
+        criterion: { type: "dateIs", dateValue: "tomorrow", values: [] },
         ranges: ["A1:A5"],
       },
     ]);
