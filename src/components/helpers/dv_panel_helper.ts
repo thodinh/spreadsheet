@@ -37,7 +37,7 @@ dataValidationPanelCriteriaRegistry.add("textContains", {
 dataValidationPanelCriteriaRegistry.add("textNotContains", {
   type: "textNotContains",
   component: DataValidationSingleInputCriterionForm,
-  name: _lt("Text contains"),
+  name: _lt("Text does not contains"),
   getDescription: (criterion: TextNotContainsCriterion) =>
     _lt('Text does not contain "%s"', criterion.values[0]),
 });

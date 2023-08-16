@@ -576,7 +576,7 @@ exports[`Simple Spreadsheet Component simple rendering snapshot 1`] = `
   </div>
   
   <div
-    class="o-grid o-two-columns"
+    class="o-grid"
     tabindex="-1"
   >
     <div
@@ -669,7 +669,45 @@ exports[`Simple Spreadsheet Component simple rendering snapshot 1`] = `
       class="o-scrollbar corner"
     />
   </div>
-  
+  <div
+    class="o-sidePanel"
+  >
+    <div
+      class="o-sidePanelHeader"
+    >
+      <div
+        class="o-sidePanelTitle"
+      >
+        Data validation
+      </div>
+      <div
+        class="o-sidePanelClose"
+      >
+        ✕
+      </div>
+    </div>
+    <div
+      class="o-sidePanelBody"
+    >
+      <div
+        class="o-data-validation w-100"
+      >
+        <div
+          class="o-dv-preview-list w-100"
+        >
+          
+        </div>
+        <div
+          class="o-dv-add btn btn-link o-sidePanel-btn-link float-end"
+        >
+           + Add another rule 
+        </div>
+        
+        
+      </div>
+    </div>
+    
+  </div>
   <div
     class="o-spreadsheet-bottom-bar o-two-columns d-flex align-items-center overflow-hidden"
   >

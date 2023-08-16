@@ -1,6 +1,6 @@
 import { isDefined, isInside, lazy } from "../../helpers";
 import { getPositionsInRanges } from "../../helpers/dv_helpers";
-import { dataValidationCriterionMatcher } from "../../registries/data_validation_registry";
+import { dataValidationEvaluatorRegistry } from "../../registries/data_validation_registry";
 import {
   CellPosition,
   DataValidationCriterionType,
@@ -49,7 +49,7 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
     criterionType: DataValidationCriterionType,
     value: string
   ): string | undefined {
-    const evaluator = dataValidationCriterionMatcher.get(criterionType);
+    const evaluator = dataValidationEvaluatorRegistry.get(criterionType);
     if (!evaluator) {
       throw new Error(_lt("Unknown criterion type: %s", criterionType));
     }
@@ -97,16 +97,16 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
     rule: DataValidationInternal
   ): string | undefined {
     const criterion = rule.criterion;
-    const evaluator = dataValidationCriterionMatcher.get(criterion.type);
+    const evaluator = dataValidationEvaluatorRegistry.get(criterion.type);
     if (!evaluator) {
       throw new Error(_lt("Unknown criterion type: %s", criterion.type));
     }
 
     const offset = this.getCellOffsetInRule(cellPosition, rule);
     const cellValue = this.getters.getEvaluatedCell(cellPosition).value;
-    const args = { cellValue, offset, sheetId: cellPosition.sheetId, getters: this.getters };
+    const args = { offset, sheetId: cellPosition.sheetId, getters: this.getters };
 
-    if (evaluator.isValueValid(criterion, args)) {
+    if (evaluator.isValueValid(cellValue, criterion, args)) {
       return undefined;
     }
     return evaluator.getErrorString(criterion, args);

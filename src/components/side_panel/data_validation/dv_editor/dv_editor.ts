@@ -1,6 +1,6 @@
 import { Component, ComponentConstructor, useState } from "@odoo/owl";
 import { zoneToXc } from "../../../../helpers";
-import { dataValidationCriterionMatcher } from "../../../../registries/data_validation_registry";
+import { dataValidationEvaluatorRegistry } from "../../../../registries/data_validation_registry";
 import {
   DataValidationCriterion,
   DataValidationRule,
@@ -70,7 +70,7 @@ export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> 
     const dvRule = this.state.dvRule;
     const criterion = this.state.dvRule.criterion;
 
-    const criterionMatcher = dataValidationCriterionMatcher.get(criterion.type);
+    const criterionMatcher = dataValidationEvaluatorRegistry.get(criterion.type);
 
     const sheetId = this.env.model.getters.getActiveSheetId();
     return {
@@ -80,7 +80,7 @@ export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> 
         id: this.state.dvRule.id,
         criterion: {
           ...criterion,
-          values: criterion.values.slice(0, criterionMatcher.numberOfValues),
+          values: criterion.values.slice(0, criterionMatcher.numberOfValues(criterion)),
         },
       },
     };

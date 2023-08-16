@@ -31,7 +31,6 @@ import { CellErrorType } from "../types/errors";
 import { Registry } from "./registry";
 
 interface DataValidationEvaluatorArgs {
-  cellValue: CellValue;
   offset: Offset;
   sheetId: UID;
   getters: Getters;
@@ -39,19 +38,26 @@ interface DataValidationEvaluatorArgs {
 
 type DataValidationCriterionEvaluator = {
   type: DataValidationCriterionType;
-  isValueValid: (criterion: DataValidationCriterion, args: DataValidationEvaluatorArgs) => boolean;
+  isValueValid: (
+    value: CellValue,
+    criterion: DataValidationCriterion,
+    args: DataValidationEvaluatorArgs
+  ) => boolean;
   getErrorString: (criterion: DataValidationCriterion, args: DataValidationEvaluatorArgs) => string;
   isCriterionValueValid: (value: string, locale: Locale) => boolean;
   getCriterionValueErrorString: (value: string) => string;
-  numberOfValues: number;
+  numberOfValues: (criterion: DataValidationCriterion) => number;
 };
 
-export const dataValidationCriterionMatcher = new Registry<DataValidationCriterionEvaluator>();
-dataValidationCriterionMatcher.add("textContains", {
+export const dataValidationEvaluatorRegistry = new Registry<DataValidationCriterionEvaluator>();
+dataValidationEvaluatorRegistry.add("textContains", {
   type: "textContains",
-  isValueValid: (criterion: TextContainsCriterion, args: DataValidationEvaluatorArgs) => {
+  isValueValid: (
+    value: CellValue,
+    criterion: TextContainsCriterion,
+    args: DataValidationEvaluatorArgs
+  ) => {
     const { sheetId, offset, getters } = args;
-    const value = args.cellValue;
     const criterionValues = getEvaluatedStringCriterionValues(sheetId, offset, criterion, getters);
 
     return (
@@ -61,16 +67,19 @@ dataValidationCriterionMatcher.add("textContains", {
   getErrorString: (criterion: TextContainsCriterion) => {
     return _lt('The value must be a text that contains: "%s"', criterion.values[0]);
   },
-  isCriterionValueValid: (value: string) => true,
-  getCriterionValueErrorString: (value: string) => "",
-  numberOfValues: 1,
+  isCriterionValueValid: (value: string) => !!value,
+  getCriterionValueErrorString: (value: string) => _lt("The value must not be empty"),
+  numberOfValues: () => 1,
 });
 
-dataValidationCriterionMatcher.add("textNotContains", {
+dataValidationEvaluatorRegistry.add("textNotContains", {
   type: "textNotContains",
-  isValueValid: (criterion: TextNotContainsCriterion, args: DataValidationEvaluatorArgs) => {
+  isValueValid: (
+    value: CellValue,
+    criterion: TextNotContainsCriterion,
+    args: DataValidationEvaluatorArgs
+  ) => {
     const { sheetId, offset, getters } = args;
-    const value = args.cellValue;
     const criterionValues = getEvaluatedStringCriterionValues(sheetId, offset, criterion, getters);
 
     return (
@@ -80,26 +89,30 @@ dataValidationCriterionMatcher.add("textNotContains", {
   getErrorString: (criterion: TextNotContainsCriterion) => {
     return _lt('The value must be a text that does not contain: "%s"', criterion.values[0]);
   },
-  isCriterionValueValid: (value: string) => true,
-  getCriterionValueErrorString: (value: string) => "",
-  numberOfValues: 1,
+  isCriterionValueValid: (value: string) => !!value,
+  getCriterionValueErrorString: (value: string) => _lt("The value must not be empty"),
+  numberOfValues: () => 1,
 });
 
-dataValidationCriterionMatcher.add("isBetween", {
+dataValidationEvaluatorRegistry.add("isBetween", {
   type: "isBetween",
-  isValueValid: (criterion: NumberBetweenCriterion, args: DataValidationEvaluatorArgs) => {
-    const { sheetId, offset, getters, cellValue } = args;
-    const value = cellValueToNumber(cellValue, DEFAULT_LOCALE);
+  isValueValid: (
+    value: CellValue,
+    criterion: NumberBetweenCriterion,
+    args: DataValidationEvaluatorArgs
+  ) => {
+    const { sheetId, offset, getters } = args;
+    const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
     const criterionValues = getEvaluatedNumberCriterionValues(sheetId, offset, criterion, getters);
 
     if (
-      value === undefined ||
+      numberValue === undefined ||
       criterionValues[0] === undefined ||
       criterionValues[1] === undefined
     ) {
       return false;
     }
-    return isNumberBetween(value, criterionValues[0], criterionValues[1]);
+    return isNumberBetween(numberValue, criterionValues[0], criterionValues[1]);
   },
   getErrorString: (criterion: NumberBetweenCriterion, args: DataValidationEvaluatorArgs) => {
     const { sheetId, offset, getters } = args;
@@ -113,15 +126,19 @@ dataValidationCriterionMatcher.add("isBetween", {
   },
   isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
   getCriterionValueErrorString: () => _lt("The value must be a number"),
-  numberOfValues: 2,
+  numberOfValues: () => 2,
 });
 
-dataValidationCriterionMatcher.add("dateIs", {
+dataValidationEvaluatorRegistry.add("dateIs", {
   type: "dateIs",
-  isValueValid: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
-    const { sheetId, offset, getters, cellValue } = args;
+  isValueValid: (
+    value: CellValue,
+    criterion: DateIsCriterion,
+    args: DataValidationEvaluatorArgs
+  ) => {
+    const { sheetId, offset, getters } = args;
 
-    if (typeof cellValue !== "number") {
+    if (typeof value !== "number") {
       return false;
     }
     const criterionValue = getEvaluatedDateCriterionValues(sheetId, offset, criterion, getters)[0];
@@ -131,10 +148,10 @@ dataValidationCriterionMatcher.add("dateIs", {
 
     if (["lastWeek", "lastMonth", "lastYear"].includes(criterion.dateValue)) {
       const today = jsDateToRoundNumber(new Date());
-      return isDateBetween(cellValue, today, criterionValue);
+      return isDateBetween(value, today, criterionValue);
     }
 
-    return areDatesSameDay(cellValue, criterionValue);
+    return areDatesSameDay(value, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     if (criterion.dateValue === "exactDate") {
@@ -150,13 +167,13 @@ dataValidationCriterionMatcher.add("dateIs", {
     }
 
     return _lt(
-      "The value must be a date and must be %s",
+      "The value must be a date equal to %s",
       DATES_VALUES[criterion.dateValue].toString()
     );
   },
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
   getCriterionValueErrorString: () => _lt("The value must be a date"),
-  numberOfValues: 1,
+  numberOfValues: (criterion: DateIsCriterion) => (criterion.dateValue === "exactDate" ? 1 : 0),
 });
 
 function checkValueIsDate(value: string, locale: Locale): boolean {

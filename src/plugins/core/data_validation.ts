@@ -1,5 +1,5 @@
 import { deepCopy, isInside } from "../../helpers";
-import { dataValidationCriterionMatcher } from "../../registries/data_validation_registry";
+import { dataValidationEvaluatorRegistry } from "../../registries/data_validation_registry";
 import {
   ApplyRangeChange,
   CellPosition,
@@ -98,20 +98,19 @@ export class DataValidationPlugin
     switch (cmd.type) {
       case "ADD_DATA_VALIDATION_RULE":
         const criterion = cmd.dv.criterion;
-        if (!dataValidationCriterionMatcher.contains(criterion.type)) {
+        if (!dataValidationEvaluatorRegistry.contains(criterion.type)) {
           return CommandResult.UnknownDataValidationCriterionType;
         }
-        const criterionMatched = dataValidationCriterionMatcher.get(criterion.type);
+        const dvEvaluator = dataValidationEvaluatorRegistry.get(criterion.type);
         if (
           criterion.values.some(
             (value) =>
-              !value.startsWith("=") &&
-              !criterionMatched.isCriterionValueValid(value, DEFAULT_LOCALE)
+              !value.startsWith("=") && !dvEvaluator.isCriterionValueValid(value, DEFAULT_LOCALE)
           )
         ) {
           return CommandResult.InvalidDataValidationCriterionValue;
         }
-        if (criterion.values.length !== criterionMatched.numberOfValues) {
+        if (criterion.values.length !== dvEvaluator.numberOfValues(criterion)) {
           return CommandResult.InvalidNumberOfCriterionValues;
         }
         break;
