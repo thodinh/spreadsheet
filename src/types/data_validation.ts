@@ -32,11 +32,18 @@ export type DateIsCriterion = {
   values: string[];
 };
 
+export type DateIsBeforeCriterion = {
+  type: "dateIsBefore";
+  dateValue: DateCriterionValue;
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContainsCriterion
   | TextNotContainsCriterion
   | NumberBetweenCriterion
-  | DateIsCriterion;
+  | DateIsCriterion
+  | DateIsBeforeCriterion;
 
 export type DateCriterionValue =
   | "today"
