@@ -8,9 +8,8 @@ import {
 import {
   cellValueToNumber,
   DATES_VALUES,
-  getEvaluatedDateCriterionValues,
-  getEvaluatedNumberCriterionValues,
-  getEvaluatedStringCriterionValues,
+  getCriterionValuesAsNumber,
+  getDateCriterionValues,
 } from "../helpers/dv_helpers";
 import { _lt } from "../translation";
 import {
@@ -22,17 +21,13 @@ import {
   Getters,
   Locale,
   NumberBetweenCriterion,
-  Offset,
   TextContainsCriterion,
   TextNotContainsCriterion,
-  UID,
 } from "../types";
 import { CellErrorType } from "../types/errors";
 import { Registry } from "./registry";
 
 interface DataValidationEvaluatorArgs {
-  offset: Offset;
-  sheetId: UID;
   getters: Getters;
 }
 
@@ -57,8 +52,7 @@ dataValidationEvaluatorRegistry.add("textContains", {
     criterion: TextContainsCriterion,
     args: DataValidationEvaluatorArgs
   ) => {
-    const { sheetId, offset, getters } = args;
-    const criterionValues = getEvaluatedStringCriterionValues(sheetId, offset, criterion, getters);
+    const criterionValues = criterion.values;
 
     return (
       typeof value === "string" && value.toLowerCase().includes(criterionValues[0].toLowerCase())
@@ -79,8 +73,7 @@ dataValidationEvaluatorRegistry.add("textNotContains", {
     criterion: TextNotContainsCriterion,
     args: DataValidationEvaluatorArgs
   ) => {
-    const { sheetId, offset, getters } = args;
-    const criterionValues = getEvaluatedStringCriterionValues(sheetId, offset, criterion, getters);
+    const criterionValues = criterion.values;
 
     return (
       typeof value === "string" && !value.toLowerCase().includes(criterionValues[0].toLowerCase())
@@ -101,9 +94,9 @@ dataValidationEvaluatorRegistry.add("isBetween", {
     criterion: NumberBetweenCriterion,
     args: DataValidationEvaluatorArgs
   ) => {
-    const { sheetId, offset, getters } = args;
+    // TODO : locale
     const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
-    const criterionValues = getEvaluatedNumberCriterionValues(sheetId, offset, criterion, getters);
+    const criterionValues = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE);
 
     if (
       numberValue === undefined ||
@@ -115,14 +108,7 @@ dataValidationEvaluatorRegistry.add("isBetween", {
     return isNumberBetween(numberValue, criterionValues[0], criterionValues[1]);
   },
   getErrorString: (criterion: NumberBetweenCriterion, args: DataValidationEvaluatorArgs) => {
-    const { sheetId, offset, getters } = args;
-    const criterionValues = getEvaluatedNumberCriterionValues(
-      sheetId,
-      offset,
-      criterion,
-      getters
-    ).map((value) => (value !== undefined ? value.toString() : CellErrorType.InvalidReference));
-    return _lt("The value must be between %s and %s", criterionValues[0], criterionValues[1]);
+    return _lt("The value must be between %s and %s", criterion.values[0], criterion.values[1]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
   getCriterionValueErrorString: () => _lt("The value must be a number"),
@@ -136,12 +122,10 @@ dataValidationEvaluatorRegistry.add("dateIs", {
     criterion: DateIsCriterion,
     args: DataValidationEvaluatorArgs
   ) => {
-    const { sheetId, offset, getters } = args;
-
     if (typeof value !== "number") {
       return false;
     }
-    const criterionValue = getEvaluatedDateCriterionValues(sheetId, offset, criterion, getters)[0];
+    const criterionValue = getDateCriterionValues(criterion, args.getters)[0];
     if (!criterionValue) {
       return false;
     }
@@ -155,9 +139,8 @@ dataValidationEvaluatorRegistry.add("dateIs", {
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     if (criterion.dateValue === "exactDate") {
-      const { sheetId, offset, getters } = args;
       const locale = DEFAULT_LOCALE;
-      const value = getEvaluatedDateCriterionValues(sheetId, offset, criterion, getters)[0];
+      const value = getDateCriterionValues(criterion, args.getters)[0];
       return _lt(
         "The value must be a date equal to %s",
         value !== undefined

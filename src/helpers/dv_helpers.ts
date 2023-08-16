@@ -1,4 +1,3 @@
-import { compile } from "../formulas";
 import { _lt } from "../translation";
 import {
   CellValue,
@@ -8,10 +7,8 @@ import {
   Getters,
   HeaderIndex,
   Locale,
-  Offset,
   Position,
   Range,
-  UID,
 } from "../types";
 import { parseLiteral } from "./cells";
 import { jsDateToRoundNumber } from "./dates";
@@ -80,37 +77,8 @@ export function cellValueToNumber(
   return undefined;
 }
 
-export function getEvaluatedCriterionValues(
-  sheetId: UID,
-  offset: Offset,
-  criterion: DataValidationCriterion,
-  getters: Getters
-): (CellValue | undefined)[] {
-  // if (isDateCriterion(criterion) && criterion.dateValue !== "exactDate") {
-  //   return [getCriterionDateValue(criterion.dateValue)];
-  // }
-
-  return criterion.values.map((value) => {
-    if (!value.startsWith("=")) {
-      return value;
-    }
-
-    const formula = compile(value);
-    const translatedFormula = getters.getTranslatedCellFormula(
-      sheetId,
-      offset.col,
-      offset.row,
-      formula,
-      formula.dependencies.map((d) => getters.getRangeFromSheetXC(sheetId, d))
-    );
-    return getters.evaluateFormula(sheetId, translatedFormula);
-  });
-}
-
-/** Get all the dates values of a criterion converted to numbers, possibly evaluating the formulas  */
-export function getEvaluatedDateCriterionValues(
-  sheetId: UID,
-  offset: Offset,
+/** Get all the dates values of a criterion converted to numbers, converting date values such as "today" to actual dates  */
+export function getDateCriterionValues(
   criterion: DataValidationCriterion,
   getters: Getters
 ): (number | undefined)[] {
@@ -118,26 +86,9 @@ export function getEvaluatedDateCriterionValues(
     return [getCriterionDateValue(criterion.dateValue)];
   }
 
-  const values = getEvaluatedCriterionValues(sheetId, offset, criterion, getters);
-  return values.map((value) => cellValueToNumber(value, getters.getLocale()));
+  return criterion.values.map((value) => cellValueToNumber(value, getters.getLocale()));
 }
 
-export function getEvaluatedStringCriterionValues(
-  sheetId: UID,
-  offset: Offset,
-  criterion: DataValidationCriterion,
-  getters: Getters
-): string[] {
-  const values = getEvaluatedCriterionValues(sheetId, offset, criterion, getters);
-  return values.map((value) => (value ? value.toString() : ""));
-}
-
-export function getEvaluatedNumberCriterionValues(
-  sheetId: UID,
-  offset: Offset,
-  criterion: DataValidationCriterion,
-  getters: Getters
-): (number | undefined)[] {
-  const values = getEvaluatedCriterionValues(sheetId, offset, criterion, getters);
-  return values.map((value) => cellValueToNumber(value, getters.getLocale()));
+export function getCriterionValuesAsNumber(criterion: DataValidationCriterion, locale: Locale) {
+  return criterion.values.map((value) => cellValueToNumber(value, locale));
 }

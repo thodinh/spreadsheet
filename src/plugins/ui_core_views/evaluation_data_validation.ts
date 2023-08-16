@@ -1,8 +1,10 @@
+import { compile } from "../../formulas";
 import { isDefined, isInside, lazy } from "../../helpers";
 import { getPositionsInRanges } from "../../helpers/dv_helpers";
 import { dataValidationEvaluatorRegistry } from "../../registries/data_validation_registry";
 import {
   CellPosition,
+  DataValidationCriterion,
   DataValidationCriterionType,
   DataValidationInternal,
   DEFAULT_LOCALE,
@@ -104,12 +106,15 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
 
     const offset = this.getCellOffsetInRule(cellPosition, rule);
     const cellValue = this.getters.getEvaluatedCell(cellPosition).value;
-    const args = { offset, sheetId: cellPosition.sheetId, getters: this.getters };
+    const sheetId = cellPosition.sheetId;
+    const args = { getters: this.getters };
 
-    if (evaluator.isValueValid(cellValue, criterion, args)) {
+    const evaluatedCriterionValues = this.getEvaluatedCriterionValues(sheetId, offset, criterion);
+    const evaluatedCriterion = { ...criterion, values: evaluatedCriterionValues };
+    if (evaluator.isValueValid(cellValue, evaluatedCriterion, args)) {
       return undefined;
     }
-    return evaluator.getErrorString(criterion, args);
+    return evaluator.getErrorString(evaluatedCriterion, args);
   }
 
   private getCellOffsetInRule(cellPosition: CellPosition, rule: DataValidationInternal): Offset {
@@ -123,5 +128,29 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
       col: cellPosition.col - range.zone.left,
       row: cellPosition.row - range.zone.top,
     };
+  }
+
+  private getEvaluatedCriterionValues(
+    sheetId: UID,
+    offset: Offset,
+    criterion: DataValidationCriterion
+  ): string[] {
+    return criterion.values.map((value) => {
+      if (!value.startsWith("=")) {
+        return value;
+      }
+
+      const formula = compile(value);
+      const translatedFormula = this.getters.getTranslatedCellFormula(
+        sheetId,
+        offset.col,
+        offset.row,
+        formula,
+        formula.dependencies.map((d) => this.getters.getRangeFromSheetXC(sheetId, d))
+      );
+
+      const evaluated = this.getters.evaluateFormula(sheetId, translatedFormula);
+      return evaluated ? evaluated.toString() : "";
+    });
   }
 }

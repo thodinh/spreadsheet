@@ -1,4 +1,4 @@
-import { Component } from "@odoo/owl";
+import { Component, onMounted } from "@odoo/owl";
 import { DATES_VALUES } from "../../../../helpers/dv_helpers";
 import {
   DataValidationCriterion,
@@ -23,6 +23,9 @@ export class DataValidationDateCriterionForm extends Component<Props, Spreadshee
   setup() {
     this.value = this.props.initialCriterion.values[0] || "";
     this.dateValue = this.props.initialCriterion.dateValue || "exactDate";
+    onMounted(() => {
+      this.updateCriterion();
+    });
   }
 
   onValueChanged(ev: Event) {

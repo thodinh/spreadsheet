@@ -53,7 +53,7 @@ export class DataValidationPreview extends Component<Props, SpreadsheetChildEnv>
     if (!item) {
       throw new Error(`No component found for criterion type ${this.props.dvRule.criterion.type}`);
     }
-    return item.getDescription(this.props.dvRule.criterion, this.env);
+    return item.getPreview(this.props.dvRule.criterion, this.env);
   }
 }
 
