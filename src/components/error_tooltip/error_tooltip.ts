@@ -1,6 +1,6 @@
 import { Component } from "@odoo/owl";
 import { isVisibleErrorCell } from "../../helpers/cells";
-import { _lt } from "../../translation";
+import { _t } from "../../translation";
 import { CellPopoverComponent, PopoverBuilders } from "../../types/cell_popovers";
 import { css } from "../helpers/css";
 
@@ -41,9 +41,9 @@ class ErrorToolTip extends Component<ErrorToolTipProps> {
   getErrorTitle(error: ErrorToolTipMessage): string {
     switch (error.type) {
       case ErrorTooltipType.ErrorCell:
-        return _lt("Error");
+        return _t("Error");
       case ErrorTooltipType.InvalidDataValidation:
-        return _lt("Invalid");
+        return _t("Invalid");
     }
   }
 }

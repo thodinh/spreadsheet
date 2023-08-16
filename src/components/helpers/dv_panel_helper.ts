@@ -1,8 +1,7 @@
 import { ComponentConstructor } from "@odoo/owl";
 import { getFormattedDate } from "../../helpers";
-import { getCriterionDateDescription } from "../../helpers/dv_helpers";
 import { Registry } from "../../registries/registry";
-import { _lt } from "../../translation";
+import { _t } from "../../translation";
 import {
   DataValidationCriterion,
   DataValidationCriterionType,
@@ -14,6 +13,7 @@ import {
 import { DataValidationDateCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_date";
 import { DataValidationDoubleInputCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_double_input";
 import { DataValidationSingleInputCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_single_input";
+import { DVRelativeDateTerms } from "../translations_terms";
 
 export type DataValidationCriterionItem = {
   type: DataValidationCriterionType;
@@ -29,60 +29,56 @@ export const dataValidationPanelCriteriaRegistry: Registry<DataValidationCriteri
 dataValidationPanelCriteriaRegistry.add("textContains", {
   type: "textContains",
   component: DataValidationSingleInputCriterionForm,
-  name: _lt("Text contains"),
-  getPreview: (criterion: TextContainsCriterion) => _lt('Text contains "%s"', criterion.values[0]),
+  name: _t("Text contains"),
+  getPreview: (criterion: TextContainsCriterion) => _t('Text contains "%s"', criterion.values[0]),
 });
 
 dataValidationPanelCriteriaRegistry.add("textNotContains", {
   type: "textNotContains",
   component: DataValidationSingleInputCriterionForm,
-  name: _lt("Text does not contains"),
+  name: _t("Text does not contains"),
   getPreview: (criterion: TextNotContainsCriterion) =>
-    _lt('Text does not contain "%s"', criterion.values[0]),
+    _t('Text does not contain "%s"', criterion.values[0]),
 });
 
 dataValidationPanelCriteriaRegistry.add("isBetween", {
   type: "isBetween",
   component: DataValidationDoubleInputCriterionForm,
-  name: _lt("Is between"),
+  name: _t("Is between"),
   getPreview: (criterion: DataValidationCriterion) =>
-    _lt("Value is between %s and %s", criterion.values[0], criterion.values[1]),
+    _t("Value is between %s and %s", criterion.values[0], criterion.values[1]),
 });
 
 dataValidationPanelCriteriaRegistry.add("dateIs", {
   type: "dateIs",
   component: DataValidationDateCriterionForm,
-  name: _lt("Date is"),
+  name: _t("Date is"),
   getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
     if (criterion.dateValue === "exactDate") {
-      if (criterion.values[0].startsWith("=")) {
-        return _lt("Date is %s", criterion.values[0]);
-      }
+      const locale = env.model.getters.getLocale();
+      const value = criterion.values[0].startsWith("=")
+        ? criterion.values[0]
+        : getFormattedDate(criterion.values[0], locale);
 
-      return _lt(
-        "Date is %s",
-        getFormattedDate(criterion.values[0], env.model.getters.getLocale())
-      );
+      return _t("Date is %s", value);
     }
-    return _lt("Date is %s", getCriterionDateDescription(criterion));
+    return _t("Date is %s", DVRelativeDateTerms.DateIs[criterion.dateValue]);
   },
 });
 
 dataValidationPanelCriteriaRegistry.add("dateIsBefore", {
   type: "dateIsBefore",
   component: DataValidationDateCriterionForm,
-  name: _lt("Date is before"),
+  name: _t("Date is before"),
   getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
     if (criterion.dateValue === "exactDate") {
-      if (criterion.values[0].startsWith("=")) {
-        return _lt("Date is before %s", criterion.values[0]);
-      }
+      const locale = env.model.getters.getLocale();
+      const value = criterion.values[0].startsWith("=")
+        ? criterion.values[0]
+        : getFormattedDate(criterion.values[0], locale);
 
-      return _lt(
-        "Date is %s",
-        getFormattedDate(criterion.values[0], env.model.getters.getLocale())
-      );
+      return _t("Date is before %s", value);
     }
-    return _lt("Date is %s", getCriterionDateDescription(criterion));
+    return _t("Date is %s", DVRelativeDateTerms.DateIsBefore[criterion.dateValue]);
   },
 });

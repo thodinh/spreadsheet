@@ -15,7 +15,7 @@ import {
 } from "../../types";
 import { CoreViewCommand } from "../../types/commands";
 import { UIPlugin } from "../ui_plugin";
-import { _lt } from "./../../translation";
+import { _t } from "./../../translation";
 
 type ValidationResult = { [col: HeaderIndex]: Array<Lazy<string[]>> };
 
@@ -53,7 +53,7 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
   ): string | undefined {
     const evaluator = dataValidationEvaluatorRegistry.get(criterionType);
     if (!evaluator) {
-      throw new Error(_lt("Unknown criterion type: %s", criterionType));
+      throw new Error(_t("Unknown criterion type: %s", criterionType));
     }
     return value.startsWith("=") || evaluator.isCriterionValueValid(value, DEFAULT_LOCALE)
       ? undefined
@@ -101,7 +101,7 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
     const criterion = rule.criterion;
     const evaluator = dataValidationEvaluatorRegistry.get(criterion.type);
     if (!evaluator) {
-      throw new Error(_lt("Unknown criterion type: %s", criterion.type));
+      throw new Error(_t("Unknown criterion type: %s", criterion.type));
     }
 
     const offset = this.getCellOffsetInRule(cellPosition, rule);

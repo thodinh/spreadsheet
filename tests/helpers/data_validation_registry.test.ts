@@ -1,7 +1,7 @@
 import { Model } from "../../src";
-import { jsDateToRoundNumber } from "../../src/helpers";
+import { parseLiteral } from "../../src/helpers/cells";
 import { dataValidationEvaluatorRegistry } from "../../src/registries/data_validation_registry";
-import { DataValidationCriterion } from "../../src/types";
+import { DataValidationCriterion, DEFAULT_LOCALE } from "../../src/types";
 import { FR_LOCALE } from "./../test_helpers/constants";
 
 describe("Data validation registry", () => {
@@ -16,7 +16,7 @@ describe("Data validation registry", () => {
 
   beforeAll(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date("01/01/2021"));
+    jest.setSystemTime(new Date("01/01/2021 12:00:00"));
   });
 
   afterAll(() => {
@@ -120,89 +120,92 @@ describe("Data validation registry", () => {
     };
 
     test("Valid values", () => {
-      let dateNumber = jsDateToRoundNumber(new Date("01/01/2021"));
+      let dateNumber = parseLiteral("01/01/2021", DEFAULT_LOCALE);
       expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(true);
 
-      dateNumber = jsDateToRoundNumber(new Date("01/01/2022"));
+      dateNumber = parseLiteral("01/01/2021 18:00:00", DEFAULT_LOCALE);
+      expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(true);
+
+      dateNumber = parseLiteral("01/01/2022", DEFAULT_LOCALE);
       expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(false);
 
-      dateNumber = jsDateToRoundNumber(new Date("01/02/2021"));
+      dateNumber = parseLiteral("01/02/2021", DEFAULT_LOCALE);
       expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(false);
 
-      dateNumber = jsDateToRoundNumber(new Date("02/01/2021"));
+      dateNumber = parseLiteral("02/01/2021", DEFAULT_LOCALE);
       expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(false);
     });
 
     describe("Different date values", () => {
       test("date is today", () => {
         const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "today" };
-        let dateNumber = jsDateToRoundNumber(new Date("01/01/2021"));
+        let dateNumber = parseLiteral("01/01/2021", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
-        dateNumber = jsDateToRoundNumber(new Date("01/02/2021"));
+        dateNumber = parseLiteral("01/02/2021", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
       });
 
       test("date is tomorrow", () => {
         const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "tomorrow" };
-        let dateNumber = jsDateToRoundNumber(new Date("01/02/2021"));
+        let dateNumber = parseLiteral("01/02/2021", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
-        dateNumber = jsDateToRoundNumber(new Date("01/01/2021"));
+        dateNumber = parseLiteral("01/01/2021", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
       });
 
       test("date is yesterday", () => {
         const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "yesterday" };
-        let dateNumber = jsDateToRoundNumber(new Date("12/31/2020"));
+        let dateNumber = parseLiteral("12/31/2020", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
-        dateNumber = jsDateToRoundNumber(new Date("01/01/2021"));
+        dateNumber = parseLiteral("01/01/2021", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
       });
 
       test("In the past week", () => {
         const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "lastWeek" };
-        let dateNumber = jsDateToRoundNumber(new Date("12/25/2020"));
+        let dateNumber = parseLiteral("12/25/2020", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
 
-        dateNumber = jsDateToRoundNumber(new Date("12/26/2020"));
+        dateNumber = parseLiteral("12/26/2020", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
 
-        dateNumber = jsDateToRoundNumber(new Date("12/20/2020"));
+        dateNumber = parseLiteral("12/20/2020", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
       });
 
       test("In the past month", () => {
         const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "lastMonth" };
-        let dateNumber = jsDateToRoundNumber(new Date("12/01/2020"));
+        let dateNumber = parseLiteral("12/01/2020", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
 
-        dateNumber = jsDateToRoundNumber(new Date("12/31/2020"));
+        dateNumber = parseLiteral("12/31/2020", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
 
-        dateNumber = jsDateToRoundNumber(new Date("11/30/2020"));
+        dateNumber = parseLiteral("11/30/2020", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
       });
 
       test("In the past year", () => {
         const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "lastYear" };
-        let dateNumber = jsDateToRoundNumber(new Date("01/01/2020"));
+        let dateNumber = parseLiteral("01/01/2020", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
 
-        dateNumber = jsDateToRoundNumber(new Date("12/31/2020"));
+        dateNumber = parseLiteral("12/31/2020", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
 
-        dateNumber = jsDateToRoundNumber(new Date("12/31/2019"));
+        dateNumber = parseLiteral("12/31/2019", DEFAULT_LOCALE);
         expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
       });
     });
 
     test("Error string", () => {
       expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date equal to 1/1/2021"
+        "The value must be the date 1/1/2021"
       );
 
       let dateCriterion: DataValidationCriterion = { ...criterion, values: ["2"] };
       expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date equal to 1/1/1900"
+        "The value must be the date 1/1/1900"
       );
 
       dateCriterion = { ...criterion, values: [], dateValue: "today" };
@@ -213,6 +216,122 @@ describe("Data validation registry", () => {
       dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
       expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
         "The value must be in the past week"
+      );
+    });
+
+    test("Valid criterion values", () => {
+      expect(evaluator.isCriterionValueValid("01/01/2021", locale)).toEqual(true);
+      expect(evaluator.isCriterionValueValid("5", locale)).toEqual(true);
+
+      expect(evaluator.isCriterionValueValid("", locale)).toEqual(false);
+      expect(evaluator.isCriterionValueValid("hello", locale)).toEqual(false);
+
+      expect(evaluator.getCriterionValueErrorString("01/01/2021").toString()).toEqual(
+        "The value must be a date"
+      );
+    });
+
+    test("Localized date value", () => {
+      expect(evaluator.isCriterionValueValid("12/01/2021", locale)).toEqual(true);
+      expect(evaluator.isCriterionValueValid("13/01/2021", locale)).toEqual(false);
+
+      expect(evaluator.isCriterionValueValid("13/01/2021", FR_LOCALE)).toEqual(true);
+    });
+  });
+
+  describe("Date is before", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("dateIsBefore");
+    const criterion: DataValidationCriterion = {
+      type: "dateIsBefore",
+      values: ["01/01/2021"],
+      dateValue: "exactDate",
+    };
+
+    test("Valid values", () => {
+      let dateNumber = parseLiteral("01/01/2021", DEFAULT_LOCALE);
+      expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(false);
+
+      dateNumber = parseLiteral("12/31/2020", DEFAULT_LOCALE);
+      expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(true);
+
+      dateNumber = parseLiteral("12/31/2020 18:00:00", DEFAULT_LOCALE);
+      expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(true);
+
+      dateNumber = parseLiteral("01/02/2022", DEFAULT_LOCALE);
+      expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(false);
+    });
+
+    describe("Different date values", () => {
+      test("date is before today", () => {
+        const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "today" };
+        let dateNumber = parseLiteral("01/01/2021", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
+        dateNumber = parseLiteral("12/31/2020", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
+      });
+
+      test("date is before tomorrow", () => {
+        const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "tomorrow" };
+        let dateNumber = parseLiteral("01/01/2021", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
+        dateNumber = parseLiteral("01/02/2021", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
+      });
+
+      test("date is before yesterday", () => {
+        const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "yesterday" };
+        let dateNumber = parseLiteral("12/31/2020", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
+        dateNumber = parseLiteral("12/30/2020", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
+      });
+
+      test("before one week ago", () => {
+        const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "lastWeek" };
+        let dateNumber = parseLiteral("12/22/2020", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
+
+        dateNumber = parseLiteral("12/26/2020", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
+      });
+
+      test("before one month ago", () => {
+        const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "lastMonth" };
+        let dateNumber = parseLiteral("12/01/2020", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
+
+        dateNumber = parseLiteral("10/30/2020", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
+      });
+
+      test("before one year ago", () => {
+        const dateCriterion: DataValidationCriterion = { ...criterion, dateValue: "lastYear" };
+        let dateNumber = parseLiteral("01/01/2021", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(false);
+
+        dateNumber = parseLiteral("12/30/2019", DEFAULT_LOCALE);
+        expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(true);
+      });
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date before 1/1/2021"
+      );
+
+      let dateCriterion: DataValidationCriterion = { ...criterion, values: ["2"] };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date before 1/1/1900"
+      );
+
+      dateCriterion = { ...criterion, values: [], dateValue: "today" };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date before today"
+      );
+
+      dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date earlier than one week ago"
       );
     });
 

@@ -56,31 +56,31 @@ describe("Data validation preview", () => {
     });
   });
 
-  describe("Rule descriptions", () => {
-    function getCriterionDescription(criterion: DataValidationCriterion, env = makeTestEnv()) {
+  describe("Rule previews", () => {
+    function getCriterionPreview(criterion: DataValidationCriterion, env = makeTestEnv()) {
       return dataValidationPanelCriteriaRegistry
         .get(criterion.type)
-        .getDescription(criterion, env)
+        .getPreview(criterion, env)
         .toString();
     }
 
     test("textContains", () => {
-      const description = getCriterionDescription({ type: "textContains", values: ["foo"] });
+      const description = getCriterionPreview({ type: "textContains", values: ["foo"] });
       expect(description).toBe('Text contains "foo"');
     });
 
     test("textNotContains", () => {
-      const description = getCriterionDescription({ type: "textNotContains", values: ["foo"] });
+      const description = getCriterionPreview({ type: "textNotContains", values: ["foo"] });
       expect(description).toBe('Text does not contain "foo"');
     });
 
     test("isBetween", () => {
-      const description = getCriterionDescription({ type: "isBetween", values: ["1", "2"] });
+      const description = getCriterionPreview({ type: "isBetween", values: ["1", "2"] });
       expect(description).toBe("Value is between 1 and 2");
     });
 
     test("dateIs with exact date", () => {
-      const description = getCriterionDescription({
+      const description = getCriterionPreview({
         type: "dateIs",
         values: ["1/1/2001"],
         dateValue: "exactDate",
@@ -95,28 +95,28 @@ describe("Data validation preview", () => {
         dateValue: "tomorrow",
       };
 
-      let description = getCriterionDescription({ ...criterion, dateValue: "tomorrow" });
+      let description = getCriterionPreview({ ...criterion, dateValue: "tomorrow" });
       expect(description).toBe("Date is tomorrow");
 
-      description = getCriterionDescription({ ...criterion, dateValue: "yesterday" });
+      description = getCriterionPreview({ ...criterion, dateValue: "yesterday" });
       expect(description).toBe("Date is yesterday");
 
-      description = getCriterionDescription({ ...criterion, dateValue: "today" });
+      description = getCriterionPreview({ ...criterion, dateValue: "today" });
       expect(description).toBe("Date is today");
 
-      description = getCriterionDescription({ ...criterion, dateValue: "lastWeek" });
+      description = getCriterionPreview({ ...criterion, dateValue: "lastWeek" });
       expect(description).toBe("Date is in the past week");
 
-      description = getCriterionDescription({ ...criterion, dateValue: "lastMonth" });
+      description = getCriterionPreview({ ...criterion, dateValue: "lastMonth" });
       expect(description).toBe("Date is in the past month");
 
-      description = getCriterionDescription({ ...criterion, dateValue: "lastYear" });
+      description = getCriterionPreview({ ...criterion, dateValue: "lastYear" });
       expect(description).toBe("Date is in the past year");
     });
 
     describe("Date generic tests", () => {
       test("Exact date string", () => {
-        const description = getCriterionDescription({
+        const description = getCriterionPreview({
           type: "dateIs",
           values: ["1/1/2001"],
           dateValue: "exactDate",
@@ -125,7 +125,7 @@ describe("Data validation preview", () => {
       });
 
       test("Number in exactDate value is formatted as a date", () => {
-        const description = getCriterionDescription({
+        const description = getCriterionPreview({
           type: "dateIs",
           values: ["0"],
           dateValue: "exactDate",
@@ -139,7 +139,7 @@ describe("Data validation preview", () => {
           locale: { ...DEFAULT_LOCALE, dateFormat: "yyyy-mm-dd" },
         });
 
-        const description = getCriterionDescription(
+        const description = getCriterionPreview(
           { type: "dateIs", values: ["0"], dateValue: "exactDate" },
           env
         );

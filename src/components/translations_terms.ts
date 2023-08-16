@@ -94,3 +94,22 @@ export const SplitToColumnsTerms = {
     [CommandResult.SplitWillOverwriteContent]: _t("Splitting will overwrite existing content"),
   },
 };
+
+export const DVRelativeDateTerms = {
+  DateIs: {
+    today: _t("today"),
+    yesterday: _t("yesterday"),
+    tomorrow: _t("tomorrow"),
+    lastWeek: _t("in the past week"),
+    lastMonth: _t("in the past month"),
+    lastYear: _t("in the past year"),
+  },
+  DateIsBefore: {
+    today: _t("before today"),
+    yesterday: _t("before yesterday"),
+    tomorrow: _t("before tomorrow"),
+    lastWeek: _t("earlier than one week ago"),
+    lastMonth: _t("earlier than one month ago"),
+    lastYear: _t("earlier than one year ago"),
+  },
+};

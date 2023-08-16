@@ -28,7 +28,6 @@ export class DataValidationPanel extends Component<Props, SpreadsheetChildEnv> {
   }
 
   onPreviewClick(id: UID) {
-    console.log("onPreviewClick", id);
     const sheetId = this.env.model.getters.getActiveSheetId();
     const dvRule = this.env.model.getters.getDataValidationRule(sheetId, id);
     if (dvRule) {

@@ -328,6 +328,11 @@ export function jsDateToRoundNumber(date: Date): number {
   return Math.round(delta / MS_PER_DAY);
 }
 
+export function jsDateToNumber(date: Date): number {
+  const delta = date.getTime() - INITIAL_1900_DAY.getTime();
+  return delta / MS_PER_DAY;
+}
+
 /** Return the number of days in the current month of the given date */
 export function getDaysInMonth(date: Date): number {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -531,18 +536,26 @@ export function areTwoDatesWithinOneYear(startDate: number, endDate: number) {
 }
 
 export function areDatesSameDay(startDate: number, endDate: number) {
-  const jsStartDate = numberToJsDate(startDate);
-  const jsEndDate = numberToJsDate(endDate);
-  return (
-    jsStartDate.getFullYear() === jsEndDate.getFullYear() &&
-    jsStartDate.getMonth() === jsEndDate.getMonth() &&
-    jsStartDate.getDate() === jsEndDate.getDate()
-  );
+  return Math.trunc(startDate) === Math.trunc(endDate);
 }
 
 export function isDateBetween(date: number, startDate: number, endDate: number) {
   if (startDate > endDate) {
     return isDateBetween(date, endDate, startDate);
   }
+  date = Math.trunc(date);
+  startDate = Math.trunc(startDate);
+  endDate = Math.trunc(endDate);
   return date >= startDate && date <= endDate;
+}
+
+/** Check if the day of the first date is strictly before the day of the second date */
+export function isDateStrictlyBeforeDay(date: number, dateBefore: number) {
+  const jsDate = numberToJsDate(date);
+  const jsDateBefore = numberToJsDate(dateBefore);
+  return (
+    jsDate.getFullYear() < jsDateBefore.getFullYear() ||
+    jsDate.getMonth() < jsDateBefore.getMonth() ||
+    jsDate.getDate() < jsDateBefore.getDate()
+  );
 }
