@@ -35,6 +35,7 @@ describe("data validation sidePanel component", () => {
     ["textNotContains", { values: ["str"] }, 'Text does not contain "str"'],
     ["isBetween", { values: ["5", "6"] }, "Value is between 5 and 6"],
     ["dateIs", { values: ["1/1/2020"], dateValue: "exactDate" }, "Date is 1/1/2020"],
+    ["dateIsBefore", { values: ["1/1/2020"], dateValue: "exactDate" }, "Date is before 1/1/2020"],
   ])("Add a data validation rule %s", async (type, criterion, preview) => {
     await simulateClick(".o-dv-add");
     await nextTick();

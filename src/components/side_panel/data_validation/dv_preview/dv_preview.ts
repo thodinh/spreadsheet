@@ -39,7 +39,6 @@ export class DataValidationPreview extends Component<Props, SpreadsheetChildEnv>
   static template = "o-spreadsheet-DataValidationPreview";
 
   deleteDataValidation() {
-    console.log("deleteDataValidation", this.props.dvRule.id);
     const sheetId = this.env.model.getters.getActiveSheetId();
     this.env.model.dispatch("REMOVE_DATA_VALIDATION_RULE", { sheetId, id: this.props.dvRule.id });
   }

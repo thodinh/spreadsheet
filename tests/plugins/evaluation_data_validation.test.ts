@@ -88,9 +88,7 @@ describe("Data validation evaluation", () => {
 
     // Empty cell
     expect(model.getters.isDataValidationInvalid(A1)).toEqual(true);
-    expect(getValidationErrorMessages(model, A1)).toEqual([
-      "The value must be a date equal to 1/1/2020",
-    ]);
+    expect(getValidationErrorMessages(model, A1)).toEqual(["The value must be the date 1/1/2020"]);
 
     // Non-date value
     setCellContent(model, "A1", "test");

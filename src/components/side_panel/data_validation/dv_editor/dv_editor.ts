@@ -49,7 +49,6 @@ export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> 
   }
 
   onCriterionChanged(criterion: DataValidationCriterion) {
-    console.log("onCriterionChanged", criterion);
     this.state.dvRule.criterion = criterion;
   }
 

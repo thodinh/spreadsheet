@@ -391,7 +391,7 @@ topbarMenuRegistry
     sequence: 30,
   })
   .addChild("data_validation", ["data"], {
-    name: _lt("Data Validation"),
+    name: _t("Data Validation"),
     execute: (env) => {
       env.openSidePanel("DataValidationPanel");
     },

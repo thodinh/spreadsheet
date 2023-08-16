@@ -51,6 +51,6 @@ sidePanelRegistry.add("Settings", {
 });
 
 sidePanelRegistry.add("DataValidationPanel", {
-  title: _lt("Data validation"),
+  title: _t("Data validation"),
   Body: DataValidationPanel,
 });

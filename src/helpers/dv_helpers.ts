@@ -1,4 +1,4 @@
-import { _lt } from "../translation";
+import { _t } from "../translation";
 import {
   CellValue,
   DataValidationCriterion,
@@ -11,17 +11,17 @@ import {
   Range,
 } from "../types";
 import { parseLiteral } from "./cells";
-import { jsDateToRoundNumber } from "./dates";
+import { jsDateToNumber } from "./dates";
 import { positions } from "./zones";
 
 export const DATES_VALUES: Record<DateCriterionValue, string> = {
-  today: _lt("today"),
-  yesterday: _lt("yesterday"),
-  tomorrow: _lt("tomorrow"),
-  lastWeek: _lt("in the past week"),
-  lastMonth: _lt("in the past month"),
-  lastYear: _lt("in the past year"),
-  exactDate: _lt("exact date"),
+  today: _t("today"),
+  yesterday: _t("yesterday"),
+  tomorrow: _t("tomorrow"),
+  lastWeek: _t("in the past week"),
+  lastMonth: _t("in the past month"),
+  lastYear: _t("in the past year"),
+  exactDate: _t("exact date"),
 };
 
 export function getPositionsInRanges(ranges: Range[]): Position[] {
@@ -50,20 +50,21 @@ export function getCriterionDateValue(dateValue: Exclude<DateCriterionValue, "ex
   const today = new Date();
   switch (dateValue) {
     case "today":
-      return jsDateToRoundNumber(today);
+      return jsDateToNumber(today);
     case "yesterday":
-      return jsDateToRoundNumber(new Date(today.setDate(today.getDate() - 1)));
+      return jsDateToNumber(new Date(today.setDate(today.getDate() - 1)));
     case "tomorrow":
-      return jsDateToRoundNumber(new Date(today.setDate(today.getDate() + 1)));
+      return jsDateToNumber(new Date(today.setDate(today.getDate() + 1)));
     case "lastWeek":
-      return jsDateToRoundNumber(new Date(today.setDate(today.getDate() - 7)));
+      return jsDateToNumber(new Date(today.setDate(today.getDate() - 7)));
     case "lastMonth":
-      return jsDateToRoundNumber(new Date(today.setMonth(today.getMonth() - 1)));
+      return jsDateToNumber(new Date(today.setMonth(today.getMonth() - 1)));
     case "lastYear":
-      return jsDateToRoundNumber(new Date(today.setFullYear(today.getFullYear() - 1)));
+      return jsDateToNumber(new Date(today.setFullYear(today.getFullYear() - 1)));
   }
 }
 
+/** Convert a cell value to a number. Return undefined if it cannot be converted to a number. */
 export function cellValueToNumber(
   value: CellValue | undefined,
   locale: Locale
@@ -89,30 +90,7 @@ export function getDateCriterionValues(
   return criterion.values.map((value) => cellValueToNumber(value, getters.getLocale()));
 }
 
+/** Convert the criterion values to numbers. Return undefined values if they cannot be converted to numbers. */
 export function getCriterionValuesAsNumber(criterion: DataValidationCriterion, locale: Locale) {
   return criterion.values.map((value) => cellValueToNumber(value, locale));
-}
-
-export function getCriterionDateDescription(criterion: DataValidationDateCriterion): string {
-  if (criterion.dateValue === "exactDate") {
-    return _lt("the date %s", criterion.values[0]);
-  }
-
-  switch (criterion.type) {
-    case "dateIs":
-      return DATES_VALUES[criterion.dateValue];
-    case "dateIsBefore":
-      switch (criterion.dateValue) {
-        case "today":
-        case "yesterday":
-        case "tomorrow":
-          return _lt("before %s", DATES_VALUES[criterion.dateValue]);
-        case "lastWeek":
-          return _lt("earlier than one week ago");
-        case "lastMonth":
-          return _lt("earlier than one month ago");
-        case "lastYear":
-          return _lt("earlier than one year ago");
-      }
-  }
 }
