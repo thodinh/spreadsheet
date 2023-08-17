@@ -55,7 +55,7 @@ dataValidationPanelCriteriaRegistry.add("dateIs", {
   getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
     return criterion.dateValue === "exactDate"
       ? _t("Date is %s", getDateCriterionFormattedExactValue(criterion, env)[0])
-      : _t("Date is %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
+      : _t("Date is %s", DVDateTerms.DateIs[criterion.dateValue]);
   },
 });
 
@@ -110,6 +110,16 @@ dataValidationPanelCriteriaRegistry.add("dateIsBetween", {
   getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
     const values = getDateCriterionFormattedExactValue(criterion, env);
     return _t("Date is between %s and %s", values[0], values[1]);
+  },
+});
+
+dataValidationPanelCriteriaRegistry.add("dateIsNotBetween", {
+  type: "dateIsNotBetween",
+  component: DataValidationDoubleInputCriterionForm,
+  name: _t("Date is not between"),
+  getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
+    const values = getDateCriterionFormattedExactValue(criterion, env);
+    return _t("Date is not between %s and %s", values[0], values[1]);
   },
 });
 
