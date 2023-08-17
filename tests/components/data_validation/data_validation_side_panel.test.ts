@@ -52,6 +52,7 @@ describe("data validation sidePanel component", () => {
       { values: ["1/1/2020", "2/2/2022"] },
       "Date is between 1/1/2020 and 2/2/2022",
     ],
+    ["dateIsValid", { values: [] }, "Date is valid"],
   ])("Add a data validation rule %s", async (type, criterion, preview) => {
     await simulateClick(".o-dv-add");
     await nextTick();

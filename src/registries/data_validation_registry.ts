@@ -9,6 +9,7 @@ import {
   isDateStrictlyBeforeDay,
   isNumberBetween,
   jsDateToRoundNumber,
+  valueToDateNumber,
 } from "../helpers";
 import {
   cellValueToNumber,
@@ -119,16 +120,18 @@ dataValidationEvaluatorRegistry.add("dateIs", {
   ) => {
     const locale = DEFAULT_LOCALE;
     const criterionValue = getDateCriterionValues(criterion, locale)[0];
-    if (typeof value !== "number" || !criterionValue) {
+    const dateValue = valueToDateNumber(value, DEFAULT_LOCALE);
+
+    if (dateValue === undefined || !criterionValue) {
       return false;
     }
 
     if (["lastWeek", "lastMonth", "lastYear"].includes(criterion.dateValue)) {
       const today = jsDateToRoundNumber(new Date());
-      return isDateBetween(value, today, criterionValue);
+      return isDateBetween(dateValue, today, criterionValue);
     }
 
-    return areDatesSameDay(value, criterionValue);
+    return areDatesSameDay(dateValue, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
@@ -149,9 +152,10 @@ dataValidationEvaluatorRegistry.add("dateIsBefore", {
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
-    return typeof value !== "number" || !criterionValue
+    const dateValue = valueToDateNumber(value, DEFAULT_LOCALE);
+    return dateValue === undefined || !criterionValue
       ? false
-      : isDateStrictlyBeforeDay(value, criterionValue);
+      : isDateStrictlyBeforeDay(dateValue, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
@@ -175,9 +179,10 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrBefore", {
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
-    return typeof value !== "number" || !criterionValue
+    const dateValue = valueToDateNumber(value, DEFAULT_LOCALE);
+    return dateValue === undefined || !criterionValue
       ? false
-      : isDateBeforeDay(value, criterionValue);
+      : isDateBeforeDay(dateValue, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
@@ -204,9 +209,10 @@ dataValidationEvaluatorRegistry.add("dateIsAfter", {
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
-    return typeof value !== "number" || !criterionValue
+    const dateValue = valueToDateNumber(value, DEFAULT_LOCALE);
+    return dateValue === undefined || !criterionValue
       ? false
-      : isDateStrictlyAfterDay(value, criterionValue);
+      : isDateStrictlyAfterDay(dateValue, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
@@ -230,9 +236,10 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrAfter", {
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
-    return typeof value !== "number" || !criterionValue
+    const dateValue = valueToDateNumber(value, DEFAULT_LOCALE);
+    return dateValue === undefined || !criterionValue
       ? false
-      : isDateAfterDay(value, criterionValue);
+      : isDateAfterDay(dateValue, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
@@ -256,9 +263,10 @@ dataValidationEvaluatorRegistry.add("dateIsBetween", {
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValues = getDateCriterionValues(criterion, DEFAULT_LOCALE);
-    return typeof value !== "number" || !criterionValues[0] || !criterionValues[1]
+    const dateValue = valueToDateNumber(value, DEFAULT_LOCALE);
+    return dateValue === undefined || !criterionValues[0] || !criterionValues[1]
       ? false
-      : isDateBetween(value, criterionValues[0], criterionValues[1]);
+      : isDateBetween(dateValue, criterionValues[0], criterionValues[1]);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
@@ -278,9 +286,10 @@ dataValidationEvaluatorRegistry.add("dateIsNotBetween", {
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValues = getDateCriterionValues(criterion, DEFAULT_LOCALE);
-    return typeof value !== "number" || !criterionValues[0] || !criterionValues[1]
+    const dateValue = valueToDateNumber(value, DEFAULT_LOCALE);
+    return dateValue === undefined || !criterionValues[0] || !criterionValues[1]
       ? false
-      : !isDateBetween(value, criterionValues[0], criterionValues[1]);
+      : !isDateBetween(dateValue, criterionValues[0], criterionValues[1]);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
@@ -294,6 +303,21 @@ dataValidationEvaluatorRegistry.add("dateIsNotBetween", {
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
   getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
   numberOfValues: () => 2,
+});
+
+dataValidationEvaluatorRegistry.add("dateIsValid", {
+  type: "dateIsValid",
+  isValueValid: (
+    value: CellValue,
+    criterion: DateIsCriterion,
+    args: DataValidationEvaluatorArgs
+  ) => {
+    return valueToDateNumber(value, DEFAULT_LOCALE) !== undefined;
+  },
+  getErrorString: () => _t("The value must be a valid date"),
+  isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
+  getCriterionValueErrorString: () => "",
+  numberOfValues: () => 0,
 });
 
 function getDateCriterionFormattedValues(criterion: DateIsCriterion, locale: Locale) {
