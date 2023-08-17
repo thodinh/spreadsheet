@@ -95,7 +95,7 @@ export const SplitToColumnsTerms = {
   },
 };
 
-export const DVRelativeDateTerms = {
+export const DVDateTerms = {
   DateIs: {
     today: _t("today"),
     yesterday: _t("yesterday"),

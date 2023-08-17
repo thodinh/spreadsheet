@@ -50,6 +50,12 @@ export type DateIsAfter = {
   values: string[];
 };
 
+export type DateIsOnOrAfter = {
+  type: "dateIsOnOrAfter";
+  dateValue: DateCriterionValue;
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContainsCriterion
   | TextNotContainsCriterion
@@ -57,7 +63,8 @@ export type DataValidationCriterion =
   | DateIsCriterion
   | DateIsBeforeCriterion
   | DateIsOnOrBefore
-  | DateIsAfter;
+  | DateIsAfter
+  | DateIsOnOrAfter;
 
 export type DateCriterionValue =
   | "today"
