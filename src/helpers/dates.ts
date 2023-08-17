@@ -551,11 +551,9 @@ export function isDateBetween(date: number, startDate: number, endDate: number) 
 
 /** Check if the day of the first date is strictly before the day of the second date */
 export function isDateStrictlyBeforeDay(date: number, dateBefore: number) {
-  const jsDate = numberToJsDate(date);
-  const jsDateBefore = numberToJsDate(dateBefore);
-  return (
-    jsDate.getFullYear() < jsDateBefore.getFullYear() ||
-    jsDate.getMonth() < jsDateBefore.getMonth() ||
-    jsDate.getDate() < jsDateBefore.getDate()
-  );
+  return Math.trunc(date) < Math.trunc(dateBefore);
+}
+
+export function isDateBeforeDay(date: number, dateBefore: number) {
+  return Math.trunc(date) <= Math.trunc(dateBefore);
 }

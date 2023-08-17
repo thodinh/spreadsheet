@@ -38,12 +38,19 @@ export type DateIsBeforeCriterion = {
   values: string[];
 };
 
+export type DateIsOnOrBefore = {
+  type: "dateIsOnOrBefore";
+  dateValue: DateCriterionValue;
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContainsCriterion
   | TextNotContainsCriterion
   | NumberBetweenCriterion
   | DateIsCriterion
-  | DateIsBeforeCriterion;
+  | DateIsBeforeCriterion
+  | DateIsOnOrBefore;
 
 export type DateCriterionValue =
   | "today"
