@@ -1,0 +1,3 @@
+<templates>
+  <t t-name="o-spreadsheet-DataValidationNoInput" owl="1"/>
+</templates>

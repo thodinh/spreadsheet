@@ -452,4 +452,27 @@ describe("Data validation registry", () => {
       );
     });
   });
+
+  describe("Date is valid", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("dateIsValid");
+    const criterion: DataValidationCriterion = {
+      type: "dateIsValid",
+      values: [],
+    };
+
+    test.each([
+      ["12/31/2020", true],
+      ["31/31/01/2021", false],
+      [15, true],
+      ["hello", false],
+    ])("Valid values %s %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a valid date"
+      );
+    });
+  });
 });

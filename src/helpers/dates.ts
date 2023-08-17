@@ -45,6 +45,21 @@ const dateRegexp = /^(\d{1,4})[\/-\s](\d{1,4})([\/-\s](\d{1,4}))?$/;
 
 export const timeRegexp = /((\d+(:\d+)?(:\d+)?\s*(AM|PM))|(\d+:\d+(:\d+)?))$/;
 
+/** Convert a value to a date as a number, or return undefined if it isn't possible */
+export function valueToDateNumber(
+  value: number | boolean | string | null,
+  locale: Locale
+): number | undefined {
+  switch (typeof value) {
+    case "number":
+      return value;
+    case "string":
+      return parseDateTime(value, locale)?.value;
+    default:
+      return undefined;
+  }
+}
+
 export function isDateTime(str: string, locale: Locale): boolean {
   return parseDateTime(str, locale) !== null;
 }

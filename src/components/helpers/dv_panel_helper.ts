@@ -12,6 +12,7 @@ import {
 } from "../../types";
 import { DataValidationDateCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_date";
 import { DataValidationDoubleInputCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_double_input";
+import { DataValidationNoInput } from "../side_panel/data_validation/dv_criterion/dv_no_input";
 import { DataValidationSingleInputCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_single_input";
 import { DVDateTerms } from "../translations_terms";
 
@@ -121,6 +122,13 @@ dataValidationPanelCriteriaRegistry.add("dateIsNotBetween", {
     const values = getDateCriterionFormattedExactValue(criterion, env);
     return _t("Date is not between %s and %s", values[0], values[1]);
   },
+});
+
+dataValidationPanelCriteriaRegistry.add("dateIsValid", {
+  type: "dateIsValid",
+  component: DataValidationNoInput,
+  name: _t("Is valid date"),
+  getPreview: () => _t("Date is valid"),
 });
 
 function getDateCriterionFormattedExactValue(criterion: DateIsCriterion, env: SpreadsheetChildEnv) {
