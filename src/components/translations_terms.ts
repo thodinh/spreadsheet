@@ -105,11 +105,11 @@ export const DVRelativeDateTerms = {
     lastYear: _t("in the past year"),
   },
   DateIsBefore: {
-    today: _t("before today"),
-    yesterday: _t("before yesterday"),
-    tomorrow: _t("before tomorrow"),
-    lastWeek: _t("earlier than one week ago"),
-    lastMonth: _t("earlier than one month ago"),
-    lastYear: _t("earlier than one year ago"),
+    today: _t("today"),
+    yesterday: _t("yesterday"),
+    tomorrow: _t("tomorrow"),
+    lastWeek: _t("one week ago"),
+    lastMonth: _t("one month ago"),
+    lastYear: _t("one year ago"),
   },
 };
