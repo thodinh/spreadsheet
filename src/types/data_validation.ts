@@ -61,6 +61,11 @@ export type DateIsBetween = {
   values: string[];
 };
 
+export type DateIsNotBetween = {
+  type: "dateIsNotBetween";
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContainsCriterion
   | TextNotContainsCriterion
@@ -70,7 +75,8 @@ export type DataValidationCriterion =
   | DateIsOnOrBefore
   | DateIsAfter
   | DateIsOnOrAfter
-  | DateIsBetween;
+  | DateIsBetween
+  | DateIsNotBetween;
 
 export type DateCriterionValue =
   | "today"

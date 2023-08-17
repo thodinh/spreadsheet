@@ -270,6 +270,32 @@ dataValidationEvaluatorRegistry.add("dateIsBetween", {
   numberOfValues: () => 2,
 });
 
+dataValidationEvaluatorRegistry.add("dateIsNotBetween", {
+  type: "dateIsNotBetween",
+  isValueValid: (
+    value: CellValue,
+    criterion: DateIsCriterion,
+    args: DataValidationEvaluatorArgs
+  ) => {
+    const criterionValues = getDateCriterionValues(criterion, DEFAULT_LOCALE);
+    return typeof value !== "number" || !criterionValues[0] || !criterionValues[1]
+      ? false
+      : !isDateBetween(value, criterionValues[0], criterionValues[1]);
+  },
+  getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
+    const locale = DEFAULT_LOCALE;
+    const criterionValues = getDateCriterionFormattedValues(criterion, locale);
+    return _t(
+      "The value must be a date not between %s and %s",
+      criterionValues[0],
+      criterionValues[1]
+    );
+  },
+  isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
+  getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
+  numberOfValues: () => 2,
+});
+
 function getDateCriterionFormattedValues(criterion: DateIsCriterion, locale: Locale) {
   const values = getDateCriterionValues(criterion, locale);
   return values.map((value) =>
