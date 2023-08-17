@@ -4,7 +4,6 @@ import {
   DataValidationCriterion,
   DataValidationDateCriterion,
   DateCriterionValue,
-  Getters,
   HeaderIndex,
   Locale,
   Position,
@@ -81,13 +80,13 @@ export function cellValueToNumber(
 /** Get all the dates values of a criterion converted to numbers, converting date values such as "today" to actual dates  */
 export function getDateCriterionValues(
   criterion: DataValidationCriterion,
-  getters: Getters
+  locale: Locale
 ): (number | undefined)[] {
   if (isDateCriterion(criterion) && criterion.dateValue !== "exactDate") {
     return [getCriterionDateValue(criterion.dateValue)];
   }
 
-  return criterion.values.map((value) => cellValueToNumber(value, getters.getLocale()));
+  return criterion.values.map((value) => cellValueToNumber(value, locale));
 }
 
 /** Convert the criterion values to numbers. Return undefined values if they cannot be converted to numbers. */

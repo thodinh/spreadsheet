@@ -1,7 +1,8 @@
-import { DVRelativeDateTerms } from "../components/translations_terms";
+import { DVDateTerms } from "../components/translations_terms";
 import {
   areDatesSameDay,
   formatValue,
+  isDateAfterDay,
   isDateBeforeDay,
   isDateBetween,
   isDateStrictlyAfterDay,
@@ -31,6 +32,7 @@ import { CellErrorType } from "../types/errors";
 import { Registry } from "./registry";
 
 interface DataValidationEvaluatorArgs {
+  // TODO: replace getters by locale ?
   getters: Getters;
 }
 
@@ -115,7 +117,8 @@ dataValidationEvaluatorRegistry.add("dateIs", {
     criterion: DateIsCriterion,
     args: DataValidationEvaluatorArgs
   ) => {
-    const criterionValue = getDateCriterionValues(criterion, args.getters)[0];
+    const locale = DEFAULT_LOCALE;
+    const criterionValue = getDateCriterionValues(criterion, locale)[0];
     if (typeof value !== "number" || !criterionValue) {
       return false;
     }
@@ -128,18 +131,10 @@ dataValidationEvaluatorRegistry.add("dateIs", {
     return areDatesSameDay(value, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
-    if (criterion.dateValue === "exactDate") {
-      const locale = DEFAULT_LOCALE;
-      const value = getDateCriterionValues(criterion, args.getters)[0];
-      return _t(
-        "The value must be the date %s",
-        value !== undefined
-          ? formatValue(value, { locale, format: locale.dateFormat })
-          : CellErrorType.InvalidReference
-      );
-    }
-
-    return _t("The value must be %s", DVRelativeDateTerms.DateIs[criterion.dateValue]);
+    const locale = DEFAULT_LOCALE;
+    return criterion.dateValue === "exactDate"
+      ? _t("The value must be the date %s", getDateCriterionFormattedValue(criterion, locale))
+      : _t("The value must be %s", DVDateTerms.DateIs[criterion.dateValue]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
   getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
@@ -153,27 +148,16 @@ dataValidationEvaluatorRegistry.add("dateIsBefore", {
     criterion: DateIsCriterion,
     args: DataValidationEvaluatorArgs
   ) => {
-    const criterionValue = getDateCriterionValues(criterion, args.getters)[0];
+    const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
     return typeof value !== "number" || !criterionValue
       ? false
       : isDateStrictlyBeforeDay(value, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
-    if (criterion.dateValue === "exactDate") {
-      const locale = DEFAULT_LOCALE;
-      const value = getDateCriterionValues(criterion, args.getters)[0];
-      return _t(
-        "The value must be a date before %s",
-        value !== undefined
-          ? formatValue(value, { locale, format: locale.dateFormat })
-          : CellErrorType.InvalidReference
-      );
-    }
-
-    return _t(
-      "The value must be a date before %s",
-      DVRelativeDateTerms.DateIsBefore[criterion.dateValue]
-    );
+    const locale = DEFAULT_LOCALE;
+    return criterion.dateValue === "exactDate"
+      ? _t("The value must be a date before %s", getDateCriterionFormattedValue(criterion, locale))
+      : _t("The value must be a date before %s", DVDateTerms.DateIsBefore[criterion.dateValue]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
   getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
@@ -187,27 +171,22 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrBefore", {
     criterion: DateIsCriterion,
     args: DataValidationEvaluatorArgs
   ) => {
-    const criterionValue = getDateCriterionValues(criterion, args.getters)[0];
+    const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
     return typeof value !== "number" || !criterionValue
       ? false
       : isDateBeforeDay(value, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
-    if (criterion.dateValue === "exactDate") {
-      const locale = DEFAULT_LOCALE;
-      const value = getDateCriterionValues(criterion, args.getters)[0];
-      return _t(
-        "The value must be a date on or before %s",
-        value !== undefined
-          ? formatValue(value, { locale, format: locale.dateFormat })
-          : CellErrorType.InvalidReference
-      );
-    }
-
-    return _t(
-      "The value must be a date on or before %s",
-      DVRelativeDateTerms.DateIsBefore[criterion.dateValue]
-    );
+    const locale = DEFAULT_LOCALE;
+    return criterion.dateValue === "exactDate"
+      ? _t(
+          "The value must be a date on or before %s",
+          getDateCriterionFormattedValue(criterion, locale)
+        )
+      : _t(
+          "The value must be a date on or before %s",
+          DVDateTerms.DateIsBefore[criterion.dateValue]
+        );
   },
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
   getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
@@ -221,32 +200,54 @@ dataValidationEvaluatorRegistry.add("dateIsAfter", {
     criterion: DateIsCriterion,
     args: DataValidationEvaluatorArgs
   ) => {
-    const criterionValue = getDateCriterionValues(criterion, args.getters)[0];
+    const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
     return typeof value !== "number" || !criterionValue
       ? false
       : isDateStrictlyAfterDay(value, criterionValue);
   },
   getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
-    if (criterion.dateValue === "exactDate") {
-      const locale = DEFAULT_LOCALE;
-      const value = getDateCriterionValues(criterion, args.getters)[0];
-      return _t(
-        "The value must be a date after %s",
-        value !== undefined
-          ? formatValue(value, { locale, format: locale.dateFormat })
-          : CellErrorType.InvalidReference
-      );
-    }
-
-    return _t(
-      "The value must be a date after %s",
-      DVRelativeDateTerms.DateIsAfter[criterion.dateValue]
-    );
+    const locale = DEFAULT_LOCALE;
+    return criterion.dateValue === "exactDate"
+      ? _t("The value must be a date after %s", getDateCriterionFormattedValue(criterion, locale))
+      : _t("The value must be a date after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
   getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
   numberOfValues: (criterion: DateIsCriterion) => (criterion.dateValue === "exactDate" ? 1 : 0),
 });
+
+dataValidationEvaluatorRegistry.add("dateIsOnOrAfter", {
+  type: "dateIsOnOrAfter",
+  isValueValid: (
+    value: CellValue,
+    criterion: DateIsCriterion,
+    args: DataValidationEvaluatorArgs
+  ) => {
+    const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
+    return typeof value !== "number" || !criterionValue
+      ? false
+      : isDateAfterDay(value, criterionValue);
+  },
+  getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
+    const locale = DEFAULT_LOCALE;
+    return criterion.dateValue === "exactDate"
+      ? _t(
+          "The value must be a date on or after %s",
+          getDateCriterionFormattedValue(criterion, locale)
+        )
+      : _t("The value must be a date on or after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
+  },
+  isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
+  getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
+  numberOfValues: (criterion: DateIsCriterion) => (criterion.dateValue === "exactDate" ? 1 : 0),
+});
+
+function getDateCriterionFormattedValue(criterion: DateIsCriterion, locale: Locale) {
+  const value = getDateCriterionValues(criterion, locale)[0];
+  return value !== undefined
+    ? formatValue(value, { locale, format: locale.dateFormat })
+    : CellErrorType.InvalidReference;
+}
 
 function checkValueIsDate(value: string, locale: Locale): boolean {
   const valueAsNumber = cellValueToNumber(value, locale);

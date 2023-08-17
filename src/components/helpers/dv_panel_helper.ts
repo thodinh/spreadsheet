@@ -13,7 +13,7 @@ import {
 import { DataValidationDateCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_date";
 import { DataValidationDoubleInputCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_double_input";
 import { DataValidationSingleInputCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_single_input";
-import { DVRelativeDateTerms } from "../translations_terms";
+import { DVDateTerms } from "../translations_terms";
 
 export type DataValidationCriterionItem = {
   type: DataValidationCriterionType;
@@ -22,7 +22,6 @@ export type DataValidationCriterionItem = {
   getPreview: (criterion: DataValidationCriterion, env: SpreadsheetChildEnv) => string;
 };
 
-// ADRM DISCUSS: here (array) vs dataValidationCriterionMatcher (Registry), which do we want ?
 export const dataValidationPanelCriteriaRegistry: Registry<DataValidationCriterionItem> =
   new Registry();
 
@@ -54,15 +53,9 @@ dataValidationPanelCriteriaRegistry.add("dateIs", {
   component: DataValidationDateCriterionForm,
   name: _t("Date is"),
   getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
-    if (criterion.dateValue === "exactDate") {
-      const locale = env.model.getters.getLocale();
-      const value = criterion.values[0].startsWith("=")
-        ? criterion.values[0]
-        : getFormattedDate(criterion.values[0], locale);
-
-      return _t("Date is %s", value);
-    }
-    return _t("Date is %s", DVRelativeDateTerms.DateIs[criterion.dateValue]);
+    return criterion.dateValue === "exactDate"
+      ? _t("Date is %s", getDateCriterionFormattedExactValue(criterion, env))
+      : _t("Date is %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
   },
 });
 
@@ -71,15 +64,9 @@ dataValidationPanelCriteriaRegistry.add("dateIsBefore", {
   component: DataValidationDateCriterionForm,
   name: _t("Date is before"),
   getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
-    if (criterion.dateValue === "exactDate") {
-      const locale = env.model.getters.getLocale();
-      const value = criterion.values[0].startsWith("=")
-        ? criterion.values[0]
-        : getFormattedDate(criterion.values[0], locale);
-
-      return _t("Date is before %s", value);
-    }
-    return _t("Date is before %s", DVRelativeDateTerms.DateIsBefore[criterion.dateValue]);
+    return criterion.dateValue === "exactDate"
+      ? _t("Date is before %s", getDateCriterionFormattedExactValue(criterion, env))
+      : _t("Date is before %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
   },
 });
 
@@ -88,15 +75,9 @@ dataValidationPanelCriteriaRegistry.add("dateIsOnOrBefore", {
   component: DataValidationDateCriterionForm,
   name: _t("Date is on or before"),
   getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
-    if (criterion.dateValue === "exactDate") {
-      const locale = env.model.getters.getLocale();
-      const value = criterion.values[0].startsWith("=")
-        ? criterion.values[0]
-        : getFormattedDate(criterion.values[0], locale);
-
-      return _t("Date is on or before %s", value);
-    }
-    return _t("Date is on or before %s", DVRelativeDateTerms.DateIsBefore[criterion.dateValue]);
+    return criterion.dateValue === "exactDate"
+      ? _t("Date is on or before %s", getDateCriterionFormattedExactValue(criterion, env))
+      : _t("Date is on or before %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
   },
 });
 
@@ -105,14 +86,25 @@ dataValidationPanelCriteriaRegistry.add("dateIsAfter", {
   component: DataValidationDateCriterionForm,
   name: _t("Date is after"),
   getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
-    if (criterion.dateValue === "exactDate") {
-      const locale = env.model.getters.getLocale();
-      const value = criterion.values[0].startsWith("=")
-        ? criterion.values[0]
-        : getFormattedDate(criterion.values[0], locale);
-
-      return _t("Date is after %s", value);
-    }
-    return _t("Date is after %s", DVRelativeDateTerms.DateIsAfter[criterion.dateValue]);
+    return criterion.dateValue === "exactDate"
+      ? _t("Date is after %s", getDateCriterionFormattedExactValue(criterion, env))
+      : _t("Date is after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
   },
 });
+
+dataValidationPanelCriteriaRegistry.add("dateIsOnOrAfter", {
+  type: "dateIsOnOrAfter",
+  component: DataValidationDateCriterionForm,
+  name: _t("Date is on or after"),
+  getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
+    return criterion.dateValue === "exactDate"
+      ? _t("Date is on or after %s", getDateCriterionFormattedExactValue(criterion, env))
+      : _t("Date is on or after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
+  },
+});
+
+function getDateCriterionFormattedExactValue(criterion: DateIsCriterion, env: SpreadsheetChildEnv) {
+  return criterion.values[0].startsWith("=")
+    ? criterion.values[0]
+    : getFormattedDate(criterion.values[0], env.model.getters.getLocale());
+}

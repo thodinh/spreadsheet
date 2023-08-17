@@ -369,4 +369,63 @@ describe("Data validation registry", () => {
       );
     });
   });
+
+  describe("Date is on or after", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("dateIsOnOrAfter");
+    const criterion: DataValidationCriterion = {
+      type: "dateIsOnOrAfter",
+      values: ["01/01/2021"],
+      dateValue: "exactDate",
+    };
+
+    test.each([
+      ["exactDate", "12/31/2020", false],
+      ["exactDate", "01/01/2021", true],
+      ["exactDate", "01/02/2021", true],
+      ["exactDate", "01/02/2021 18:00:00", true],
+      ["today", "12/31/2020", false],
+      ["today", "01/01/2021", true],
+      ["today", "01/02/2021", true],
+      ["tomorrow", "01/01/2021", false],
+      ["tomorrow", "01/02/2021", true],
+      ["tomorrow", "01/03/2021", true],
+      ["yesterday", "12/30/2020", false],
+      ["yesterday", "12/31/2020", true],
+      ["yesterday", "01/01/2021", true],
+      ["lastWeek", "12/24/2020", false],
+      ["lastWeek", "12/25/2020", true],
+      ["lastWeek", "12/26/2020", true],
+      ["lastMonth", "11/30/2020", false],
+      ["lastMonth", "12/01/2020", true],
+      ["lastMonth", "12/02/2020", true],
+      ["lastYear", "12/31/2019", false],
+      ["lastYear", "01/01/2020", true],
+      ["lastYear", "01/02/2020", true],
+    ])("Valid values %s %s", (dateValue: any, testValue, expectedResult) => {
+      const dateCriterion: DataValidationDateCriterion = {
+        ...criterion,
+        dateValue: dateValue as DateCriterionValue,
+      };
+      const dateNumber = parseLiteral(testValue, DEFAULT_LOCALE);
+      expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(
+        expectedResult
+      );
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date on or after 1/1/2021"
+      );
+
+      let dateCriterion: DataValidationCriterion = { ...criterion, values: [], dateValue: "today" };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date on or after today"
+      );
+
+      dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date on or after one week from now"
+      );
+    });
+  });
 });
