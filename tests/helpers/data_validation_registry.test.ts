@@ -428,4 +428,28 @@ describe("Data validation registry", () => {
       );
     });
   });
+
+  describe("Date is between", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("dateIsBetween");
+    const criterion: DataValidationCriterion = {
+      type: "dateIsBetween",
+      values: ["01/01/2021", "01/10/2021"],
+    };
+
+    test.each([
+      ["12/31/2020", false],
+      ["01/01/2021", true],
+      ["01/10/2021", true],
+      ["01/11/2021", false],
+    ])("Valid values %s", (dateValue, expectedResult) => {
+      const dateNumber = parseLiteral(dateValue, DEFAULT_LOCALE);
+      expect(evaluator.isValueValid(dateNumber, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date between 1/1/2021 and 1/10/2021"
+      );
+    });
+  });
 });
