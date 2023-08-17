@@ -99,3 +99,20 @@ dataValidationPanelCriteriaRegistry.add("dateIsOnOrBefore", {
     return _t("Date is on or before %s", DVRelativeDateTerms.DateIsBefore[criterion.dateValue]);
   },
 });
+
+dataValidationPanelCriteriaRegistry.add("dateIsAfter", {
+  type: "dateIsAfter",
+  component: DataValidationDateCriterionForm,
+  name: _t("Date is after"),
+  getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
+    if (criterion.dateValue === "exactDate") {
+      const locale = env.model.getters.getLocale();
+      const value = criterion.values[0].startsWith("=")
+        ? criterion.values[0]
+        : getFormattedDate(criterion.values[0], locale);
+
+      return _t("Date is after %s", value);
+    }
+    return _t("Date is after %s", DVRelativeDateTerms.DateIsAfter[criterion.dateValue]);
+  },
+});
