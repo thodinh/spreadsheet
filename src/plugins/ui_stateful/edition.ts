@@ -841,9 +841,9 @@ export class EditionPlugin extends UIPlugin {
       }
       return CommandResult.Success;
     } catch (e) {
-      // error at formula evaluation
-      const rule = this.getters.getValidationRuleForCell(cellPosition);
-      return rule?.isBlocking ? CommandResult.BlockingValidationRule : CommandResult.Success;
+      // in this case we are in an error because we tried to evaluate a spread formula
+      // whether the rule is blocking or not, we accept to enter formulas which spread
+      return CommandResult.Success;
     }
   }
 }

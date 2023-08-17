@@ -14,6 +14,7 @@ import {
   UID,
   Zone,
 } from "../../src/types";
+import { EvaluationError } from "../../src/types/errors";
 import { setSelection } from "./commands_helpers";
 import { getPlugin } from "./helpers";
 
@@ -55,9 +56,12 @@ export function getCellError(
   model: Model,
   xc: string,
   sheetId: UID = model.getters.getActiveSheetId()
-): string | undefined {
+): EvaluationError | undefined {
   const cell = getEvaluatedCell(model, xc, sheetId);
-  return cell.type === CellValueType.error ? cell.error.message : undefined;
+  if (cell.type === CellValueType.error) {
+    return cell.error;
+  }
+  return undefined;
 }
 
 /**

@@ -12,10 +12,8 @@ import {
   Lazy,
   Offset,
   UID,
-  isMatrix,
 } from "../../types";
 import { CoreViewCommand, invalidateEvaluationCommands } from "../../types/commands";
-import { CellErrorType, EvaluationError } from "../../types/errors";
 import { UIPlugin } from "../ui_plugin";
 import { _t } from "./../../translation";
 
@@ -228,9 +226,11 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
         );
 
         const evaluated = this.getters.evaluateFormula(sheetId, translatedFormula);
-        return evaluated && !isMatrix(evaluated) ? evaluated.toString() : "";
+        return evaluated?.toString() || "";
       } catch (e) {
-        return e instanceof EvaluationError ? e.errorType : CellErrorType.GenericError;
+        // in this case, evaluateFormula crash because the formula result is a matrix
+        // and we don't want matrix results to be usable outside sheets
+        return "";
       }
     });
   }

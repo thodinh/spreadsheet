@@ -214,7 +214,7 @@ describe("UNIQUE function", () => {
     const model = createModelFromGrid(grid);
     setCellContent(model, "D1", "=UNIQUE(A1:B3, 0 ,1)");
     expect(getCellContent(model, "D1")).toBe("#ERROR");
-    expect(getCellError(model, "D1")).toBe("No unique values found");
+    expect(getCellError(model, "D1")?.message).toBe("No unique values found");
   });
 });
 
@@ -850,7 +850,7 @@ describe("SORTN function", () => {
     const model = new Model();
     setCellContent(model, "A11", "=SORTN(A1:C10, -1, 0)");
     expect(getCellContent(model, "A11")).toEqual("#ERROR");
-    expect(getCellError(model, "A11")).toBe(
+    expect(getCellError(model, "A11")?.message).toBe(
       "Wrong value of 'n'. Expected a positive number. Got -1."
     );
     expect(checkFunctionDoesntSpreadBeyondRange(model, "A11")).toBeTruthy();
@@ -875,7 +875,7 @@ describe("SORTN function", () => {
     const model = new Model();
     setCellContent(model, "A11", `=SORTN(A1:C10, 1, ${mode})`);
     expect(getCellContent(model, "A11")).toEqual("#ERROR");
-    expect(getCellError(model, "A11")).toBe(
+    expect(getCellError(model, "A11")?.message).toBe(
       `Wrong value of 'display_ties_mode'. Expected a positive number between 0 and 3. Got ${mode}.`
     );
     expect(checkFunctionDoesntSpreadBeyondRange(model, "A11")).toBeTruthy();

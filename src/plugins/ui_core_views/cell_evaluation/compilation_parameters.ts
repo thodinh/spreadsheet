@@ -15,7 +15,7 @@ import {
   ReferenceDenormalizer,
   ValueAndFormat,
 } from "../../../types";
-import { InvalidReferenceError } from "../../../types/errors";
+import { EvaluationError, InvalidReferenceError } from "../../../types/errors";
 
 export type CompilationParameters = [ReferenceDenormalizer, EnsureRange, EvalContext];
 const functionMap = functionRegistry.mapping;
@@ -78,7 +78,7 @@ class CompilationParametersBuilder {
 
     // if the formula definition could have accepted a range, we would pass through the _range function and not here
     if (range.zone.bottom !== range.zone.top || range.zone.left !== range.zone.right) {
-      throw new Error(
+      throw new EvaluationError(
         paramNumber
           ? _t(
               "Function %s expects the parameter %s to be a single value or a single cell reference, not a range.",
@@ -92,7 +92,7 @@ class CompilationParametersBuilder {
       );
     }
     if (range.invalidSheetName) {
-      throw new Error(_t("Invalid sheet name: %s", range.invalidSheetName));
+      throw new EvaluationError(_t("Invalid sheet name: %s", range.invalidSheetName));
     }
     const position = { sheetId: range.sheetId, col: range.zone.left, row: range.zone.top };
     return this.readCell(position);
@@ -100,30 +100,24 @@ class CompilationParametersBuilder {
 
   private readCell(position: CellPosition): ValueAndFormat {
     if (!this.getters.tryGetSheet(position.sheetId)) {
-      throw new Error(_t("Invalid sheet name"));
+      throw new EvaluationError(_t("Invalid sheet name"));
     }
     const evaluatedCell = this.getEvaluatedCellIfNotEmpty(position);
     if (evaluatedCell === undefined) {
       return { value: null, format: this.getters.getCell(position)?.format };
+    } else if (evaluatedCell.type === CellValueType.error) {
+      return { value: evaluatedCell.error, format: evaluatedCell.format };
     }
     return evaluatedCell;
   }
 
   private getEvaluatedCellIfNotEmpty(position: CellPosition): EvaluatedCell | undefined {
-    const evaluatedCell = this.getEvaluatedCell(position);
+    const evaluatedCell = this.computeCell(position);
     if (evaluatedCell.type === CellValueType.empty) {
       const cell = this.getters.getCell(position);
       if (!cell || (!cell.isFormula && cell.content === "")) {
         return undefined;
       }
-    }
-    return evaluatedCell;
-  }
-
-  private getEvaluatedCell(position: CellPosition): EvaluatedCell {
-    const evaluatedCell = this.computeCell(position);
-    if (evaluatedCell.type === CellValueType.error) {
-      throw evaluatedCell.error;
     }
     return evaluatedCell;
   }

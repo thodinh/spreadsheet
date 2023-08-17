@@ -1,6 +1,7 @@
 import { compileTokens } from "../../../formulas/compiler";
 import { Token, compile, isExportableToExcel } from "../../../formulas/index";
 import { getItemId, positions, toXC } from "../../../helpers/index";
+import { EvaluationError } from "../../../types/errors";
 import {
   CellPosition,
   CellValue,
@@ -219,7 +220,13 @@ export class EvaluationPlugin extends UIPlugin {
     }
     const array = compiledFormula.execute(ranges, ...this.compilationParams);
     if (isMatrix(array)) {
-      return array.map((col) => col.map((row) => row.value));
+      throw new Error("results array are not supported outside the evaluation grid");
+    }
+    if (array.value instanceof EvaluationError) {
+      return array.value.errorType;
+    }
+    if (array.value === null) {
+      return 0;
     }
     return array.value;
   }
