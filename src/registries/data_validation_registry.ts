@@ -4,6 +4,7 @@ import {
   formatValue,
   isDateBeforeDay,
   isDateBetween,
+  isDateStrictlyAfterDay,
   isDateStrictlyBeforeDay,
   isNumberBetween,
   jsDateToRoundNumber,
@@ -206,6 +207,40 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrBefore", {
     return _t(
       "The value must be a date on or before %s",
       DVRelativeDateTerms.DateIsBefore[criterion.dateValue]
+    );
+  },
+  isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
+  getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
+  numberOfValues: (criterion: DateIsCriterion) => (criterion.dateValue === "exactDate" ? 1 : 0),
+});
+
+dataValidationEvaluatorRegistry.add("dateIsAfter", {
+  type: "dateIsAfter",
+  isValueValid: (
+    value: CellValue,
+    criterion: DateIsCriterion,
+    args: DataValidationEvaluatorArgs
+  ) => {
+    const criterionValue = getDateCriterionValues(criterion, args.getters)[0];
+    return typeof value !== "number" || !criterionValue
+      ? false
+      : isDateStrictlyAfterDay(value, criterionValue);
+  },
+  getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
+    if (criterion.dateValue === "exactDate") {
+      const locale = DEFAULT_LOCALE;
+      const value = getDateCriterionValues(criterion, args.getters)[0];
+      return _t(
+        "The value must be a date after %s",
+        value !== undefined
+          ? formatValue(value, { locale, format: locale.dateFormat })
+          : CellErrorType.InvalidReference
+      );
+    }
+
+    return _t(
+      "The value must be a date after %s",
+      DVRelativeDateTerms.DateIsAfter[criterion.dateValue]
     );
   },
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),

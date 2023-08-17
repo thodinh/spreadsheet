@@ -554,6 +554,12 @@ export function isDateStrictlyBeforeDay(date: number, dateBefore: number) {
   return Math.trunc(date) < Math.trunc(dateBefore);
 }
 
+/** Check if the day of the first date is before the day of the second date */
 export function isDateBeforeDay(date: number, dateBefore: number) {
   return Math.trunc(date) <= Math.trunc(dateBefore);
+}
+
+/** Check if the day of the first date is strictly after the day of the second date */
+export function isDateStrictlyAfterDay(date: number, dateAfter: number) {
+  return Math.trunc(date) > Math.trunc(dateAfter);
 }

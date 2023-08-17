@@ -44,13 +44,20 @@ export type DateIsOnOrBefore = {
   values: string[];
 };
 
+export type DateIsAfter = {
+  type: "dateIsAfter";
+  dateValue: DateCriterionValue;
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContainsCriterion
   | TextNotContainsCriterion
   | NumberBetweenCriterion
   | DateIsCriterion
   | DateIsBeforeCriterion
-  | DateIsOnOrBefore;
+  | DateIsOnOrBefore
+  | DateIsAfter;
 
 export type DateCriterionValue =
   | "today"

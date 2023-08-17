@@ -256,13 +256,6 @@ describe("Data validation registry", () => {
         "The value must be a date before one week ago"
       );
     });
-
-    test("Localized date value", () => {
-      expect(evaluator.isCriterionValueValid("12/01/2021", locale)).toEqual(true);
-      expect(evaluator.isCriterionValueValid("13/01/2021", locale)).toEqual(false);
-
-      expect(evaluator.isCriterionValueValid("13/01/2021", FR_LOCALE)).toEqual(true);
-    });
   });
 
   describe("Date is on or before", () => {
@@ -323,12 +316,57 @@ describe("Data validation registry", () => {
         "The value must be a date on or before one week ago"
       );
     });
+  });
 
-    test("Localized date value", () => {
-      expect(evaluator.isCriterionValueValid("12/01/2021", locale)).toEqual(true);
-      expect(evaluator.isCriterionValueValid("13/01/2021", locale)).toEqual(false);
+  describe("Date is after", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("dateIsAfter");
+    const criterion: DataValidationCriterion = {
+      type: "dateIsAfter",
+      values: ["01/01/2021"],
+      dateValue: "exactDate",
+    };
 
-      expect(evaluator.isCriterionValueValid("13/01/2021", FR_LOCALE)).toEqual(true);
+    test.each([
+      ["exactDate", "01/01/2021", false],
+      ["exactDate", "01/02/2021", true],
+      ["exactDate", "01/02/2021 18:00:00", true],
+      ["today", "01/01/2021", false],
+      ["today", "01/02/2021", true],
+      ["tomorrow", "01/02/2021", false],
+      ["tomorrow", "01/03/2021", true],
+      ["yesterday", "12/31/2020", false],
+      ["yesterday", "01/01/2021", true],
+      ["lastWeek", "12/25/2020", false],
+      ["lastWeek", "12/26/2020", true],
+      ["lastMonth", "12/01/2020", false],
+      ["lastMonth", "12/02/2020", true],
+      ["lastYear", "01/01/2020", false],
+      ["lastYear", "01/02/2020", true],
+    ])("Valid values %s %s", (dateValue: any, testValue, expectedResult) => {
+      const dateCriterion: DataValidationDateCriterion = {
+        ...criterion,
+        dateValue: dateValue as DateCriterionValue,
+      };
+      const dateNumber = parseLiteral(testValue, DEFAULT_LOCALE);
+      expect(evaluator.isValueValid(dateNumber, dateCriterion, evaluatorArgs)).toEqual(
+        expectedResult
+      );
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date after 1/1/2021"
+      );
+
+      let dateCriterion: DataValidationCriterion = { ...criterion, values: [], dateValue: "today" };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date after today"
+      );
+
+      dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a date after one week from now"
+      );
     });
   });
 });
