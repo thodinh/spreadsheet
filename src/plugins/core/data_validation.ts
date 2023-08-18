@@ -29,6 +29,7 @@ interface DataValidationState {
  * - dropdown
  * - blocking validation
  * - localize inputs before sending them to the plugin
+ * - fix date after "from now" msg, should be ago
  *
  * To discuss:
  * - input in error at start when empty
