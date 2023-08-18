@@ -134,8 +134,16 @@ dataValidationPanelCriteriaRegistry.add("dateIsValid", {
 dataValidationPanelCriteriaRegistry.add("isEqual", {
   type: "isEqual",
   component: DataValidationSingleInputCriterionForm,
-  name: _t("Is Equal to"),
+  name: _t("Is equal to"),
   getPreview: (criterion: TextContainsCriterion) => _t("Value is equal to %s", criterion.values[0]),
+});
+
+dataValidationPanelCriteriaRegistry.add("isNotEqual", {
+  type: "isNotEqual",
+  component: DataValidationSingleInputCriterionForm,
+  name: _t("Is not equal to"),
+  getPreview: (criterion: TextContainsCriterion) =>
+    _t("Value is not equal to %s", criterion.values[0]),
 });
 
 function getDateCriterionFormattedExactValue(criterion: DateIsCriterion, env: SpreadsheetChildEnv) {
