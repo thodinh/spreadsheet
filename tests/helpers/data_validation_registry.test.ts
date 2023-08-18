@@ -522,4 +522,27 @@ describe("Data validation registry", () => {
       );
     });
   });
+
+  describe("Value is greater than", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("isGreaterThan");
+    const criterion: DataValidationCriterion = {
+      type: "isGreaterThan",
+      values: ["5"],
+    };
+
+    test.each([
+      [5, false],
+      ["6", true],
+      [6, true],
+      ["hello", false],
+    ])("Valid values %s %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be greater than 5"
+      );
+    });
+  });
 });

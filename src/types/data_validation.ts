@@ -81,6 +81,11 @@ export type IsNotEqual = {
   values: string[];
 };
 
+export type IsGreaterThan = {
+  type: "isGreaterThan";
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContainsCriterion
   | TextNotContainsCriterion
@@ -94,7 +99,8 @@ export type DataValidationCriterion =
   | DateIsNotBetween
   | DateIsValid
   | IsEqual
-  | IsNotEqual;
+  | IsNotEqual
+  | IsGreaterThan;
 
 export type DateCriterionValue =
   | "today"

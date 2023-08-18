@@ -32,6 +32,11 @@ interface DataValidationState {
  *
  * To discuss:
  * - input in error at start when empty
+ * - locale:
+ *   - send raw inputted value to plugin, and let the dv validator handle the locale
+ *          - => breaks when the locale is changed
+ *   - send the un-localized value to the plugin
+ *        - need to implement (un)localization of dates
  */
 export class DataValidationPlugin
   extends CorePlugin<DataValidationState>
