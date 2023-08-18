@@ -498,4 +498,28 @@ describe("Data validation registry", () => {
       );
     });
   });
+
+  describe("Value is not equal", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("isNotEqual");
+    const criterion: DataValidationCriterion = {
+      type: "isNotEqual",
+      values: ["5"],
+    };
+
+    test.each([
+      [5, false],
+      ["5", false],
+      [12, true],
+      ["12", true],
+      ["hello", false],
+    ])("Valid values %s %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must not be equal to 5"
+      );
+    });
+  });
 });

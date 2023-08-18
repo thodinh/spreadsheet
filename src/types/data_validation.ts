@@ -76,6 +76,11 @@ export type IsEqual = {
   values: string[];
 };
 
+export type IsNotEqual = {
+  type: "isNotEqual";
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContainsCriterion
   | TextNotContainsCriterion
@@ -88,7 +93,8 @@ export type DataValidationCriterion =
   | DateIsBetween
   | DateIsNotBetween
   | DateIsValid
-  | IsEqual;
+  | IsEqual
+  | IsNotEqual;
 
 export type DateCriterionValue =
   | "today"
