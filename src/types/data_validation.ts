@@ -86,6 +86,11 @@ export type IsGreaterThan = {
   values: string[];
 };
 
+export type IsGreaterOrEqualTo = {
+  type: "isGreaterOrEqualTo";
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContainsCriterion
   | TextNotContainsCriterion
@@ -100,7 +105,8 @@ export type DataValidationCriterion =
   | DateIsValid
   | IsEqual
   | IsNotEqual
-  | IsGreaterThan;
+  | IsGreaterThan
+  | IsGreaterOrEqualTo;
 
 export type DateCriterionValue =
   | "today"

@@ -545,4 +545,27 @@ describe("Data validation registry", () => {
       );
     });
   });
+
+  describe("Value is greater or equal to", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("isGreaterOrEqualTo");
+    const criterion: DataValidationCriterion = {
+      type: "isGreaterOrEqualTo",
+      values: ["5"],
+    };
+
+    test.each([
+      [5, true],
+      ["6", true],
+      [4, false],
+      ["hello", false],
+    ])("Valid values %s %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be greater or equal to 5"
+      );
+    });
+  });
 });
