@@ -33,7 +33,6 @@ describe("data validation sidePanel component", () => {
   test.each([
     ["textContains", { values: ["str"] }, 'Text contains "str"'],
     ["textNotContains", { values: ["str"] }, 'Text does not contain "str"'],
-    ["isBetween", { values: ["5", "6"] }, "Value is between 5 and 6"],
     ["dateIs", { values: ["1/1/2020"], dateValue: "exactDate" }, "Date is 1/1/2020"],
     ["dateIsBefore", { values: ["1/1/2020"], dateValue: "exactDate" }, "Date is before 1/1/2020"],
     [
@@ -53,6 +52,8 @@ describe("data validation sidePanel component", () => {
       "Date is between 1/1/2020 and 2/2/2022",
     ],
     ["dateIsValid", { values: [] }, "Date is valid"],
+    ["isEqual", { values: ["5"] }, "Value is equal to 5"],
+    ["isBetween", { values: ["5", "6"] }, "Value is between 5 and 6"],
   ])("Add a data validation rule %s", async (type, criterion, preview) => {
     await simulateClick(".o-dv-add");
     await nextTick();

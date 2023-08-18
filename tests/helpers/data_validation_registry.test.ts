@@ -475,4 +475,27 @@ describe("Data validation registry", () => {
       );
     });
   });
+
+  describe("Value is equal", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("isEqual");
+    const criterion: DataValidationCriterion = {
+      type: "isEqual",
+      values: ["5"],
+    };
+
+    test.each([
+      [5, true],
+      ["5", true],
+      [12, false],
+      ["hello", false],
+    ])("Valid values %s %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be equal to 5"
+      );
+    });
+  });
 });

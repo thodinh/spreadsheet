@@ -131,6 +131,13 @@ dataValidationPanelCriteriaRegistry.add("dateIsValid", {
   getPreview: () => _t("Date is valid"),
 });
 
+dataValidationPanelCriteriaRegistry.add("isEqual", {
+  type: "isEqual",
+  component: DataValidationSingleInputCriterionForm,
+  name: _t("Is Equal to"),
+  getPreview: (criterion: TextContainsCriterion) => _t("Value is equal to %s", criterion.values[0]),
+});
+
 function getDateCriterionFormattedExactValue(criterion: DateIsCriterion, env: SpreadsheetChildEnv) {
   return criterion.values.map((value) =>
     value.startsWith("=") ? value : getFormattedDate(value, env.model.getters.getLocale())
