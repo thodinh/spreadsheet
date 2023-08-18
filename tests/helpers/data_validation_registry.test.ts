@@ -157,25 +157,18 @@ describe("Data validation registry", () => {
       );
     });
 
-    test("Error string", () => {
-      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be the date 1/1/2021"
-      );
-
-      let dateCriterion: DataValidationCriterion = { ...criterion, values: ["2"] };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be the date 1/1/1900"
-      );
-
-      dateCriterion = { ...criterion, values: [], dateValue: "today" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be today"
-      );
-
-      dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be in the past week"
-      );
+    test.each([
+      ["exactDate", ["1/1/2012"], "The value must be the date 1/1/2012"],
+      ["exactDate", ["2"], "The value must be the date 1/1/1900"],
+      ["today", [], "The value must be today"],
+      ["lastYear", [], "The value must be in the past year"],
+    ])("Error string %s % %s", (dateValue, values, errorStr) => {
+      const dateCriterion: DataValidationDateCriterion = {
+        ...criterion,
+        values,
+        dateValue: dateValue as DateCriterionValue,
+      };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(errorStr);
     });
 
     test("Valid criterion values", () => {
@@ -236,25 +229,18 @@ describe("Data validation registry", () => {
       );
     });
 
-    test("Error string", () => {
-      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date before 1/1/2021"
-      );
-
-      let dateCriterion: DataValidationCriterion = { ...criterion, values: ["2"] };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date before 1/1/1900"
-      );
-
-      dateCriterion = { ...criterion, values: [], dateValue: "today" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date before today"
-      );
-
-      dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date before one week ago"
-      );
+    test.each([
+      ["exactDate", ["1/1/2012"], "The value must be a date before 1/1/2012"],
+      ["exactDate", ["2"], "The value must be a date before 1/1/1900"],
+      ["today", [], "The value must be a date before today"],
+      ["lastYear", [], "The value must be a date before one year ago"],
+    ])("Error string %s % %s", (dateValue, values, errorStr) => {
+      const dateCriterion: DataValidationDateCriterion = {
+        ...criterion,
+        values,
+        dateValue: dateValue as DateCriterionValue,
+      };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(errorStr);
     });
   });
 
@@ -296,25 +282,18 @@ describe("Data validation registry", () => {
       );
     });
 
-    test("Error string", () => {
-      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date on or before 1/1/2021"
-      );
-
-      let dateCriterion: DataValidationCriterion = { ...criterion, values: ["2"] };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date on or before 1/1/1900"
-      );
-
-      dateCriterion = { ...criterion, values: [], dateValue: "today" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date on or before today"
-      );
-
-      dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date on or before one week ago"
-      );
+    test.each([
+      ["exactDate", ["1/1/2012"], "The value must be a date on or before 1/1/2012"],
+      ["exactDate", ["2"], "The value must be a date on or before 1/1/1900"],
+      ["today", [], "The value must be a date on or before today"],
+      ["lastMonth", [], "The value must be a date on or before one month ago"],
+    ])("Error string %s % %s", (dateValue, values, errorStr) => {
+      const dateCriterion: DataValidationDateCriterion = {
+        ...criterion,
+        values,
+        dateValue: dateValue as DateCriterionValue,
+      };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(errorStr);
     });
   });
 
@@ -353,20 +332,18 @@ describe("Data validation registry", () => {
       );
     });
 
-    test("Error string", () => {
-      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date after 1/1/2021"
-      );
-
-      let dateCriterion: DataValidationCriterion = { ...criterion, values: [], dateValue: "today" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date after today"
-      );
-
-      dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date after one week from now"
-      );
+    test.each([
+      ["exactDate", ["1/1/2012"], "The value must be a date after 1/1/2012"],
+      ["exactDate", ["2"], "The value must be a date after 1/1/1900"],
+      ["today", [], "The value must be a date after today"],
+      ["lastWeek", [], "The value must be a date after one week from now"],
+    ])("Error string %s % %s", (dateValue, values, errorStr) => {
+      const dateCriterion: DataValidationDateCriterion = {
+        ...criterion,
+        values,
+        dateValue: dateValue as DateCriterionValue,
+      };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(errorStr);
     });
   });
 
@@ -412,20 +389,18 @@ describe("Data validation registry", () => {
       );
     });
 
-    test("Error string", () => {
-      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date on or after 1/1/2021"
-      );
-
-      let dateCriterion: DataValidationCriterion = { ...criterion, values: [], dateValue: "today" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date on or after today"
-      );
-
-      dateCriterion = { ...criterion, values: [], dateValue: "lastWeek" };
-      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(
-        "The value must be a date on or after one week from now"
-      );
+    test.each([
+      ["exactDate", ["1/1/2012"], "The value must be a date on or after 1/1/2012"],
+      ["exactDate", ["2"], "The value must be a date on or after 1/1/1900"],
+      ["today", [], "The value must be a date on or after today"],
+      ["lastWeek", [], "The value must be a date on or after one week from now"],
+    ])("Error string %s % %s", (dateValue, values, errorStr) => {
+      const dateCriterion: DataValidationDateCriterion = {
+        ...criterion,
+        values,
+        dateValue: dateValue as DateCriterionValue,
+      };
+      expect(evaluator.getErrorString(dateCriterion, evaluatorArgs).toString()).toEqual(errorStr);
     });
   });
 
