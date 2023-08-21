@@ -86,36 +86,6 @@ describe("Data validation registry", () => {
     });
   });
 
-  describe("Number between", () => {
-    const evaluator = dataValidationEvaluatorRegistry.get("isBetween");
-    const criterion: DataValidationCriterion = { type: "isBetween", values: ["5", "10"] };
-
-    test("Valid values", () => {
-      expect(evaluator.isValueValid(5, criterion, evaluatorArgs)).toEqual(true);
-      expect(evaluator.isValueValid(7, criterion, evaluatorArgs)).toEqual(true);
-      expect(evaluator.isValueValid(10, criterion, evaluatorArgs)).toEqual(true);
-
-      expect(evaluator.isValueValid(4, criterion, evaluatorArgs)).toEqual(false);
-      expect(evaluator.isValueValid(11, criterion, evaluatorArgs)).toEqual(false);
-    });
-
-    test("Error string", () => {
-      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be between 5 and 10"
-      );
-    });
-
-    test("Valid criterion values", () => {
-      expect(evaluator.isCriterionValueValid("5", locale)).toEqual(true);
-      expect(evaluator.isCriterionValueValid("", locale)).toEqual(false);
-      expect(evaluator.isCriterionValueValid("hello", locale)).toEqual(false);
-
-      expect(evaluator.getCriterionValueErrorString("5").toString()).toEqual(
-        "The value must be a number"
-      );
-    });
-  });
-
   describe("Date is", () => {
     const evaluator = dataValidationEvaluatorRegistry.get("dateIs");
     const criterion: DataValidationCriterion = {
@@ -440,7 +410,7 @@ describe("Data validation registry", () => {
       ["31/31/01/2021", false],
       [15, true],
       ["hello", false],
-    ])("Valid values %s %s", (testValue, expectedResult) => {
+    ])("Valie values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -463,7 +433,7 @@ describe("Data validation registry", () => {
       ["5", true],
       [12, false],
       ["hello", false],
-    ])("Valid values %s %s", (testValue, expectedResult) => {
+    ])("Valie values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -487,7 +457,7 @@ describe("Data validation registry", () => {
       [12, true],
       ["12", true],
       ["hello", false],
-    ])("Valid values %s %s", (testValue, expectedResult) => {
+    ])("Valie values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -510,7 +480,7 @@ describe("Data validation registry", () => {
       ["6", true],
       [6, true],
       ["hello", false],
-    ])("Valid values %s %s", (testValue, expectedResult) => {
+    ])("Valie values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -533,7 +503,7 @@ describe("Data validation registry", () => {
       ["6", true],
       [4, false],
       ["hello", false],
-    ])("Valid values %s %s", (testValue, expectedResult) => {
+    ])("Valie values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -556,7 +526,7 @@ describe("Data validation registry", () => {
       ["6", false],
       [4, true],
       ["hello", false],
-    ])("Valid values %s %s", (testValue, expectedResult) => {
+    ])("Valie values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -567,25 +537,52 @@ describe("Data validation registry", () => {
     });
   });
 
-  describe("Value is less or equal to", () => {
-    const evaluator = dataValidationEvaluatorRegistry.get("isLessOrEqualTo");
+  describe("Value is between", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("isBetween");
     const criterion: DataValidationCriterion = {
-      type: "isLessOrEqualTo",
-      values: ["5"],
+      type: "isBetween",
+      values: ["5", "8"],
     };
 
     test.each([
+      [4, false],
       [5, true],
-      ["6", false],
-      [4, true],
+      ["6", true],
+      ["8", true],
+      [9, false],
       ["hello", false],
-    ])("Valid values %s %s", (testValue, expectedResult) => {
+    ])("Valie values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
     test("Error string", () => {
       expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be less or equal to 5"
+        "The value must be between 5 and 8"
+      );
+    });
+  });
+
+  describe("Value is not between", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("isNotBetween");
+    const criterion: DataValidationCriterion = {
+      type: "isNotBetween",
+      values: ["5", "8"],
+    };
+
+    test.each([
+      [4, true],
+      [5, false],
+      ["6", false],
+      ["8", false],
+      [9, true],
+      ["hello", false],
+    ])("Valie values %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must not be between 5 and 8"
       );
     });
   });

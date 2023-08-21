@@ -59,6 +59,7 @@ describe("data validation sidePanel component", () => {
     ["isLessOrEqualTo", { values: ["5"] }, "Value is less or equal to 5"],
     ["isGreaterOrEqualTo", { values: ["5"] }, "Value is greater or equal to 5"],
     ["isBetween", { values: ["5", "6"] }, "Value is between 5 and 6"],
+    ["isNotBetween", { values: ["5", "6"] }, "Value is not between 5 and 6"],
   ])("Add a data validation rule %s", async (type, criterion, preview) => {
     await simulateClick(".o-dv-add");
     await nextTick();

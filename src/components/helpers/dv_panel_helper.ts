@@ -11,13 +11,14 @@ import {
   DateIsNotBetween,
   DateIsOnOrAfter,
   DateIsOnOrBefore,
+  isBetween,
   IsEqual,
   IsGreaterOrEqualTo,
   IsGreaterThan,
   IsLessOrEqualTo,
   IsLessThan,
+  isNotBetween,
   IsNotEqual,
-  NumberBetweenCriterion,
   SpreadsheetChildEnv,
   TextContainsCriterion,
   TextNotContainsCriterion,
@@ -51,14 +52,6 @@ dataValidationPanelCriteriaRegistry.add("textNotContains", {
   name: _t("Text does not contains"),
   getPreview: (criterion: TextNotContainsCriterion) =>
     _t('Text does not contain "%s"', criterion.values[0]),
-});
-
-dataValidationPanelCriteriaRegistry.add("isBetween", {
-  type: "isBetween",
-  component: DataValidationDoubleInputCriterionForm,
-  name: _t("Is between"),
-  getPreview: (criterion: NumberBetweenCriterion) =>
-    _t("Value is between %s and %s", criterion.values[0], criterion.values[1]),
 });
 
 dataValidationPanelCriteriaRegistry.add("dateIs", {
@@ -185,6 +178,22 @@ dataValidationPanelCriteriaRegistry.add("isLessOrEqualTo", {
   name: _t("Is less or equal to"),
   getPreview: (criterion: IsLessOrEqualTo) =>
     _t("Value is less or equal to %s", criterion.values[0]),
+});
+
+dataValidationPanelCriteriaRegistry.add("isBetween", {
+  type: "isBetween",
+  component: DataValidationDoubleInputCriterionForm,
+  name: _t("Is between"),
+  getPreview: (criterion: isBetween) =>
+    _t("Value is between %s and %s", criterion.values[0], criterion.values[1]),
+});
+
+dataValidationPanelCriteriaRegistry.add("isNotBetween", {
+  type: "isNotBetween",
+  component: DataValidationDoubleInputCriterionForm,
+  name: _t("Is not between"),
+  getPreview: (criterion: isNotBetween) =>
+    _t("Value is not between %s and %s", criterion.values[0], criterion.values[1]),
 });
 
 function getDateCriterionFormattedExactValue(

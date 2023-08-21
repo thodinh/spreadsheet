@@ -21,11 +21,6 @@ export type TextNotContainsCriterion = {
   values: string[];
 };
 
-export type NumberBetweenCriterion = {
-  type: "isBetween";
-  values: string[];
-};
-
 export type DateIsCriterion = {
   type: "dateIs";
   dateValue: DateCriterionValue;
@@ -101,10 +96,20 @@ export type IsLessOrEqualTo = {
   values: string[];
 };
 
+export type isBetween = {
+  type: "isBetween";
+  values: string[];
+};
+
+export type isNotBetween = {
+  type: "isNotBetween";
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContainsCriterion
   | TextNotContainsCriterion
-  | NumberBetweenCriterion
+  | isBetween
   | DateIsCriterion
   | DateIsBeforeCriterion
   | DateIsOnOrBefore
@@ -118,7 +123,8 @@ export type DataValidationCriterion =
   | IsGreaterThan
   | IsGreaterOrEqualTo
   | IsLessThan
-  | IsLessOrEqualTo;
+  | IsLessOrEqualTo
+  | isNotBetween;
 
 export type DateCriterionValue =
   | "today"

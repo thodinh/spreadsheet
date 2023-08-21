@@ -30,14 +30,15 @@ import {
   DateIsValid,
   DEFAULT_LOCALE,
   Getters,
+  isBetween,
   IsEqual,
   IsGreaterOrEqualTo,
   IsGreaterThan,
   IsLessOrEqualTo,
   IsLessThan,
+  isNotBetween,
   IsNotEqual,
   Locale,
-  NumberBetweenCriterion,
   TextContainsCriterion,
   TextNotContainsCriterion,
 } from "../types";
@@ -97,30 +98,6 @@ dataValidationEvaluatorRegistry.add("textNotContains", {
   isCriterionValueValid: (value: string) => !!value,
   getCriterionValueErrorString: (value: string) => criterionErrorStrings.notEmptyValue,
   numberOfValues: () => 1,
-});
-
-dataValidationEvaluatorRegistry.add("isBetween", {
-  type: "isBetween",
-  isValueValid: (value: CellValue, criterion: NumberBetweenCriterion) => {
-    // TODO : locale
-    const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
-    const criterionValues = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE);
-
-    if (
-      numberValue === undefined ||
-      criterionValues[0] === undefined ||
-      criterionValues[1] === undefined
-    ) {
-      return false;
-    }
-    return isNumberBetween(numberValue, criterionValues[0], criterionValues[1]);
-  },
-  getErrorString: (criterion: NumberBetweenCriterion, args: DataValidationEvaluatorArgs) => {
-    return _t("The value must be between %s and %s", criterion.values[0], criterion.values[1]);
-  },
-  isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
-  getCriterionValueErrorString: () => criterionErrorStrings.numberValue,
-  numberOfValues: () => 2,
 });
 
 dataValidationEvaluatorRegistry.add("dateIs", {
@@ -432,6 +409,52 @@ dataValidationEvaluatorRegistry.add("isLessOrEqualTo", {
   isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
   getCriterionValueErrorString: () => criterionErrorStrings.numberValue,
   numberOfValues: () => 1,
+});
+
+dataValidationEvaluatorRegistry.add("isBetween", {
+  type: "isBetween",
+  isValueValid: (value: CellValue, criterion: isBetween) => {
+    const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
+    const criterionValues = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE);
+
+    if (
+      numberValue === undefined ||
+      criterionValues[0] === undefined ||
+      criterionValues[1] === undefined
+    ) {
+      return false;
+    }
+    return isNumberBetween(numberValue, criterionValues[0], criterionValues[1]);
+  },
+  getErrorString: (criterion: isBetween, args: DataValidationEvaluatorArgs) => {
+    return _t("The value must be between %s and %s", criterion.values[0], criterion.values[1]);
+  },
+  isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
+  getCriterionValueErrorString: () => criterionErrorStrings.numberValue,
+  numberOfValues: () => 2,
+});
+
+dataValidationEvaluatorRegistry.add("isNotBetween", {
+  type: "isNotBetween",
+  isValueValid: (value: CellValue, criterion: isNotBetween) => {
+    const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
+    const criterionValues = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE);
+
+    if (
+      numberValue === undefined ||
+      criterionValues[0] === undefined ||
+      criterionValues[1] === undefined
+    ) {
+      return false;
+    }
+    return !isNumberBetween(numberValue, criterionValues[0], criterionValues[1]);
+  },
+  getErrorString: (criterion: isNotBetween, args: DataValidationEvaluatorArgs) => {
+    return _t("The value must not be between %s and %s", criterion.values[0], criterion.values[1]);
+  },
+  isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
+  getCriterionValueErrorString: () => criterionErrorStrings.numberValue,
+  numberOfValues: () => 2,
 });
 
 function getDateCriterionFormattedValues(criterion: DataValidationCriterion, locale: Locale) {
