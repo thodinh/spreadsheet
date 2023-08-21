@@ -35,6 +35,7 @@ describe("data validation sidePanel component", () => {
     ["textNotContains", { values: ["str"] }, 'Text does not contain "str"'],
     ["textIs", { values: ["str"] }, 'Text is exactly "str"'],
     ["textIsEmail", { values: [] }, "Text is valid email"],
+    ["textIsLink", { values: [] }, "Text is valid link"],
     ["dateIs", { values: ["1/1/2020"], dateValue: "exactDate" }, "Date is 1/1/2020"],
     ["dateIsBefore", { values: ["1/1/2020"], dateValue: "exactDate" }, "Date is before 1/1/2020"],
     [

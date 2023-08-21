@@ -31,6 +31,11 @@ export type TextIsEmail = {
   values: string[];
 };
 
+export type TextIsLink = {
+  type: "textIsLink";
+  values: string[];
+};
+
 export type DateIsCriterion = {
   type: "dateIs";
   dateValue: DateCriterionValue;
@@ -121,6 +126,7 @@ export type DataValidationCriterion =
   | TextNotContains
   | TextIs
   | TextIsEmail
+  | TextIsLink
   | isBetween
   | DateIsCriterion
   | DateIsBeforeCriterion

@@ -16,6 +16,7 @@ import {
   getCriterionValuesAsNumber,
   getDateCriterionValues,
 } from "../helpers/dv_helpers";
+import { detectLink } from "../helpers/links";
 import { _t } from "../translation";
 import {
   CellValue,
@@ -120,9 +121,18 @@ dataValidationEvaluatorRegistry.add("textIsEmail", {
   type: "textIsEmail",
   isValueValid: (value: CellValue) => typeof value === "string" && emailRegex.test(value),
   getErrorString: () => _t("The value must be a valid email address"),
-  isCriterionValueValid: (value: string) => !!value,
+  isCriterionValueValid: () => true,
   getCriterionValueErrorString: () => "",
-  numberOfValues: () => 1,
+  numberOfValues: () => 0,
+});
+
+dataValidationEvaluatorRegistry.add("textIsLink", {
+  type: "textIsLink",
+  isValueValid: (value: CellValue) => detectLink(value) !== undefined,
+  getErrorString: () => _t("The value must be a valid link"),
+  isCriterionValueValid: () => true,
+  getCriterionValueErrorString: () => "",
+  numberOfValues: () => 0,
 });
 
 dataValidationEvaluatorRegistry.add("dateIs", {

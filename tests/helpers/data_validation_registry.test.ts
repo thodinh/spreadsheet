@@ -119,6 +119,26 @@ describe("Data validation registry", () => {
     });
   });
 
+  describe("Text is link", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("textIsLink");
+    const criterion: DataValidationCriterion = { type: "textIsLink", values: [] };
+
+    test.each([
+      ["hello", false],
+      ["hello.com", false],
+      ["http://hello.com", true],
+      ["http://www.hello.com", true],
+    ])("Valid values %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a valid link"
+      );
+    });
+  });
+
   describe("Date is", () => {
     const evaluator = dataValidationEvaluatorRegistry.get("dateIs");
     const criterion: DataValidationCriterion = {

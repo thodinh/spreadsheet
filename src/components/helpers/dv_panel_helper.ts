@@ -67,6 +67,13 @@ dataValidationPanelCriteriaRegistry.add("textIsEmail", {
   getPreview: () => _t("Text is valid email"),
 });
 
+dataValidationPanelCriteriaRegistry.add("textIsLink", {
+  type: "textIsLink",
+  component: DataValidationNoInput,
+  name: _t("Text is valid link"),
+  getPreview: () => _t("Text is valid link"),
+});
+
 dataValidationPanelCriteriaRegistry.add("dateIs", {
   type: "dateIs",
   component: DataValidationDateCriterionForm,
