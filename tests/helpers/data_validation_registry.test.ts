@@ -544,10 +544,10 @@ describe("Data validation registry", () => {
     });
   });
 
-  describe("Value is smaller than", () => {
-    const evaluator = dataValidationEvaluatorRegistry.get("isSmallerThan");
+  describe("Value is less than", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("isLessThan");
     const criterion: DataValidationCriterion = {
-      type: "isSmallerThan",
+      type: "isLessThan",
       values: ["5"],
     };
 
@@ -562,7 +562,30 @@ describe("Data validation registry", () => {
 
     test("Error string", () => {
       expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        "The value must be smaller than 5"
+        "The value must be less than 5"
+      );
+    });
+  });
+
+  describe("Value is less or equal to", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("isLessOrEqualTo");
+    const criterion: DataValidationCriterion = {
+      type: "isLessOrEqualTo",
+      values: ["5"],
+    };
+
+    test.each([
+      [5, true],
+      ["6", false],
+      [4, true],
+      ["hello", false],
+    ])("Valid values %s %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be less or equal to 5"
       );
     });
   });

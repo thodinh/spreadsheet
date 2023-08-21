@@ -5,7 +5,19 @@ import { _t } from "../../translation";
 import {
   DataValidationCriterion,
   DataValidationCriterionType,
+  DateIsAfter,
+  DateIsBeforeCriterion,
   DateIsCriterion,
+  DateIsNotBetween,
+  DateIsOnOrAfter,
+  DateIsOnOrBefore,
+  IsEqual,
+  IsGreaterOrEqualTo,
+  IsGreaterThan,
+  IsLessOrEqualTo,
+  IsLessThan,
+  IsNotEqual,
+  NumberBetweenCriterion,
   SpreadsheetChildEnv,
   TextContainsCriterion,
   TextNotContainsCriterion,
@@ -45,7 +57,7 @@ dataValidationPanelCriteriaRegistry.add("isBetween", {
   type: "isBetween",
   component: DataValidationDoubleInputCriterionForm,
   name: _t("Is between"),
-  getPreview: (criterion: DataValidationCriterion) =>
+  getPreview: (criterion: NumberBetweenCriterion) =>
     _t("Value is between %s and %s", criterion.values[0], criterion.values[1]),
 });
 
@@ -64,7 +76,7 @@ dataValidationPanelCriteriaRegistry.add("dateIsBefore", {
   type: "dateIsBefore",
   component: DataValidationDateCriterionForm,
   name: _t("Date is before"),
-  getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
+  getPreview: (criterion: DateIsBeforeCriterion, env: SpreadsheetChildEnv) => {
     return criterion.dateValue === "exactDate"
       ? _t("Date is before %s", getDateCriterionFormattedExactValue(criterion, env)[0])
       : _t("Date is before %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
@@ -75,7 +87,7 @@ dataValidationPanelCriteriaRegistry.add("dateIsOnOrBefore", {
   type: "dateIsOnOrBefore",
   component: DataValidationDateCriterionForm,
   name: _t("Date is on or before"),
-  getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
+  getPreview: (criterion: DateIsOnOrBefore, env: SpreadsheetChildEnv) => {
     return criterion.dateValue === "exactDate"
       ? _t("Date is on or before %s", getDateCriterionFormattedExactValue(criterion, env)[0])
       : _t("Date is on or before %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
@@ -86,7 +98,7 @@ dataValidationPanelCriteriaRegistry.add("dateIsAfter", {
   type: "dateIsAfter",
   component: DataValidationDateCriterionForm,
   name: _t("Date is after"),
-  getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
+  getPreview: (criterion: DateIsAfter, env: SpreadsheetChildEnv) => {
     return criterion.dateValue === "exactDate"
       ? _t("Date is after %s", getDateCriterionFormattedExactValue(criterion, env)[0])
       : _t("Date is after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
@@ -97,7 +109,7 @@ dataValidationPanelCriteriaRegistry.add("dateIsOnOrAfter", {
   type: "dateIsOnOrAfter",
   component: DataValidationDateCriterionForm,
   name: _t("Date is on or after"),
-  getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
+  getPreview: (criterion: DateIsOnOrAfter, env: SpreadsheetChildEnv) => {
     return criterion.dateValue === "exactDate"
       ? _t("Date is on or after %s", getDateCriterionFormattedExactValue(criterion, env)[0])
       : _t("Date is on or after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
@@ -118,7 +130,7 @@ dataValidationPanelCriteriaRegistry.add("dateIsNotBetween", {
   type: "dateIsNotBetween",
   component: DataValidationDoubleInputCriterionForm,
   name: _t("Date is not between"),
-  getPreview: (criterion: DateIsCriterion, env: SpreadsheetChildEnv) => {
+  getPreview: (criterion: DateIsNotBetween, env: SpreadsheetChildEnv) => {
     const values = getDateCriterionFormattedExactValue(criterion, env);
     return _t("Date is not between %s and %s", values[0], values[1]);
   },
@@ -135,42 +147,50 @@ dataValidationPanelCriteriaRegistry.add("isEqual", {
   type: "isEqual",
   component: DataValidationSingleInputCriterionForm,
   name: _t("Is equal to"),
-  getPreview: (criterion: TextContainsCriterion) => _t("Value is equal to %s", criterion.values[0]),
+  getPreview: (criterion: IsEqual) => _t("Value is equal to %s", criterion.values[0]),
 });
 
 dataValidationPanelCriteriaRegistry.add("isNotEqual", {
   type: "isNotEqual",
   component: DataValidationSingleInputCriterionForm,
   name: _t("Is not equal to"),
-  getPreview: (criterion: TextContainsCriterion) =>
-    _t("Value is not equal to %s", criterion.values[0]),
+  getPreview: (criterion: IsNotEqual) => _t("Value is not equal to %s", criterion.values[0]),
 });
 
 dataValidationPanelCriteriaRegistry.add("isGreaterThan", {
   type: "isGreaterThan",
   component: DataValidationSingleInputCriterionForm,
   name: _t("Is greater than"),
-  getPreview: (criterion: TextContainsCriterion) =>
-    _t("Value is greater than %s", criterion.values[0]),
+  getPreview: (criterion: IsGreaterThan) => _t("Value is greater than %s", criterion.values[0]),
 });
 
 dataValidationPanelCriteriaRegistry.add("isGreaterOrEqualTo", {
   type: "isGreaterOrEqualTo",
   component: DataValidationSingleInputCriterionForm,
   name: _t("Is greater or equal to"),
-  getPreview: (criterion: TextContainsCriterion) =>
+  getPreview: (criterion: IsGreaterOrEqualTo) =>
     _t("Value is greater or equal to %s", criterion.values[0]),
 });
 
-dataValidationPanelCriteriaRegistry.add("isSmallerThan", {
-  type: "isSmallerThan",
+dataValidationPanelCriteriaRegistry.add("isLessThan", {
+  type: "isLessThan",
   component: DataValidationSingleInputCriterionForm,
-  name: _t("Is smaller than"),
-  getPreview: (criterion: TextContainsCriterion) =>
-    _t("Value is smaller than %s", criterion.values[0]),
+  name: _t("Is less than"),
+  getPreview: (criterion: IsLessThan) => _t("Value is less than %s", criterion.values[0]),
 });
 
-function getDateCriterionFormattedExactValue(criterion: DateIsCriterion, env: SpreadsheetChildEnv) {
+dataValidationPanelCriteriaRegistry.add("isLessOrEqualTo", {
+  type: "isLessOrEqualTo",
+  component: DataValidationSingleInputCriterionForm,
+  name: _t("Is less or equal to"),
+  getPreview: (criterion: IsLessOrEqualTo) =>
+    _t("Value is less or equal to %s", criterion.values[0]),
+});
+
+function getDateCriterionFormattedExactValue(
+  criterion: DataValidationCriterion,
+  env: SpreadsheetChildEnv
+) {
   return criterion.values.map((value) =>
     value.startsWith("=") ? value : getFormattedDate(value, env.model.getters.getLocale())
   );

@@ -91,8 +91,13 @@ export type IsGreaterOrEqualTo = {
   values: string[];
 };
 
-export type IsSmallerThan = {
-  type: "isSmallerThan";
+export type IsLessThan = {
+  type: "isLessThan";
+  values: string[];
+};
+
+export type IsLessOrEqualTo = {
+  type: "isLessOrEqualTo";
   values: string[];
 };
 
@@ -112,7 +117,8 @@ export type DataValidationCriterion =
   | IsNotEqual
   | IsGreaterThan
   | IsGreaterOrEqualTo
-  | IsSmallerThan;
+  | IsLessThan
+  | IsLessOrEqualTo;
 
 export type DateCriterionValue =
   | "today"

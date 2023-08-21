@@ -21,9 +21,21 @@ import {
   CellValue,
   DataValidationCriterion,
   DataValidationCriterionType,
+  DateIsAfter,
+  DateIsBeforeCriterion,
+  DateIsBetween,
   DateIsCriterion,
+  DateIsNotBetween,
+  DateIsOnOrAfter,
+  DateIsValid,
   DEFAULT_LOCALE,
   Getters,
+  IsEqual,
+  IsGreaterOrEqualTo,
+  IsGreaterThan,
+  IsLessOrEqualTo,
+  IsLessThan,
+  IsNotEqual,
   Locale,
   NumberBetweenCriterion,
   TextContainsCriterion,
@@ -148,7 +160,7 @@ dataValidationEvaluatorRegistry.add("dateIsBefore", {
   type: "dateIsBefore",
   isValueValid: (
     value: CellValue,
-    criterion: DateIsCriterion,
+    criterion: DateIsBeforeCriterion,
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
@@ -157,7 +169,7 @@ dataValidationEvaluatorRegistry.add("dateIsBefore", {
       ? false
       : isDateStrictlyBeforeDay(dateValue, criterionValue);
   },
-  getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
+  getErrorString: (criterion: DateIsBeforeCriterion, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
     return criterion.dateValue === "exactDate"
       ? _t(
@@ -175,7 +187,7 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrBefore", {
   type: "dateIsOnOrBefore",
   isValueValid: (
     value: CellValue,
-    criterion: DateIsCriterion,
+    criterion: DateIsOnOrAfter,
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
@@ -184,7 +196,7 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrBefore", {
       ? false
       : isDateBeforeDay(dateValue, criterionValue);
   },
-  getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
+  getErrorString: (criterion: DateIsOnOrAfter, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
     return criterion.dateValue === "exactDate"
       ? _t(
@@ -203,18 +215,14 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrBefore", {
 
 dataValidationEvaluatorRegistry.add("dateIsAfter", {
   type: "dateIsAfter",
-  isValueValid: (
-    value: CellValue,
-    criterion: DateIsCriterion,
-    args: DataValidationEvaluatorArgs
-  ) => {
+  isValueValid: (value: CellValue, criterion: DateIsAfter, args: DataValidationEvaluatorArgs) => {
     const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
     const dateValue = valueToDateNumber(value, DEFAULT_LOCALE);
     return dateValue === undefined || !criterionValue
       ? false
       : isDateStrictlyAfterDay(dateValue, criterionValue);
   },
-  getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
+  getErrorString: (criterion: DateIsAfter, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
     return criterion.dateValue === "exactDate"
       ? _t(
@@ -232,7 +240,7 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrAfter", {
   type: "dateIsOnOrAfter",
   isValueValid: (
     value: CellValue,
-    criterion: DateIsCriterion,
+    criterion: DateIsOnOrAfter,
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValue = getDateCriterionValues(criterion, DEFAULT_LOCALE)[0];
@@ -241,7 +249,7 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrAfter", {
       ? false
       : isDateAfterDay(dateValue, criterionValue);
   },
-  getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
+  getErrorString: (criterion: DateIsOnOrAfter, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
     return criterion.dateValue === "exactDate"
       ? _t(
@@ -257,18 +265,14 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrAfter", {
 
 dataValidationEvaluatorRegistry.add("dateIsBetween", {
   type: "dateIsBetween",
-  isValueValid: (
-    value: CellValue,
-    criterion: DateIsCriterion,
-    args: DataValidationEvaluatorArgs
-  ) => {
+  isValueValid: (value: CellValue, criterion: DateIsBetween, args: DataValidationEvaluatorArgs) => {
     const criterionValues = getDateCriterionValues(criterion, DEFAULT_LOCALE);
     const dateValue = valueToDateNumber(value, DEFAULT_LOCALE);
     return dateValue === undefined || !criterionValues[0] || !criterionValues[1]
       ? false
       : isDateBetween(dateValue, criterionValues[0], criterionValues[1]);
   },
-  getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
+  getErrorString: (criterion: DateIsBetween, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
     const criterionValues = getDateCriterionFormattedValues(criterion, locale);
     return _t("The value must be a date between %s and %s", criterionValues[0], criterionValues[1]);
@@ -282,7 +286,7 @@ dataValidationEvaluatorRegistry.add("dateIsNotBetween", {
   type: "dateIsNotBetween",
   isValueValid: (
     value: CellValue,
-    criterion: DateIsCriterion,
+    criterion: DateIsNotBetween,
     args: DataValidationEvaluatorArgs
   ) => {
     const criterionValues = getDateCriterionValues(criterion, DEFAULT_LOCALE);
@@ -291,7 +295,7 @@ dataValidationEvaluatorRegistry.add("dateIsNotBetween", {
       ? false
       : !isDateBetween(dateValue, criterionValues[0], criterionValues[1]);
   },
-  getErrorString: (criterion: DateIsCriterion, args: DataValidationEvaluatorArgs) => {
+  getErrorString: (criterion: DateIsNotBetween, args: DataValidationEvaluatorArgs) => {
     const locale = DEFAULT_LOCALE;
     const criterionValues = getDateCriterionFormattedValues(criterion, locale);
     return _t(
@@ -307,11 +311,7 @@ dataValidationEvaluatorRegistry.add("dateIsNotBetween", {
 
 dataValidationEvaluatorRegistry.add("dateIsValid", {
   type: "dateIsValid",
-  isValueValid: (
-    value: CellValue,
-    criterion: DateIsCriterion,
-    args: DataValidationEvaluatorArgs
-  ) => {
+  isValueValid: (value: CellValue, criterion: DateIsValid, args: DataValidationEvaluatorArgs) => {
     return valueToDateNumber(value, DEFAULT_LOCALE) !== undefined;
   },
   getErrorString: () => _t("The value must be a valid date"),
@@ -322,7 +322,7 @@ dataValidationEvaluatorRegistry.add("dateIsValid", {
 
 dataValidationEvaluatorRegistry.add("isEqual", {
   type: "isEqual",
-  isValueValid: (value: CellValue, criterion: NumberBetweenCriterion) => {
+  isValueValid: (value: CellValue, criterion: IsEqual) => {
     const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
     const criterionValue = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE)[0];
 
@@ -331,7 +331,7 @@ dataValidationEvaluatorRegistry.add("isEqual", {
     }
     return numberValue === criterionValue;
   },
-  getErrorString: (criterion: NumberBetweenCriterion) => {
+  getErrorString: (criterion: IsEqual) => {
     return _t("The value must be equal to %s", criterion.values[0]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
@@ -341,7 +341,7 @@ dataValidationEvaluatorRegistry.add("isEqual", {
 
 dataValidationEvaluatorRegistry.add("isNotEqual", {
   type: "isNotEqual",
-  isValueValid: (value: CellValue, criterion: NumberBetweenCriterion) => {
+  isValueValid: (value: CellValue, criterion: IsNotEqual) => {
     const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
     const criterionValue = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE)[0];
 
@@ -350,7 +350,7 @@ dataValidationEvaluatorRegistry.add("isNotEqual", {
     }
     return numberValue !== criterionValue;
   },
-  getErrorString: (criterion: NumberBetweenCriterion) => {
+  getErrorString: (criterion: IsNotEqual) => {
     return _t("The value must not be equal to %s", criterion.values[0]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
@@ -360,7 +360,7 @@ dataValidationEvaluatorRegistry.add("isNotEqual", {
 
 dataValidationEvaluatorRegistry.add("isGreaterThan", {
   type: "isGreaterThan",
-  isValueValid: (value: CellValue, criterion: NumberBetweenCriterion) => {
+  isValueValid: (value: CellValue, criterion: IsGreaterThan) => {
     const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
     const criterionValue = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE)[0];
 
@@ -369,7 +369,7 @@ dataValidationEvaluatorRegistry.add("isGreaterThan", {
     }
     return numberValue > criterionValue;
   },
-  getErrorString: (criterion: NumberBetweenCriterion) => {
+  getErrorString: (criterion: IsGreaterThan) => {
     return _t("The value must be greater than %s", criterion.values[0]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
@@ -379,7 +379,7 @@ dataValidationEvaluatorRegistry.add("isGreaterThan", {
 
 dataValidationEvaluatorRegistry.add("isGreaterOrEqualTo", {
   type: "isGreaterOrEqualTo",
-  isValueValid: (value: CellValue, criterion: NumberBetweenCriterion) => {
+  isValueValid: (value: CellValue, criterion: IsGreaterOrEqualTo) => {
     const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
     const criterionValue = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE)[0];
 
@@ -388,7 +388,7 @@ dataValidationEvaluatorRegistry.add("isGreaterOrEqualTo", {
     }
     return numberValue >= criterionValue;
   },
-  getErrorString: (criterion: NumberBetweenCriterion) => {
+  getErrorString: (criterion: IsGreaterOrEqualTo) => {
     return _t("The value must be greater or equal to %s", criterion.values[0]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
@@ -396,9 +396,9 @@ dataValidationEvaluatorRegistry.add("isGreaterOrEqualTo", {
   numberOfValues: () => 1,
 });
 
-dataValidationEvaluatorRegistry.add("isSmallerThan", {
-  type: "isSmallerThan",
-  isValueValid: (value: CellValue, criterion: NumberBetweenCriterion) => {
+dataValidationEvaluatorRegistry.add("isLessThan", {
+  type: "isLessThan",
+  isValueValid: (value: CellValue, criterion: IsLessThan) => {
     const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
     const criterionValue = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE)[0];
 
@@ -407,15 +407,34 @@ dataValidationEvaluatorRegistry.add("isSmallerThan", {
     }
     return numberValue < criterionValue;
   },
-  getErrorString: (criterion: NumberBetweenCriterion) => {
-    return _t("The value must be smaller than %s", criterion.values[0]);
+  getErrorString: (criterion: IsLessThan) => {
+    return _t("The value must be less than %s", criterion.values[0]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
   getCriterionValueErrorString: () => criterionErrorStrings.numberValue,
   numberOfValues: () => 1,
 });
 
-function getDateCriterionFormattedValues(criterion: DateIsCriterion, locale: Locale) {
+dataValidationEvaluatorRegistry.add("isLessOrEqualTo", {
+  type: "isLessOrEqualTo",
+  isValueValid: (value: CellValue, criterion: IsLessOrEqualTo) => {
+    const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
+    const criterionValue = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE)[0];
+
+    if (numberValue === undefined || criterionValue === undefined) {
+      return false;
+    }
+    return numberValue <= criterionValue;
+  },
+  getErrorString: (criterion: IsLessOrEqualTo) => {
+    return _t("The value must be less or equal to %s", criterion.values[0]);
+  },
+  isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
+  getCriterionValueErrorString: () => criterionErrorStrings.numberValue,
+  numberOfValues: () => 1,
+});
+
+function getDateCriterionFormattedValues(criterion: DataValidationCriterion, locale: Locale) {
   const values = getDateCriterionValues(criterion, locale);
   return values.map((value) =>
     value !== undefined
