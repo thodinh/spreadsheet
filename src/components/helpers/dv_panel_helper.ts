@@ -162,6 +162,14 @@ dataValidationPanelCriteriaRegistry.add("isGreaterOrEqualTo", {
     _t("Value is greater or equal to %s", criterion.values[0]),
 });
 
+dataValidationPanelCriteriaRegistry.add("isSmallerThan", {
+  type: "isSmallerThan",
+  component: DataValidationSingleInputCriterionForm,
+  name: _t("Is smaller than"),
+  getPreview: (criterion: TextContainsCriterion) =>
+    _t("Value is smaller than %s", criterion.values[0]),
+});
+
 function getDateCriterionFormattedExactValue(criterion: DateIsCriterion, env: SpreadsheetChildEnv) {
   return criterion.values.map((value) =>
     value.startsWith("=") ? value : getFormattedDate(value, env.model.getters.getLocale())

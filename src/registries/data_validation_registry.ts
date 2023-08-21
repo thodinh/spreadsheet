@@ -396,6 +396,25 @@ dataValidationEvaluatorRegistry.add("isGreaterOrEqualTo", {
   numberOfValues: () => 1,
 });
 
+dataValidationEvaluatorRegistry.add("isSmallerThan", {
+  type: "isSmallerThan",
+  isValueValid: (value: CellValue, criterion: NumberBetweenCriterion) => {
+    const numberValue = cellValueToNumber(value, DEFAULT_LOCALE);
+    const criterionValue = getCriterionValuesAsNumber(criterion, DEFAULT_LOCALE)[0];
+
+    if (numberValue === undefined || criterionValue === undefined) {
+      return false;
+    }
+    return numberValue < criterionValue;
+  },
+  getErrorString: (criterion: NumberBetweenCriterion) => {
+    return _t("The value must be smaller than %s", criterion.values[0]);
+  },
+  isCriterionValueValid: (value, locale) => checkValueIsNumber(value, locale),
+  getCriterionValueErrorString: () => criterionErrorStrings.numberValue,
+  numberOfValues: () => 1,
+});
+
 function getDateCriterionFormattedValues(criterion: DateIsCriterion, locale: Locale) {
   const values = getDateCriterionValues(criterion, locale);
   return values.map((value) =>

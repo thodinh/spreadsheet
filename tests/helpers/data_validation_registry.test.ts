@@ -543,4 +543,27 @@ describe("Data validation registry", () => {
       );
     });
   });
+
+  describe("Value is smaller than", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("isSmallerThan");
+    const criterion: DataValidationCriterion = {
+      type: "isSmallerThan",
+      values: ["5"],
+    };
+
+    test.each([
+      [5, false],
+      ["6", false],
+      [4, true],
+      ["hello", false],
+    ])("Valid values %s %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be smaller than 5"
+      );
+    });
+  });
 });
