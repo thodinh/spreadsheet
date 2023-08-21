@@ -60,6 +60,13 @@ dataValidationPanelCriteriaRegistry.add("textIs", {
   getPreview: (criterion: TextContains) => _t('Text is exactly "%s"', criterion.values[0]),
 });
 
+dataValidationPanelCriteriaRegistry.add("textIsEmail", {
+  type: "textIsEmail",
+  component: DataValidationNoInput,
+  name: _t("Text is valid email"),
+  getPreview: () => _t("Text is valid email"),
+});
+
 dataValidationPanelCriteriaRegistry.add("dateIs", {
   type: "dateIs",
   component: DataValidationDateCriterionForm,

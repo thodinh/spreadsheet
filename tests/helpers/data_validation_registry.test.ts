@@ -95,13 +95,26 @@ describe("Data validation registry", () => {
         'The value must be exactly "hello"'
       );
     });
+  });
 
-    test("Valid criterion values", () => {
-      expect(evaluator.isCriterionValueValid("test", locale)).toEqual(true);
-      expect(evaluator.isCriterionValueValid("", locale)).toEqual(false);
+  describe("Text is email", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("textIsEmail");
+    const criterion: DataValidationCriterion = { type: "textIsEmail", values: [] };
 
-      expect(evaluator.getCriterionValueErrorString("test").toString()).toEqual(
-        "The value must not be empty"
+    test.each([
+      ["hello", false],
+      ["hello@gmail", false],
+      ["hello@gmail.com", true],
+      ["hello.there@gmail.com", true],
+      ["hello there@gmail.com", false],
+      ["hello@there@gmail.com", false],
+    ])("Valid values %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        "The value must be a valid email address"
       );
     });
   });

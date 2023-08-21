@@ -113,6 +113,18 @@ dataValidationEvaluatorRegistry.add("textIs", {
   numberOfValues: () => 1,
 });
 
+/** Note: this regex doesn't allow for all the RFC-compliant mail addresses (mails can have an IP instead of a
+ * domain name for example), but should be enough for our purpose. */
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+dataValidationEvaluatorRegistry.add("textIsEmail", {
+  type: "textIsEmail",
+  isValueValid: (value: CellValue) => typeof value === "string" && emailRegex.test(value),
+  getErrorString: () => _t("The value must be a valid email address"),
+  isCriterionValueValid: (value: string) => !!value,
+  getCriterionValueErrorString: () => "",
+  numberOfValues: () => 1,
+});
+
 dataValidationEvaluatorRegistry.add("dateIs", {
   type: "dateIs",
   isValueValid: (
