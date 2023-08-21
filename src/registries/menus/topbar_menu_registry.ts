@@ -395,5 +395,6 @@ topbarMenuRegistry
     execute: (env) => {
       env.openSidePanel("DataValidationPanel");
     },
+    icon: "o-spreadsheet-Icon.DATA_VALIDATION",
     sequence: 40,
   });
