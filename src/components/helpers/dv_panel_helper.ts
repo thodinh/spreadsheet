@@ -20,8 +20,8 @@ import {
   isNotBetween,
   IsNotEqual,
   SpreadsheetChildEnv,
-  TextContainsCriterion,
-  TextNotContainsCriterion,
+  TextContains,
+  TextNotContains,
 } from "../../types";
 import { DataValidationDateCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_date";
 import { DataValidationDoubleInputCriterionForm } from "../side_panel/data_validation/dv_criterion/dv_double_input";
@@ -43,15 +43,21 @@ dataValidationPanelCriteriaRegistry.add("textContains", {
   type: "textContains",
   component: DataValidationSingleInputCriterionForm,
   name: _t("Text contains"),
-  getPreview: (criterion: TextContainsCriterion) => _t('Text contains "%s"', criterion.values[0]),
+  getPreview: (criterion: TextContains) => _t('Text contains "%s"', criterion.values[0]),
 });
 
 dataValidationPanelCriteriaRegistry.add("textNotContains", {
   type: "textNotContains",
   component: DataValidationSingleInputCriterionForm,
   name: _t("Text does not contains"),
-  getPreview: (criterion: TextNotContainsCriterion) =>
-    _t('Text does not contain "%s"', criterion.values[0]),
+  getPreview: (criterion: TextNotContains) => _t('Text does not contain "%s"', criterion.values[0]),
+});
+
+dataValidationPanelCriteriaRegistry.add("textIs", {
+  type: "textIs",
+  component: DataValidationSingleInputCriterionForm,
+  name: _t("Text is exactly"),
+  getPreview: (criterion: TextContains) => _t('Text is exactly "%s"', criterion.values[0]),
 });
 
 dataValidationPanelCriteriaRegistry.add("dateIs", {

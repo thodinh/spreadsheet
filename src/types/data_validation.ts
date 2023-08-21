@@ -11,13 +11,18 @@ export interface DataValidationRule extends Omit<DataValidationInternal, "ranges
   ranges: string[];
 }
 
-export type TextContainsCriterion = {
+export type TextContains = {
   type: "textContains";
   values: string[];
 };
 
-export type TextNotContainsCriterion = {
+export type TextNotContains = {
   type: "textNotContains";
+  values: string[];
+};
+
+export type TextIs = {
+  type: "textIs";
   values: string[];
 };
 
@@ -107,8 +112,9 @@ export type isNotBetween = {
 };
 
 export type DataValidationCriterion =
-  | TextContainsCriterion
-  | TextNotContainsCriterion
+  | TextContains
+  | TextNotContains
+  | TextIs
   | isBetween
   | DateIsCriterion
   | DateIsBeforeCriterion

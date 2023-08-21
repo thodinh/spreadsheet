@@ -39,8 +39,8 @@ import {
   isNotBetween,
   IsNotEqual,
   Locale,
-  TextContainsCriterion,
-  TextNotContainsCriterion,
+  TextContains,
+  TextNotContains,
 } from "../types";
 import { CellErrorType } from "../types/errors";
 import { Registry } from "./registry";
@@ -72,13 +72,13 @@ type DataValidationCriterionEvaluator = {
 export const dataValidationEvaluatorRegistry = new Registry<DataValidationCriterionEvaluator>();
 dataValidationEvaluatorRegistry.add("textContains", {
   type: "textContains",
-  isValueValid: (value: CellValue, criterion: TextContainsCriterion) => {
+  isValueValid: (value: CellValue, criterion: TextContains) => {
     return (
       typeof value === "string" && value.toLowerCase().includes(criterion.values[0].toLowerCase())
     );
   },
-  getErrorString: (criterion: TextContainsCriterion) => {
-    return _t('The value must be a text that contains: "%s"', criterion.values[0]);
+  getErrorString: (criterion: TextContains) => {
+    return _t('The value must be a text that contains "%s"', criterion.values[0]);
   },
   isCriterionValueValid: (value: string) => !!value,
   getCriterionValueErrorString: () => criterionErrorStrings.notEmptyValue,
@@ -87,16 +87,29 @@ dataValidationEvaluatorRegistry.add("textContains", {
 
 dataValidationEvaluatorRegistry.add("textNotContains", {
   type: "textNotContains",
-  isValueValid: (value: CellValue, criterion: TextNotContainsCriterion) => {
+  isValueValid: (value: CellValue, criterion: TextNotContains) => {
     return (
       typeof value === "string" && !value.toLowerCase().includes(criterion.values[0].toLowerCase())
     );
   },
-  getErrorString: (criterion: TextNotContainsCriterion) => {
-    return _t('The value must be a text that does not contain: "%s"', criterion.values[0]);
+  getErrorString: (criterion: TextNotContains) => {
+    return _t('The value must be a text that does not contain "%s"', criterion.values[0]);
   },
   isCriterionValueValid: (value: string) => !!value,
   getCriterionValueErrorString: (value: string) => criterionErrorStrings.notEmptyValue,
+  numberOfValues: () => 1,
+});
+
+dataValidationEvaluatorRegistry.add("textIs", {
+  type: "textIs",
+  isValueValid: (value: CellValue, criterion: TextContains) => {
+    return typeof value === "string" && value.toLowerCase() === criterion.values[0].toLowerCase();
+  },
+  getErrorString: (criterion: TextContains) => {
+    return _t('The value must be exactly "%s"', criterion.values[0]);
+  },
+  isCriterionValueValid: (value: string) => !!value,
+  getCriterionValueErrorString: () => criterionErrorStrings.notEmptyValue,
   numberOfValues: () => 1,
 });
 

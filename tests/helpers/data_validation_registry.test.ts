@@ -32,18 +32,18 @@ describe("Data validation registry", () => {
     const evaluator = dataValidationEvaluatorRegistry.get("textContains");
     const criterion: DataValidationCriterion = { type: "textContains", values: ["test"] };
 
-    test("Valid values", () => {
-      expect(evaluator.isValueValid("test", criterion, evaluatorArgs)).toEqual(true);
-      expect(evaluator.isValueValid("abc test", criterion, evaluatorArgs)).toEqual(true);
-      expect(evaluator.isValueValid("TEST", criterion, evaluatorArgs)).toEqual(true);
-      expect(evaluator.isValueValid("test1", criterion, evaluatorArgs)).toEqual(true);
-
-      expect(evaluator.isValueValid("abc", criterion, evaluatorArgs)).toEqual(false);
+    test.each([
+      ["abc", false],
+      ["abc test", true],
+      ["TEST", true],
+      ["test1", true],
+    ])("Valid values %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
     test("Error string", () => {
       expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        'The value must be a text that contains: "test"'
+        'The value must be a text that contains "test"'
       );
     });
 
@@ -61,18 +61,38 @@ describe("Data validation registry", () => {
     const evaluator = dataValidationEvaluatorRegistry.get("textNotContains");
     const criterion: DataValidationCriterion = { type: "textNotContains", values: ["test"] };
 
-    test("Valid values", () => {
-      expect(evaluator.isValueValid("abc", criterion, evaluatorArgs)).toEqual(true);
-
-      expect(evaluator.isValueValid("abc test", criterion, evaluatorArgs)).toEqual(false);
-      expect(evaluator.isValueValid("TEST", criterion, evaluatorArgs)).toEqual(false);
-      expect(evaluator.isValueValid("test1", criterion, evaluatorArgs)).toEqual(false);
-      expect(evaluator.isValueValid("test", criterion, evaluatorArgs)).toEqual(false);
+    test.each([
+      ["abc", true],
+      ["abc test", false],
+      ["TEST", false],
+      ["test1", false],
+    ])("Valid values %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
     test("Error string", () => {
       expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
-        'The value must be a text that does not contain: "test"'
+        'The value must be a text that does not contain "test"'
+      );
+    });
+  });
+
+  describe("Text is", () => {
+    const evaluator = dataValidationEvaluatorRegistry.get("textIs");
+    const criterion: DataValidationCriterion = { type: "textIs", values: ["hello"] };
+
+    test.each([
+      ["hello there", false],
+      ["hell", false],
+      ["hello", true],
+      ["HELLO", true],
+    ])("Valid values %s", (testValue, expectedResult) => {
+      expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
+    });
+
+    test("Error string", () => {
+      expect(evaluator.getErrorString(criterion, evaluatorArgs).toString()).toEqual(
+        'The value must be exactly "hello"'
       );
     });
 
@@ -410,7 +430,7 @@ describe("Data validation registry", () => {
       ["31/31/01/2021", false],
       [15, true],
       ["hello", false],
-    ])("Valie values %s", (testValue, expectedResult) => {
+    ])("Valid values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -433,7 +453,7 @@ describe("Data validation registry", () => {
       ["5", true],
       [12, false],
       ["hello", false],
-    ])("Valie values %s", (testValue, expectedResult) => {
+    ])("Valid values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -457,7 +477,7 @@ describe("Data validation registry", () => {
       [12, true],
       ["12", true],
       ["hello", false],
-    ])("Valie values %s", (testValue, expectedResult) => {
+    ])("Valid values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -480,7 +500,7 @@ describe("Data validation registry", () => {
       ["6", true],
       [6, true],
       ["hello", false],
-    ])("Valie values %s", (testValue, expectedResult) => {
+    ])("Valid values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -503,7 +523,7 @@ describe("Data validation registry", () => {
       ["6", true],
       [4, false],
       ["hello", false],
-    ])("Valie values %s", (testValue, expectedResult) => {
+    ])("Valid values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -526,7 +546,7 @@ describe("Data validation registry", () => {
       ["6", false],
       [4, true],
       ["hello", false],
-    ])("Valie values %s", (testValue, expectedResult) => {
+    ])("Valid values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -551,7 +571,7 @@ describe("Data validation registry", () => {
       ["8", true],
       [9, false],
       ["hello", false],
-    ])("Valie values %s", (testValue, expectedResult) => {
+    ])("Valid values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 
@@ -576,7 +596,7 @@ describe("Data validation registry", () => {
       ["8", false],
       [9, true],
       ["hello", false],
-    ])("Valie values %s", (testValue, expectedResult) => {
+    ])("Valid values %s", (testValue, expectedResult) => {
       expect(evaluator.isValueValid(testValue, criterion, evaluatorArgs)).toEqual(expectedResult);
     });
 

@@ -33,6 +33,7 @@ describe("data validation sidePanel component", () => {
   test.each([
     ["textContains", { values: ["str"] }, 'Text contains "str"'],
     ["textNotContains", { values: ["str"] }, 'Text does not contain "str"'],
+    ["textIs", { values: ["str"] }, 'Text is exactly "str"'],
     ["dateIs", { values: ["1/1/2020"], dateValue: "exactDate" }, "Date is 1/1/2020"],
     ["dateIsBefore", { values: ["1/1/2020"], dateValue: "exactDate" }, "Date is before 1/1/2020"],
     [
