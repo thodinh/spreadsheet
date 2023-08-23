@@ -1,9 +1,17 @@
-import { CommandResult, CorePlugin } from "../src";
+import { CollaborationMessage, CommandResult, CorePlugin } from "../src";
+import { MESSAGE_VERSION } from "../src/constants";
 import { toZone } from "../src/helpers";
 import { Model, ModelConfig } from "../src/model";
 import { corePluginRegistry, featurePluginRegistry } from "../src/plugins/index";
 import { UIPlugin } from "../src/plugins/ui_plugin";
-import { Command, CommandTypes, CoreCommand, DispatchResult, coreTypes } from "../src/types";
+import {
+  Command,
+  CommandTypes,
+  CoreCommand,
+  coreTypes,
+  DispatchResult,
+  UpdateCellCommand,
+} from "../src/types";
 import { setupCollaborativeEnv } from "./collaborative/collaborative_helpers";
 import { copy, selectCell, setCellContent } from "./test_helpers/commands_helpers";
 import {
@@ -96,7 +104,7 @@ describe("Model", () => {
     expect(getCellText(model, "A2")).toBe("copy&paste me");
   });
 
-  test("UI plugins cannot refuse core commands", () => {
+  test("UI plugins can refuse local core commands, but not remote commands", () => {
     class MyUIPlugin extends UIPlugin {
       allowDispatch(cmd: Command) {
         if (cmd.type === "UPDATE_CELL") {
@@ -106,10 +114,32 @@ describe("Model", () => {
       }
     }
     addTestPlugin(featurePluginRegistry, MyUIPlugin);
-    const model = new Model();
+    const { alice, bob, charlie, network } = setupCollaborativeEnv();
+    const cmd: UpdateCellCommand = {
+      type: "UPDATE_CELL",
+      sheetId: alice.getters.getActiveSheetId(),
+      col: 0,
+      row: 0,
+      content: "hello",
+    };
 
-    setCellContent(model, "A1", "hello");
-    expect(getCellContent(model, "A1")).toBe("hello");
+    alice.dispatch(cmd.type, cmd);
+    expect([alice, bob, charlie]).toHaveSynchronizedValue((user) => getCellContent(user, "A1"), "");
+
+    const message: CollaborationMessage = {
+      type: "REMOTE_REVISION",
+      version: MESSAGE_VERSION,
+      nextRevisionId: "42",
+      serverRevisionId: alice["session"]["serverRevisionId"],
+      clientId: "roger",
+      commands: [cmd],
+    };
+
+    network.sendMessage(message);
+    expect([alice, bob, charlie]).toHaveSynchronizedValue(
+      (user) => getCellContent(user, "A1"),
+      "hello"
+    );
   });
 
   test("Core plugins allowDispatch don't receive UI commands", () => {
