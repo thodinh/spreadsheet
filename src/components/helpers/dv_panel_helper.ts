@@ -92,7 +92,7 @@ dataValidationPanelCriteriaRegistry.add("dateIsBefore", {
   getPreview: (criterion: DateIsBeforeCriterion, env: SpreadsheetChildEnv) => {
     return criterion.dateValue === "exactDate"
       ? _t("Date is before %s", getDateCriterionFormattedExactValue(criterion, env)[0])
-      : _t("Date is before %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
+      : _t("Date is before %s", DVDateTerms.DateIsBefore[criterion.dateValue]);
   },
 });
 
@@ -103,7 +103,7 @@ dataValidationPanelCriteriaRegistry.add("dateIsOnOrBefore", {
   getPreview: (criterion: DateIsOnOrBefore, env: SpreadsheetChildEnv) => {
     return criterion.dateValue === "exactDate"
       ? _t("Date is on or before %s", getDateCriterionFormattedExactValue(criterion, env)[0])
-      : _t("Date is on or before %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
+      : _t("Date is on or before %s", DVDateTerms.DateIsBefore[criterion.dateValue]);
   },
 });
 
@@ -114,7 +114,7 @@ dataValidationPanelCriteriaRegistry.add("dateIsAfter", {
   getPreview: (criterion: DateIsAfter, env: SpreadsheetChildEnv) => {
     return criterion.dateValue === "exactDate"
       ? _t("Date is after %s", getDateCriterionFormattedExactValue(criterion, env)[0])
-      : _t("Date is after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
+      : _t("Date is after %s", DVDateTerms.DateIsBefore[criterion.dateValue]);
   },
 });
 
@@ -125,7 +125,7 @@ dataValidationPanelCriteriaRegistry.add("dateIsOnOrAfter", {
   getPreview: (criterion: DateIsOnOrAfter, env: SpreadsheetChildEnv) => {
     return criterion.dateValue === "exactDate"
       ? _t("Date is on or after %s", getDateCriterionFormattedExactValue(criterion, env)[0])
-      : _t("Date is on or after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
+      : _t("Date is on or after %s", DVDateTerms.DateIsBefore[criterion.dateValue]);
   },
 });
 

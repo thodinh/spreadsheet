@@ -112,12 +112,4 @@ export const DVDateTerms = {
     lastMonth: _t("one month ago"),
     lastYear: _t("one year ago"),
   },
-  DateIsAfter: {
-    today: _t("today"),
-    yesterday: _t("yesterday"),
-    tomorrow: _t("tomorrow"),
-    lastWeek: _t("one week from now"),
-    lastMonth: _t("one month from now"),
-    lastYear: _t("one year from now"),
-  },
 };

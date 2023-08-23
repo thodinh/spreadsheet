@@ -359,7 +359,7 @@ describe("Data validation registry", () => {
       ["exactDate", ["1/1/2012"], "The value must be a date after 1/1/2012"],
       ["exactDate", ["2"], "The value must be a date after 1/1/1900"],
       ["today", [], "The value must be a date after today"],
-      ["lastWeek", [], "The value must be a date after one week from now"],
+      ["lastWeek", [], "The value must be a date after one week ago"],
     ])("Error string %s % %s", (dateValue, values, errorStr) => {
       const dateCriterion: DataValidationDateCriterion = {
         ...criterion,
@@ -416,7 +416,7 @@ describe("Data validation registry", () => {
       ["exactDate", ["1/1/2012"], "The value must be a date on or after 1/1/2012"],
       ["exactDate", ["2"], "The value must be a date on or after 1/1/1900"],
       ["today", [], "The value must be a date on or after today"],
-      ["lastWeek", [], "The value must be a date on or after one week from now"],
+      ["lastWeek", [], "The value must be a date on or after one week ago"],
     ])("Error string %s % %s", (dateValue, values, errorStr) => {
       const dateCriterion: DataValidationDateCriterion = {
         ...criterion,

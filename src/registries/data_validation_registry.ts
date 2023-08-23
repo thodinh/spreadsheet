@@ -241,7 +241,7 @@ dataValidationEvaluatorRegistry.add("dateIsAfter", {
           "The value must be a date after %s",
           getDateCriterionFormattedValues(criterion, locale)[0]
         )
-      : _t("The value must be a date after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
+      : _t("The value must be a date after %s", DVDateTerms.DateIsBefore[criterion.dateValue]);
   },
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
   getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
@@ -268,7 +268,10 @@ dataValidationEvaluatorRegistry.add("dateIsOnOrAfter", {
           "The value must be a date on or after %s",
           getDateCriterionFormattedValues(criterion, locale)[0]
         )
-      : _t("The value must be a date on or after %s", DVDateTerms.DateIsAfter[criterion.dateValue]);
+      : _t(
+          "The value must be a date on or after %s",
+          DVDateTerms.DateIsBefore[criterion.dateValue]
+        );
   },
   isCriterionValueValid: (value, locale) => checkValueIsDate(value, locale),
   getCriterionValueErrorString: () => criterionErrorStrings.dateValue,
