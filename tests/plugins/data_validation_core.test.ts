@@ -1,7 +1,8 @@
 import { CommandResult, Model } from "../../src";
-import { UID } from "../../src/types";
+import { isBetween, UID } from "../../src/types";
 import {
   addDataValidation,
+  duplicateSheet,
   redo,
   removeDataValidation,
   undo,
@@ -71,6 +72,19 @@ describe("Data validation", () => {
         criterion: { type: "isBetween", values: ["1", "5"] },
         ranges: ["A1:C2"],
       },
+    ]);
+  });
+
+  test("data validation on sheet duplication", () => {
+    const criterion: isBetween = { type: "isBetween", values: ["1", "5"] };
+    addDataValidation(model, "A1", "id", criterion);
+    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+      { id: "id", criterion, ranges: ["A1"] },
+    ]);
+
+    duplicateSheet(model, sheetId, "newSheet");
+    expect(model.getters.getDataValidationRules("newSheet")).toEqual([
+      { id: "id", criterion, ranges: ["A1"] },
     ]);
   });
 

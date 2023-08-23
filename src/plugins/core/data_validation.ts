@@ -1,4 +1,4 @@
-import { deepCopy, isInside } from "../../helpers";
+import { copyRangeWithNewSheetId, isInside } from "../../helpers";
 import { dataValidationEvaluatorRegistry } from "../../registries/data_validation_registry";
 import {
   ApplyRangeChange,
@@ -134,7 +134,12 @@ export class DataValidationPlugin
         this.dvRules[cmd.sheetId] = [];
         break;
       case "DUPLICATE_SHEET":
-        const rules = deepCopy(this.dvRules[cmd.sheetId]);
+        const rules = this.dvRules[cmd.sheetId].map((dv) => ({
+          ...dv,
+          ranges: dv.ranges.map((range) =>
+            copyRangeWithNewSheetId(cmd.sheetId, cmd.sheetIdTo, range)
+          ),
+        }));
         this.history.update("dvRules", cmd.sheetIdTo, rules);
         break;
       case "DELETE_SHEET":

@@ -904,3 +904,7 @@ export function removeDataValidation(
 ) {
   return model.dispatch("REMOVE_DATA_VALIDATION_RULE", { sheetId, id });
 }
+
+export function duplicateSheet(model: Model, sheetId: UID, sheetIdTo: UID) {
+  return model.dispatch("DUPLICATE_SHEET", { sheetId, sheetIdTo });
+}
