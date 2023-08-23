@@ -49,7 +49,6 @@ import {
   InformationNotification,
   isCoreCommand,
   LAYERS,
-  LocalCommand,
   Locale,
   UID,
 } from "./types/index";
@@ -347,7 +346,7 @@ export class Model extends EventBus<any> implements CommandDispatcher {
         initialRevisionId: revisionId,
         recordChanges: this.state.recordChanges.bind(this.state),
         dispatch: (command: CoreCommand) => {
-          const result = this.checkDispatchAllowed(command);
+          const result = this.checkDispatchAllowed(command, "remote");
           if (!result.isSuccessful) {
             return;
           }
@@ -441,21 +440,20 @@ export class Model extends EventBus<any> implements CommandDispatcher {
   /**
    * Check if the given command is allowed by all the plugins and the history.
    */
-  private checkDispatchAllowed(command: Command): DispatchResult {
-    if (isCoreCommand(command)) {
-      return this.checkDispatchAllowedCoreCommand(command);
+  private checkDispatchAllowed(command: Command, mode: "remote" | "local"): DispatchResult {
+    if (mode === "remote") {
+      return this.checkDispatchAllowedByHandlers(command, this.coreHandlers);
+    } else if (!isCoreCommand(command)) {
+      return this.checkDispatchAllowedByHandlers(command, this.uiHandlers);
     }
-    return this.checkDispatchAllowedLocalCommand(command);
+    return this.checkDispatchAllowedByHandlers(command, this.handlers);
   }
 
-  private checkDispatchAllowedCoreCommand(command: CoreCommand): DispatchResult {
-    const results = this.corePlugins.map((handler) => handler.allowDispatch(command));
-    results.push(this.range.allowDispatch(command));
-    return new DispatchResult(results.flat());
-  }
-
-  private checkDispatchAllowedLocalCommand(command: LocalCommand): DispatchResult {
-    const results = this.uiHandlers.map((handler) => handler.allowDispatch(command));
+  private checkDispatchAllowedByHandlers(
+    command: Command,
+    handlers: CommandHandler<Command>[]
+  ): DispatchResult {
+    const results = handlers.map((handler) => handler.allowDispatch(command));
     return new DispatchResult(results.flat());
   }
 
@@ -472,7 +470,7 @@ export class Model extends EventBus<any> implements CommandDispatcher {
    * reasons the dispatch failed.
    */
   canDispatch: CommandDispatcher["canDispatch"] = (type: string, payload?: any) => {
-    return this.checkDispatchAllowed(createCommand(type, payload));
+    return this.checkDispatchAllowed(createCommand(type, payload), "local");
   };
 
   /**
@@ -500,7 +498,7 @@ export class Model extends EventBus<any> implements CommandDispatcher {
     }
     switch (status) {
       case Status.Ready:
-        const result = this.checkDispatchAllowed(command);
+        const result = this.checkDispatchAllowed(command, "local");
         if (!result.isSuccessful) {
           return result;
         }
@@ -518,7 +516,7 @@ export class Model extends EventBus<any> implements CommandDispatcher {
         break;
       case Status.Running:
         if (isCoreCommand(command)) {
-          const dispatchResult = this.checkDispatchAllowed(command);
+          const dispatchResult = this.checkDispatchAllowed(command, "local");
           if (!dispatchResult.isSuccessful) {
             return dispatchResult;
           }
