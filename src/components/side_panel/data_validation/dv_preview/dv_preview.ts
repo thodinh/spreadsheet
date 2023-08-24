@@ -44,7 +44,10 @@ export class DataValidationPreview extends Component<Props, SpreadsheetChildEnv>
   }
 
   get rangesString(): string {
-    return this.props.dvRule.ranges.join(", ");
+    const sheetId = this.env.model.getters.getActiveSheetId();
+    return this.props.dvRule.ranges
+      .map((range) => this.env.model.getters.getRangeString(range, sheetId))
+      .join(", ");
   }
 
   get descriptionString(): string {

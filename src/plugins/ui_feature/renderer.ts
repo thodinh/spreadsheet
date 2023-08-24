@@ -636,9 +636,10 @@ export class RendererPlugin extends UIPlugin {
       box.isError = true;
     }
 
-    if (cell.type === CellValueType.empty) {
+    if (cell.type === CellValueType.empty || this.getters.isCellValidCheckbox(position)) {
       return box;
     }
+
     /** Icon CF */
     const cfIcon = this.getters.getConditionalIcon(position);
     const fontSizePX = computeTextFontSizeInPixels(box.style);

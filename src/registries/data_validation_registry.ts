@@ -495,6 +495,15 @@ dataValidationEvaluatorRegistry.add("isNotBetween", {
   numberOfValues: () => 2,
 });
 
+dataValidationEvaluatorRegistry.add("isCheckbox", {
+  type: "isCheckbox",
+  isValueValid: (value: CellValue) => value == "" || typeof value === "boolean",
+  getErrorString: () => "The value must be a boolean",
+  isCriterionValueValid: () => true,
+  getCriterionValueErrorString: () => "",
+  numberOfValues: () => 0,
+});
+
 function getDateCriterionFormattedValues(criterion: DataValidationCriterion, locale: Locale) {
   const values = getDateCriterionValues(criterion, locale);
   return values.map((value) =>

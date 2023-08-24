@@ -6,7 +6,6 @@ import {
   Command,
   CommandResult,
   CoreCommand,
-  DataValidationInternal,
   DataValidationRule,
   DEFAULT_LOCALE,
   Range,
@@ -16,7 +15,7 @@ import {
 import { CorePlugin } from "../core_plugin";
 
 interface DataValidationState {
-  readonly dvRules: { [sheet: string]: DataValidationInternal[] };
+  readonly dvRules: { [sheet: string]: DataValidationRule[] };
 }
 
 /**
@@ -29,6 +28,8 @@ interface DataValidationState {
  * - dropdown
  * - blocking validation
  * - localize inputs before sending them to the plugin
+ * - autofill
+ * - copy/paste
  *
  * To discuss:
  * - input in error at start when empty
@@ -49,7 +50,7 @@ export class DataValidationPlugin
     "getValidationRulesForCell",
   ] as const;
 
-  readonly dvRules: { [sheet: string]: DataValidationInternal[] } = {};
+  readonly dvRules: { [sheet: string]: DataValidationRule[] } = {};
 
   loopThroughRangesOfSheet(sheetId: UID, applyChange: ApplyRangeChange) {
     for (const rule of this.dvRules[sheetId]) {
@@ -131,7 +132,7 @@ export class DataValidationPlugin
   handle(cmd: CoreCommand) {
     switch (cmd.type) {
       case "CREATE_SHEET":
-        this.dvRules[cmd.sheetId] = [];
+        this.history.update("dvRules", cmd.sheetId, []);
         break;
       case "DUPLICATE_SHEET":
         const rules = this.dvRules[cmd.sheetId].map((dv) => ({
@@ -153,7 +154,7 @@ export class DataValidationPlugin
         break;
       }
       case "ADD_DATA_VALIDATION_RULE": {
-        const newRule: DataValidationInternal = {
+        const newRule: DataValidationRule = {
           ...cmd.dv,
           ranges: cmd.ranges.map((range) => this.getters.getRangeFromRangeData(range)),
         };
@@ -180,21 +181,20 @@ export class DataValidationPlugin
   }
 
   getDataValidationRules(sheetId: UID): DataValidationRule[] {
-    return this.dvRules[sheetId].map((dv) => this.toDataValidationRule(sheetId, dv));
+    return this.dvRules[sheetId];
   }
 
   getDataValidationRule(sheetId: UID, id: UID): DataValidationRule | undefined {
-    const dvRule = this.dvRules[sheetId].find((dv) => dv.id === id);
-    return dvRule ? this.toDataValidationRule(sheetId, dvRule) : undefined;
+    return this.dvRules[sheetId].find((dv) => dv.id === id);
   }
 
   getDataValidationRanges(sheetId: UID): Range[] {
     return this.dvRules[sheetId].map((dv) => dv.ranges).flat();
   }
 
-  getValidationRulesForCell({ sheetId, col, row }: CellPosition): DataValidationInternal[] {
+  getValidationRulesForCell({ sheetId, col, row }: CellPosition): DataValidationRule[] {
     const rules = this.dvRules[sheetId];
-    const result: DataValidationInternal[] = [];
+    const result: DataValidationRule[] = [];
     for (const rule of rules) {
       for (const range of rule.ranges) {
         if (isInside(col, row, range.zone)) {
@@ -205,22 +205,6 @@ export class DataValidationPlugin
     return result;
   }
 
-  private toDataValidationRule(sheetId: UID, dv: DataValidationInternal): DataValidationRule {
-    return {
-      id: dv.id,
-      criterion: dv.criterion,
-      ranges: dv.ranges.map((range) => this.getters.getRangeString(range, sheetId)),
-    };
-  }
-
-  private toDataValidationInternal(sheetId: UID, dv: DataValidationRule): DataValidationInternal {
-    return {
-      id: dv.id,
-      criterion: dv.criterion,
-      ranges: dv.ranges.map((range) => this.getters.getRangeFromSheetXC(sheetId, range)),
-    };
-  }
-
   import(data: WorkbookData) {
     for (const sheet of data.sheets) {
       this.dvRules[sheet.id] = [];
@@ -228,7 +212,11 @@ export class DataValidationPlugin
         continue;
       }
       for (const dv of sheet.dataValidation) {
-        this.dvRules[sheet.id].push(this.toDataValidationInternal(sheet.id, dv));
+        this.dvRules[sheet.id].push({
+          ...dv,
+          id: this.uuidGenerator.uuidv4(),
+          ranges: dv.ranges.map((range) => this.getters.getRangeFromSheetXC(sheet.id, range)),
+        });
       }
     }
   }
@@ -240,7 +228,10 @@ export class DataValidationPlugin
     for (const sheet of data.sheets) {
       sheet.dataValidation = [];
       for (const dv of this.dvRules[sheet.id]) {
-        sheet.dataValidation.push(this.toDataValidationRule(sheet.id, dv));
+        sheet.dataValidation.push({
+          criterion: dv.criterion,
+          ranges: dv.ranges.map((range) => this.getters.getRangeString(range, sheet.id)),
+        });
       }
     }
   }

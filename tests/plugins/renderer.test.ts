@@ -20,6 +20,7 @@ import { Align, BorderPosition, Box, GridRenderingContext, Viewport, Zone } from
 import { MockCanvasRenderingContext2D } from "../setup/canvas.mock";
 import {
   addColumns,
+  addDataValidation,
   copy,
   createFilter,
   deleteColumns,
@@ -2034,5 +2035,37 @@ describe("renderer", () => {
     });
     model.drawGrid(ctx);
     expect(borderRenderingContext).toEqual([[1, [[1, 1]]]]);
+  });
+
+  describe("Checkboxes", () => {
+    let renderedTexts: string[];
+    let ctx: MockGridRenderingContext;
+    let model: Model;
+
+    beforeEach(() => {
+      model = new Model();
+      renderedTexts = [];
+      ctx = new MockGridRenderingContext(model, 1000, 1000, {
+        onFunctionCall: (fn, args) => {
+          if (fn === "fillText") {
+            renderedTexts.push(args[0]);
+          }
+        },
+      });
+    });
+
+    test("Valid checkbox value isn't rendered", () => {
+      addDataValidation(model, "B2", "id", { type: "isCheckbox", values: [] });
+      setCellContent(model, "B2", "TRUE");
+      model.drawGrid(ctx);
+      expect(renderedTexts).not.toContain("TRUE");
+    });
+
+    test("Invalid checkbox value is rendered", () => {
+      addDataValidation(model, "B2", "id", { type: "isCheckbox", values: [] });
+      setCellContent(model, "B2", "hello");
+      model.drawGrid(ctx);
+      expect(renderedTexts).toContain("hello");
+    });
   });
 });

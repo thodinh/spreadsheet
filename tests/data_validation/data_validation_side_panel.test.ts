@@ -1,9 +1,9 @@
 import { Component, onMounted, onWillUnmount, xml } from "@odoo/owl";
-import { Model } from "../../../src";
-import { DataValidationPanel } from "../../../src/components/side_panel/data_validation/data_validation_panel";
-import { SpreadsheetChildEnv, UID } from "../../../src/types";
-import { setInputValueAndTrigger, simulateClick } from "../../test_helpers/dom_helper";
-import { mountComponent, nextTick } from "../../test_helpers/helpers";
+import { Model } from "../../src";
+import { DataValidationPanel } from "../../src/components/side_panel/data_validation/data_validation_panel";
+import { SpreadsheetChildEnv, UID } from "../../src/types";
+import { setInputValueAndTrigger, simulateClick } from "../test_helpers/dom_helper";
+import { getDataValidationRules, mountComponent, nextTick } from "../test_helpers/helpers";
 
 interface ParentProps {
   onCloseSidePanel: () => void;
@@ -78,7 +78,7 @@ describe("data validation sidePanel component", () => {
 
     await simulateClick(".o-dv-save");
 
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(model, sheetId)).toEqual([
       {
         id: expect.any(String),
         criterion: { type, ...criterion },
@@ -101,7 +101,7 @@ describe("data validation sidePanel component", () => {
     setInputValueAndTrigger(".o-dv-date-value", "tomorrow", "change");
 
     await simulateClick(".o-dv-save");
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(model, sheetId)).toEqual([
       {
         id: expect.any(String),
         criterion: { type: "dateIs", dateValue: "tomorrow", values: [] },

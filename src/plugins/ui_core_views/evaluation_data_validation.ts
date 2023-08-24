@@ -1,12 +1,13 @@
 import { compile } from "../../formulas";
-import { isDefined, isInside, lazy } from "../../helpers";
+import { deepEquals, isInside, lazy } from "../../helpers";
 import { getPositionsInRanges } from "../../helpers/dv_helpers";
 import { dataValidationEvaluatorRegistry } from "../../registries/data_validation_registry";
 import {
   CellPosition,
+  CellValue,
   DataValidationCriterion,
   DataValidationCriterionType,
-  DataValidationInternal,
+  DataValidationRule,
   DEFAULT_LOCALE,
   HeaderIndex,
   Lazy,
@@ -17,16 +18,21 @@ import { CoreViewCommand } from "../../types/commands";
 import { UIPlugin } from "../ui_plugin";
 import { _t } from "./../../translation";
 
-type ValidationResult = { [col: HeaderIndex]: Array<Lazy<string[]>> };
+interface ValidationResult {
+  rules: DataValidationRule[];
+  errors: string[];
+}
+type SheetValidationResult = { [col: HeaderIndex]: Array<Lazy<ValidationResult>> };
 
 export class EvaluationDataValidationPlugin extends UIPlugin {
   static getters = [
-    "isDataValidationInvalid",
     "getInvalidDataValidationMessages",
     "getDataValidationInvalidCriterionValueMessage",
+    "isDataValidationInvalid",
+    "isCellValidCheckbox",
   ] as const;
 
-  readonly validationResults: Record<UID, Lazy<ValidationResult>> = {};
+  readonly validationResults: Record<UID, Lazy<SheetValidationResult>> = {};
 
   handle(cmd: CoreViewCommand) {
     switch (cmd.type) {
@@ -40,11 +46,12 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
   }
 
   isDataValidationInvalid(cellPosition: CellPosition): boolean {
-    return this.getValidationResultsForCell(cellPosition)?.length > 0;
+    const errors = this.getValidationResultsForCell(cellPosition)?.errors;
+    return errors !== undefined && errors.length > 0;
   }
 
   getInvalidDataValidationMessages(cellPosition: CellPosition): string[] {
-    return this.getValidationResultsForCell(cellPosition);
+    return this.getValidationResultsForCell(cellPosition)?.errors || [];
   }
 
   getDataValidationInvalidCriterionValueMessage(
@@ -60,16 +67,34 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
       : evaluator.getCriterionValueErrorString(value);
   }
 
-  private getValidationResultsForCell({ sheetId, col, row }: CellPosition): string[] {
+  isCellValidCheckbox(cellPosition: CellPosition): boolean {
+    const mainCellPosition = this.getters.getMainCellPosition(cellPosition);
+    if (!deepEquals(mainCellPosition, cellPosition)) {
+      return false;
+    }
+
+    const validationResult = this.getValidationResultsForCell(cellPosition);
+    if (!validationResult || validationResult.errors.length > 0) {
+      return false;
+    }
+
+    return validationResult.rules.some((rule) => rule.criterion.type === "isCheckbox");
+  }
+
+  private getValidationResultsForCell({
+    sheetId,
+    col,
+    row,
+  }: CellPosition): ValidationResult | undefined {
     if (!this.validationResults[sheetId]) {
       this.validationResults[sheetId] = this.computeSheetValidationResultsForSheet(sheetId);
     }
     return this.validationResults[sheetId]()[col]?.[row]?.();
   }
 
-  private computeSheetValidationResultsForSheet(sheetId: UID): Lazy<ValidationResult> {
+  private computeSheetValidationResultsForSheet(sheetId: UID): Lazy<SheetValidationResult> {
     return lazy(() => {
-      const validationResults: ValidationResult = {};
+      const validationResults: SheetValidationResult = {};
       const ranges = this.getters.getDataValidationRanges(sheetId);
       for (const { col, row } of getPositionsInRanges(ranges)) {
         if (!validationResults[col]) {
@@ -85,19 +110,35 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
     });
   }
 
-  private computeSheetValidationResultsForCell(cellPosition: CellPosition): Lazy<string[]> {
+  private computeSheetValidationResultsForCell(cellPosition: CellPosition): Lazy<ValidationResult> {
     return lazy(() => {
       const rules = this.getters.getValidationRulesForCell(cellPosition);
-      return rules
-        .map((rule) => this.getRuleErrorStringForCell(cellPosition, rule))
-        .filter(isDefined);
+      const errors: string[] = [];
+      for (const rule of rules) {
+        const error = this.getRuleErrorStringForCell(cellPosition, rule);
+        if (error) {
+          errors.push(error);
+        }
+      }
+
+      return { errors, rules };
     });
   }
 
   private getRuleErrorStringForCell(
     cellPosition: CellPosition,
-    rule: DataValidationInternal
+    rule: DataValidationRule
   ): string | undefined {
+    const cellValue = this.getters.getEvaluatedCell(cellPosition).value;
+    return this.getRuleErrorForCellValue(cellValue, cellPosition, rule);
+  }
+
+  private getRuleErrorForCellValue(
+    cellValue: CellValue,
+    cellPosition: CellPosition,
+    rule: DataValidationRule
+  ): string | undefined {
+    const { sheetId } = cellPosition;
     const criterion = rule.criterion;
     const evaluator = dataValidationEvaluatorRegistry.get(criterion.type);
     if (!evaluator) {
@@ -105,8 +146,6 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
     }
 
     const offset = this.getCellOffsetInRule(cellPosition, rule);
-    const cellValue = this.getters.getEvaluatedCell(cellPosition).value;
-    const sheetId = cellPosition.sheetId;
     const args = { getters: this.getters };
 
     const evaluatedCriterionValues = this.getEvaluatedCriterionValues(sheetId, offset, criterion);
@@ -116,8 +155,7 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
     }
     return evaluator.getErrorString(evaluatedCriterion, args);
   }
-
-  private getCellOffsetInRule(cellPosition: CellPosition, rule: DataValidationInternal): Offset {
+  private getCellOffsetInRule(cellPosition: CellPosition, rule: DataValidationRule): Offset {
     const range = rule.ranges.find((range) =>
       isInside(cellPosition.col, cellPosition.row, range.zone)
     );

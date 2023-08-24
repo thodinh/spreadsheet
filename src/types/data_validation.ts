@@ -1,14 +1,10 @@
 import { UID } from "./misc";
 import { Range } from "./range";
 
-export interface DataValidationInternal {
+export interface DataValidationRule {
   id: UID;
   criterion: DataValidationCriterion;
   ranges: Range[];
-}
-
-export interface DataValidationRule extends Omit<DataValidationInternal, "ranges"> {
-  ranges: string[];
 }
 
 export type TextContains = {
@@ -121,6 +117,11 @@ export type isNotBetween = {
   values: string[];
 };
 
+export type IsCheckbox = {
+  type: "isCheckbox";
+  values: string[];
+};
+
 export type DataValidationCriterion =
   | TextContains
   | TextNotContains
@@ -142,7 +143,8 @@ export type DataValidationCriterion =
   | IsGreaterOrEqualTo
   | IsLessThan
   | IsLessOrEqualTo
-  | isNotBetween;
+  | isNotBetween
+  | IsCheckbox;
 
 export type DateCriterionValue =
   | "today"

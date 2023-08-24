@@ -216,6 +216,13 @@ dataValidationPanelCriteriaRegistry.add("isNotBetween", {
     _t("Value is not between %s and %s", criterion.values[0], criterion.values[1]),
 });
 
+dataValidationPanelCriteriaRegistry.add("isCheckbox", {
+  type: "isCheckbox",
+  component: DataValidationNoInput,
+  name: _t("Checkbox"),
+  getPreview: () => _t("Checkbox"),
+});
+
 function getDateCriterionFormattedExactValue(
   criterion: DataValidationCriterion,
   env: SpreadsheetChildEnv

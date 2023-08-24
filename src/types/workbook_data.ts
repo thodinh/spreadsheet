@@ -43,7 +43,7 @@ export interface SheetData {
   cols: { [key: number]: HeaderData };
   rows: { [key: number]: HeaderData };
   conditionalFormats: ConditionalFormat[];
-  dataValidation?: DataValidationRule[];
+  dataValidation?: DataValidationRuleData[];
   filterTables: FilterTableData[];
   areGridLinesVisible?: boolean;
   isVisible: boolean;
@@ -84,6 +84,10 @@ export interface ExcelSheetData extends Omit<SheetData, "figureTables"> {
 
 export interface FilterTableData {
   range: string;
+}
+
+export interface DataValidationRuleData extends Omit<DataValidationRule, "ranges" | "id"> {
+  ranges: string[];
 }
 
 export interface ExcelFilterTableData {

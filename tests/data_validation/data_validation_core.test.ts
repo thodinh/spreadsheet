@@ -7,6 +7,7 @@ import {
   removeDataValidation,
   undo,
 } from "../test_helpers/commands_helpers";
+import { getDataValidationRules } from "../test_helpers/helpers";
 
 describe("Data validation", () => {
   let model: Model;
@@ -53,7 +54,7 @@ describe("Data validation", () => {
 
   test("Can add a data validation rule", () => {
     addDataValidation(model, "A1", "id", { type: "textContains", values: ["1"] });
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(model, sheetId)).toEqual([
       {
         id: "id",
         criterion: { type: "textContains", values: ["1"] },
@@ -66,7 +67,7 @@ describe("Data validation", () => {
     addDataValidation(model, "A1", "id", { type: "textContains", values: ["1"] });
     addDataValidation(model, "A1:C2", "id", { type: "isBetween", values: ["1", "5"] });
 
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(model, sheetId)).toEqual([
       {
         id: "id",
         criterion: { type: "isBetween", values: ["1", "5"] },
@@ -78,22 +79,22 @@ describe("Data validation", () => {
   test("data validation on sheet duplication", () => {
     const criterion: isBetween = { type: "isBetween", values: ["1", "5"] };
     addDataValidation(model, "A1", "id", criterion);
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(model, sheetId)).toEqual([
       { id: "id", criterion, ranges: ["A1"] },
     ]);
 
     duplicateSheet(model, sheetId, "newSheet");
-    expect(model.getters.getDataValidationRules("newSheet")).toEqual([
+    expect(getDataValidationRules(model, "newSheet")).toEqual([
       { id: "id", criterion, ranges: ["A1"] },
     ]);
   });
 
   test("Can remove a rule", () => {
     addDataValidation(model, "A1", "id", { type: "textContains", values: ["1"] });
-    expect(model.getters.getDataValidationRules(sheetId)).not.toEqual([]);
+    expect(getDataValidationRules(model, sheetId)).not.toEqual([]);
 
     removeDataValidation(model, "id");
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([]);
+    expect(getDataValidationRules(model, sheetId)).toEqual([]);
   });
 
   test("Can undo/redo adding a rule", () => {
@@ -101,7 +102,7 @@ describe("Data validation", () => {
     addDataValidation(model, "A1:C2", "id", { type: "isBetween", values: ["1", "5"] });
 
     undo(model);
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(model, sheetId)).toEqual([
       {
         id: "id",
         criterion: { type: "textContains", values: ["1"] },
@@ -109,10 +110,10 @@ describe("Data validation", () => {
       },
     ]);
     undo(model);
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([]);
+    expect(getDataValidationRules(model, sheetId)).toEqual([]);
 
     redo(model);
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(model, sheetId)).toEqual([
       {
         id: "id",
         criterion: { type: "textContains", values: ["1"] },
@@ -120,7 +121,7 @@ describe("Data validation", () => {
       },
     ]);
     redo(model);
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(model, sheetId)).toEqual([
       {
         id: "id",
         criterion: { type: "isBetween", values: ["1", "5"] },
@@ -134,7 +135,7 @@ describe("Data validation", () => {
     removeDataValidation(model, "id");
 
     undo(model);
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(model, sheetId)).toEqual([
       {
         id: "id",
         criterion: { type: "textContains", values: ["1"] },
@@ -143,7 +144,7 @@ describe("Data validation", () => {
     ]);
 
     redo(model);
-    expect(model.getters.getDataValidationRules(sheetId)).toEqual([]);
+    expect(getDataValidationRules(model, sheetId)).toEqual([]);
   });
 
   test("Can import/export data validation rules", () => {
@@ -152,16 +153,15 @@ describe("Data validation", () => {
 
     expect(exported.sheets[0].dataValidation).toEqual([
       {
-        id: "id",
         criterion: { type: "textContains", values: ["1"] },
         ranges: ["A1"],
       },
     ]);
 
     const newModel = new Model(exported);
-    expect(newModel.getters.getDataValidationRules(sheetId)).toEqual([
+    expect(getDataValidationRules(newModel, sheetId)).toEqual([
       {
-        id: "id",
+        id: expect.any(String),
         criterion: { type: "textContains", values: ["1"] },
         ranges: ["A1"],
       },

@@ -1,22 +1,31 @@
-import { Model } from "../../../src";
-import { dataValidationPanelCriteriaRegistry } from "../../../src/components/helpers/dv_panel_helper";
-import { DataValidationPreview } from "../../../src/components/side_panel/data_validation/dv_preview/dv_preview";
-import { DEFAULT_LOCALE } from "../../../src/types";
-import { click } from "../../test_helpers/dom_helper";
-import { makeTestEnv, mountComponent, spyModelDispatch } from "../../test_helpers/helpers";
-import { DataValidationCriterion, DataValidationRule } from "./../../../src/types/data_validation";
+import { Model } from "../../src";
+import { dataValidationPanelCriteriaRegistry } from "../../src/components/helpers/dv_panel_helper";
+import { DataValidationPreview } from "../../src/components/side_panel/data_validation/dv_preview/dv_preview";
+import { DataValidationRuleData, DEFAULT_LOCALE } from "../../src/types";
+import { DataValidationCriterion } from "../../src/types/data_validation";
+import { click } from "../test_helpers/dom_helper";
+import { makeTestEnv, mountComponent, spyModelDispatch } from "../test_helpers/helpers";
 
-const testDataValidationRule: DataValidationRule = {
+const testDataValidationRule: DataValidationRuleData = {
   ranges: ["A1"],
   criterion: { type: "textContains", values: ["foo"] },
-  id: "1",
 };
 
 describe("Data validation preview", () => {
   let fixture: HTMLElement;
   let model: Model;
 
-  async function mountDataValidationPreview(dvRule: DataValidationRule, onClick = () => {}) {
+  async function mountDataValidationPreview(
+    dvRuleData: DataValidationRuleData,
+    onClick = () => {}
+  ) {
+    model = new Model();
+    const sheetId = model.getters.getActiveSheetId();
+    const dvRule = {
+      ...dvRuleData,
+      id: "1",
+      ranges: dvRuleData.ranges.map((range) => model.getters.getRangeFromSheetXC(sheetId, range)),
+    };
     ({ fixture, model } = await mountComponent(DataValidationPreview, {
       props: { dvRule, onClick },
     }));
@@ -51,7 +60,7 @@ describe("Data validation preview", () => {
     const sheetId = model.getters.getActiveSheetId();
     click(fixture, ".o-dv-preview-delete");
     expect(spyDispatch).toHaveBeenCalledWith("REMOVE_DATA_VALIDATION_RULE", {
-      id: testDataValidationRule.id,
+      id: "1",
       sheetId,
     });
   });

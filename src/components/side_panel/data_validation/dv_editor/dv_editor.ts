@@ -22,8 +22,12 @@ interface Props {
   onExit: () => void;
 }
 
+export interface DataValidationRuleData extends Omit<DataValidationRule, "ranges"> {
+  ranges: string[];
+}
+
 interface State {
-  dvRule: DataValidationRule;
+  dvRule: DataValidationRuleData;
 }
 
 export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> {
@@ -34,7 +38,13 @@ export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> 
 
   setup() {
     if (this.props.dvRule) {
-      this.state.dvRule = this.props.dvRule;
+      const sheetId = this.env.model.getters.getActiveSheetId();
+      this.state.dvRule = {
+        ...this.props.dvRule,
+        ranges: this.props.dvRule.ranges.map((range) =>
+          this.env.model.getters.getRangeString(range, sheetId)
+        ),
+      };
       this.state.dvRule.criterion.type = this.props.dvRule.criterion.type;
     }
   }
@@ -89,7 +99,7 @@ export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> 
     return dataValidationPanelCriteriaRegistry.getAll();
   }
 
-  get defaultDataValidationRule(): DataValidationRule {
+  get defaultDataValidationRule(): DataValidationRuleData {
     const sheetId = this.env.model.getters.getActiveSheetId();
     const ranges = this.env.model.getters
       .getSelectedZones()
