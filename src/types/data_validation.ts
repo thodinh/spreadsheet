@@ -5,6 +5,7 @@ export interface DataValidationRule {
   id: UID;
   criterion: DataValidationCriterion;
   ranges: Range[];
+  isBlocking?: boolean;
 }
 
 export type TextContains = {

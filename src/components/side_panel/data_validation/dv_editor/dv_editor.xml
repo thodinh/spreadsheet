@@ -30,16 +30,28 @@
             onCriterionChanged.bind="onCriterionChanged"
           />
         </div>
+      </div>
 
-        <div class="o-sidePanelButtons">
-          <button t-on-click="props.onExit" class="o-sidePanelButton o-dv-cancel">Cancel</button>
-          <button
-            t-on-click="onSave"
-            class="o-sidePanelButton o-dv-save"
-            t-att-class="{'o-disabled': !canSave }">
-            Save
-          </button>
-        </div>
+      <div class="o-section o-dv-invalid-option">
+        <div class="o-section-title">If the data is invalid</div>
+        <select class="o-dv-reject-input o-input" t-on-change="rejectInvalidInput">
+          <option t-att-selected="!state.dvRule.rejectInvalidInput" value="false">
+            Show a warning
+          </option>
+          <option t-att-selected="state.dvRule.rejectInvalidInput" value="true">
+            Reject the Input
+          </option>
+        </select>
+      </div>
+
+      <div class="o-sidePanelButtons">
+        <button t-on-click="props.onExit" class="o-sidePanelButton o-dv-cancel">Cancel</button>
+        <button
+          t-on-click="onSave"
+          class="o-sidePanelButton o-dv-save"
+          t-att-class="{'o-disabled': !canSave }">
+          Save
+        </button>
       </div>
     </div>
   </t>

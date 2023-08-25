@@ -14,13 +14,14 @@ import {
   Offset,
   UID,
 } from "../../types";
-import { CoreViewCommand } from "../../types/commands";
+import { Command, CommandResult, CoreViewCommand } from "../../types/commands";
 import { UIPlugin } from "../ui_plugin";
 import { _t } from "./../../translation";
 
 interface ValidationResult {
   rules: DataValidationRule[];
   errors: string[];
+  isBlocking: boolean;
 }
 type SheetValidationResult = { [col: HeaderIndex]: Array<Lazy<ValidationResult>> };
 
@@ -33,6 +34,27 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
   ] as const;
 
   readonly validationResults: Record<UID, Lazy<SheetValidationResult>> = {};
+
+  allowDispatch(cmd: Command) {
+    switch (cmd.type) {
+      case "UPDATE_CELL":
+        const cellPosition = { sheetId: cmd.sheetId, col: cmd.col, row: cmd.row };
+        let cellValue =
+          "content" in cmd ? cmd.content : this.getters.getEvaluatedCell(cellPosition).value;
+        if (typeof cellValue === "string" && cellValue.startsWith("=")) {
+          cellValue = this.getters.evaluateFormula(cmd.sheetId, cellValue);
+        }
+        const validationResult = this.getValidationResultForCellValue(
+          cellValue ?? "",
+          cellPosition
+        );
+        if (validationResult.errors.length > 0 && validationResult.isBlocking) {
+          console.log("Blocking validation rule");
+          return CommandResult.BlockingValidationRule;
+        }
+    }
+    return CommandResult.Success;
+  }
 
   handle(cmd: CoreViewCommand) {
     switch (cmd.type) {
@@ -112,25 +134,26 @@ export class EvaluationDataValidationPlugin extends UIPlugin {
 
   private computeSheetValidationResultsForCell(cellPosition: CellPosition): Lazy<ValidationResult> {
     return lazy(() => {
-      const rules = this.getters.getValidationRulesForCell(cellPosition);
-      const errors: string[] = [];
-      for (const rule of rules) {
-        const error = this.getRuleErrorStringForCell(cellPosition, rule);
-        if (error) {
-          errors.push(error);
-        }
-      }
-
-      return { errors, rules };
+      const cellValue = this.getters.getEvaluatedCell(cellPosition).value;
+      return this.getValidationResultForCellValue(cellValue, cellPosition);
     });
   }
 
-  private getRuleErrorStringForCell(
-    cellPosition: CellPosition,
-    rule: DataValidationRule
-  ): string | undefined {
-    const cellValue = this.getters.getEvaluatedCell(cellPosition).value;
-    return this.getRuleErrorForCellValue(cellValue, cellPosition, rule);
+  private getValidationResultForCellValue(
+    cellValue: CellValue,
+    cellPosition: CellPosition
+  ): ValidationResult {
+    const rules = this.getters.getValidationRulesForCell(cellPosition);
+    const errors: string[] = [];
+    for (const rule of rules) {
+      const error = this.getRuleErrorForCellValue(cellValue, cellPosition, rule);
+      if (error) {
+        errors.push(error);
+      }
+    }
+
+    const isBlocking = rules.some((rule) => rule.isBlocking);
+    return { errors, rules, isBlocking };
   }
 
   private getRuleErrorForCellValue(

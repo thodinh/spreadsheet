@@ -38,6 +38,14 @@ interface DataValidationState {
  *          - => breaks when the locale is changed
  *   - send the un-localized value to the plugin
  *        - need to implement (un)localization of dates
+ *
+ * Issues Blocking DV:
+ *  - display allowDispatch result of sub-command...
+ *  - block update cell of paste: will only block on specific cells, not on whole command...
+ *  - Fix:
+ *    - probably only consider blocking user input ? But blocking STOP_EDITIOn seems like a bad idea, will mess up
+ *      edition plugin state... So the composer itself should check for blocking rule ???
+ *
  */
 export class DataValidationPlugin
   extends CorePlugin<DataValidationState>

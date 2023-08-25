@@ -1,8 +1,10 @@
 import { Model } from "../../src";
-import { CellPosition, UID } from "../../src/types";
+import { CellPosition, CommandResult, UID } from "../../src/types";
 import {
   addDataValidation,
+  copy,
   duplicateSheet,
+  paste,
   setCellContent,
 } from "../test_helpers/commands_helpers";
 
@@ -111,6 +113,23 @@ describe("Data validation evaluation", () => {
 
       setCellContent(model, "B2", "1/1/2020");
       expect(model.getters.isDataValidationInvalid({ sheetId, col: 1, row: 1 })).toEqual(false);
+    });
+  });
+
+  describe("Blocking rules", () => {
+    test("Rule blocks updateCell", () => {
+      addDataValidation(model, "A1", "id", { type: "textContains", values: ["test"] }, true);
+      const result = setCellContent(model, "A1", "random text");
+      expect(result).toBeCancelledBecause(CommandResult.BlockingValidationRule);
+    });
+
+    test("Rule blocks local command that dispatch update cell", () => {
+      addDataValidation(model, "A1", "id", { type: "textContains", values: ["test"] }, true);
+      setCellContent(model, "A2", "random text");
+
+      copy(model, "A2");
+      paste(model, "A1");
+      expect(model.getters.getCellText({ sheetId, col: 0, row: 0 })).toEqual("");
     });
   });
 });

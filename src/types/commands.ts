@@ -1194,6 +1194,7 @@ export const enum CommandResult {
   UnknownDataValidationCriterionType,
   InvalidDataValidationCriterionValue,
   InvalidNumberOfCriterionValues,
+  BlockingValidationRule,
 }
 
 export interface CommandHandler<T> {

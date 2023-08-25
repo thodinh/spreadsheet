@@ -891,10 +891,15 @@ export function addDataValidation(
   xc: string,
   id: UID,
   criterion: DataValidationCriterion = { type: "textContains", values: ["test"] },
+  isBlocking: boolean = false,
   sheetId: UID = model.getters.getActiveSheetId()
 ) {
   const ranges = toRangesData(sheetId, xc);
-  return model.dispatch("ADD_DATA_VALIDATION_RULE", { sheetId, ranges, dv: { id, criterion } });
+  return model.dispatch("ADD_DATA_VALIDATION_RULE", {
+    sheetId,
+    ranges,
+    dv: { id, criterion, isBlocking },
+  });
 }
 
 export function removeDataValidation(

@@ -62,6 +62,11 @@ export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> 
     this.state.dvRule.criterion = criterion;
   }
 
+  rejectInvalidInput(ev: Event) {
+    const rejectInvalidInput = (ev.target as HTMLInputElement).value;
+    this.state.dvRule.isBlocking = rejectInvalidInput === "true";
+  }
+
   onSave() {
     if (!this.canSave) {
       return;
@@ -86,7 +91,7 @@ export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> 
       sheetId,
       ranges: dvRule.ranges.map((xc) => this.env.model.getters.getRangeDataFromXc(sheetId, xc)),
       dv: {
-        id: this.state.dvRule.id,
+        ...dvRule,
         criterion: {
           ...criterion,
           values: criterion.values.slice(0, criterionMatcher.numberOfValues(criterion)),

@@ -142,4 +142,17 @@ describe("data validation sidePanel component", () => {
     expect(document.querySelectorAll(".o-input.o-invalid")).toHaveLength(2);
     expect(document.querySelector(".o-dv-save")!.classList).toContain("o-disabled");
   });
+
+  test("Can have the option to reject the input", async () => {
+    await simulateClick(".o-dv-add");
+    await nextTick();
+
+    setInputValueAndTrigger(".o-dv-settings input", "Random text", "input");
+    setInputValueAndTrigger(".o-dv-reject-input", "true", "change");
+    simulateClick(".o-dv-save");
+
+    expect(model.getters.getDataValidationRules(sheetId)).toMatchObject([
+      { rejectInvalidInput: true },
+    ]);
+  });
 });
