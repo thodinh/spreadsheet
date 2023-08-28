@@ -1,4 +1,5 @@
 import { tokenize } from "../formulas";
+import { toNumber } from "../functions/helpers";
 import {
   ColorScaleThreshold,
   ConditionalFormatRule,
@@ -6,6 +7,7 @@ import {
   IconThreshold,
   Locale,
 } from "../types";
+import { isDateTime } from "./dates";
 import { formatValue, getDecimalNumberRegex } from "./format";
 import { deepCopy } from "./misc";
 import { isNumber } from "./numbers";
@@ -49,7 +51,7 @@ export function isValidLocale(locale: any): locale is Locale {
 export function canonicalizeContent(content: string, locale: Locale) {
   return content.startsWith("=")
     ? canonicalizeFormula(content, locale)
-    : toCanonicalNumberString(content, locale);
+    : canonicalizeLiteral(content, locale);
 }
 
 /** Change the content of a cell to its canonical form (en_US locale) */
@@ -62,6 +64,15 @@ export function localizeContent(content: string, locale: Locale) {
 /** Change a formula to its canonical form (en_US locale) */
 function canonicalizeFormula(formula: string, locale: Locale) {
   return _localizeFormula(formula, locale, DEFAULT_LOCALE);
+}
+
+/** Change a literal to its canonical form (en_US locale) */
+function canonicalizeLiteral(content: string, locale: Locale) {
+  if (isDateTime(content, locale)) {
+    const dateNumber = toNumber(content, locale);
+    return formatValue(dateNumber, { locale: DEFAULT_LOCALE, format: DEFAULT_LOCALE.dateFormat });
+  }
+  return toCanonicalNumberString(content, locale);
 }
 
 /** Change a formula from the canonical form to the given locale */
@@ -106,6 +117,10 @@ export function toCanonicalNumberString(content: string, locale: Locale): string
 }
 
 function localizeLiteral(content: string, locale: Locale): string {
+  if (isDateTime(content, DEFAULT_LOCALE)) {
+    const dateNumber = toNumber(content, DEFAULT_LOCALE);
+    return formatValue(dateNumber, { locale, format: locale.dateFormat });
+  }
   if (locale.decimalSeparator === "." || !isNumber(content, DEFAULT_LOCALE)) {
     return content;
   }

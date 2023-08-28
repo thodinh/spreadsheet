@@ -23,6 +23,11 @@ describe("Locale helpers", () => {
       expect(canonicalizeContent("$1,1", FR_LOCALE)).toBe("$1.1");
     });
 
+    test("Can canonicalize date string", () => {
+      expect(canonicalizeContent("01/05/2012", FR_LOCALE)).toBe("5/1/2012");
+      expect(canonicalizeContent("01/15/2012", FR_LOCALE)).toBe("01/15/2012"); // invalid date
+    });
+
     test("Non-number literals aren't canonicalize", () => {
       expect(canonicalizeContent("1,1aa", FR_LOCALE)).toBe("1,1aa");
       expect(canonicalizeContent("Smile ! :) 1,6", FR_LOCALE)).toBe("Smile ! :) 1,6");
@@ -50,6 +55,11 @@ describe("Locale helpers", () => {
       expect(localizeContent("1.1", FR_LOCALE)).toBe("1,1");
       expect(localizeContent("1.1%", FR_LOCALE)).toBe("1,1%");
       expect(localizeContent("$1.1", FR_LOCALE)).toBe("$1,1");
+    });
+
+    test("Can localize date string", () => {
+      expect(localizeContent("5/1/2012", FR_LOCALE)).toBe("01/05/2012");
+      expect(localizeContent("15/01/2012", FR_LOCALE)).toBe("15/01/2012"); // invalid date
     });
 
     test("Non-number literals aren't localized", () => {
