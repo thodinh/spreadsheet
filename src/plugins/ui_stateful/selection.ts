@@ -447,7 +447,8 @@ export class GridSelectionPlugin extends UIPlugin {
     let cellsValues: (string | number | boolean | EvaluationError)[] = [];
     for (let cell of cells) {
       cellsTypes.add(cell.type);
-      cellsValues.push(cell.value);
+      // TODO check this
+      cellsValues.push(cell.type === CellValueType.error ? cell.value.errorType : cell.value);
     }
 
     const locale = this.getters.getLocale();

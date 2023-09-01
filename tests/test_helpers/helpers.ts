@@ -9,6 +9,7 @@ import {
 } from "@odoo/owl";
 import type { ChartConfiguration } from "chart.js";
 import format from "xml-formatter";
+import { EvaluationError } from "../../src";
 import { Action } from "../../src/actions/action";
 import { Composer, ComposerProps } from "../../src/components/composer/composer/composer";
 import {
@@ -357,7 +358,9 @@ export function getRangeValuesAsMatrix(
   rangeXc: string,
   sheetId: string = model.getters.getActiveSheetId()
 ): Matrix<CellValue> {
-  return matrixMap(getRangeCellsAsMatrix(model, rangeXc, sheetId), (cell) => cell.value);
+  return matrixMap(getRangeCellsAsMatrix(model, rangeXc, sheetId), (cell) => {
+    return cell.value instanceof EvaluationError ? cell.value.errorType : cell.value;
+  });
 }
 
 export function getRangeFormatsAsMatrix(
