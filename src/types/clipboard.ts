@@ -1,4 +1,6 @@
-import { CommandResult } from "./commands";
+import { SelectionStreamProcessor } from "../selection_stream/selection_stream_processor";
+import { CommandDispatcher, CommandResult } from "./commands";
+import { Getters } from "./getters";
 import { Dimension, HeaderIndex, UID, Zone } from "./misc";
 import { GridRenderingContext } from "./rendering";
 
@@ -18,14 +20,9 @@ export type ClipboardPasteOptions = "onlyFormat" | "onlyValue";
 export type ClipboardOperation = "CUT" | "COPY";
 
 export interface ClipboardState {
-  operation: ClipboardOperation;
-  sheetId: UID;
+  operation?: ClipboardOperation;
+  sheetId?: UID;
 
-  isCutAllowed(target: Zone[]): CommandResult;
-
-  isPasteAllowed(target: Zone[], clipboardOption?: ClipboardOptions): CommandResult;
-
-  paste(target: Zone[], options?: ClipboardOptions | undefined): void;
   getClipboardContent(): ClipboardContent;
   drawClipboard(renderingContext: GridRenderingContext): void;
 
@@ -33,4 +30,32 @@ export interface ClipboardState {
    * Check if a col/row added/removed at the given position is dirtying the clipboard
    */
   isColRowDirtyingClipboard(position: HeaderIndex, dimension: Dimension): boolean;
+}
+
+export type ClipboardData =
+  | {
+      zones: Zone[];
+      selection: SelectionStreamProcessor;
+    }
+  | {
+      figureId: UID;
+    };
+
+export interface ClipboardHandlersImplementation {
+  copy: (
+    getters: Getters,
+    dispatch: CommandDispatcher["dispatch"],
+    isCutOperation: boolean,
+    data: ClipboardData
+  ) => any;
+  paste: (
+    target: Zone[],
+    clippedContent: any,
+    getters: Getters,
+    dispatch: CommandDispatcher["dispatch"],
+    options?: ClipboardOptions | undefined
+  ) => void;
+  isPasteAllowed: (target: Zone[], content: any, option?: ClipboardOptions) => CommandResult;
+  isCutAllowed: (data: ClipboardData) => CommandResult;
+  shouldBeUsed: (data: ClipboardData) => boolean;
 }

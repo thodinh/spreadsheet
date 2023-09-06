@@ -1,20 +1,33 @@
 import { compile } from "../../formulas/index";
-import { isInside, recomputeZones } from "../../helpers/index";
+import {
+  isInside,
+  mergeOverlappingZones,
+  positions,
+  recomputeZones,
+  toXC,
+} from "../../helpers/index";
+import { clipboardHandlersRegistries } from "../../registries/clipboard_handlers";
 import {
   AddConditionalFormatCommand,
   ApplyRangeChange,
   CancelledReason,
   CellIsRule,
+  CellPosition,
+  ClipboardData,
+  ClipboardOptions,
   ColorScaleMidPointThreshold,
   ColorScaleRule,
   ColorScaleThreshold,
   Command,
+  CommandDispatcher,
   CommandResult,
   ConditionalFormat,
   ConditionalFormatInternal,
   ConditionalFormattingOperatorValues,
   CoreCommand,
   ExcelWorkbookData,
+  Getters,
+  HeaderIndex,
   IconSetRule,
   IconThreshold,
   UID,
@@ -23,7 +36,7 @@ import {
   WorkbookData,
   Zone,
 } from "../../types";
-import { CorePlugin } from "../core_plugin";
+import { CorePlugin, CorePluginConfig } from "../core_plugin";
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -56,6 +69,203 @@ export class ConditionalFormatPlugin
   ] as const;
 
   readonly cfRules: { [sheet: string]: ConditionalFormatInternal[] } = {};
+
+  constructor(config: CorePluginConfig) {
+    super(config);
+    clipboardHandlersRegistries.cellHandlers.add("CONDITIONAL_FORMAT", {
+      copy: (
+        getters: Getters,
+        dispatch: CommandDispatcher["dispatch"],
+        isCutOperation: boolean,
+        data: ClipboardData
+      ): any => {
+        if (!("zones" in data)) {
+          return {};
+        }
+        if (!data.zones.length) {
+          return {};
+        }
+        const lefts = new Set(data.zones.map((z) => z.left));
+        const rights = new Set(data.zones.map((z) => z.right));
+        const tops = new Set(data.zones.map((z) => z.top));
+        const bottoms = new Set(data.zones.map((z) => z.bottom));
+
+        const areZonesCompatible =
+          (tops.size === 1 && bottoms.size === 1) || (lefts.size === 1 && rights.size === 1);
+
+        // In order to don't paste several times the same cells in intersected zones
+        // --> we merge zones that have common cells
+        const clippedZones = areZonesCompatible
+          ? mergeOverlappingZones(data.zones)
+          : [data.zones[data.zones.length - 1]];
+
+        const cellsPosition = clippedZones.map((zone) => positions(zone)).flat();
+        const columnsIndex = [...new Set(cellsPosition.map((p) => p.col))].sort((a, b) => a - b);
+        const rowsIndex = [...new Set(cellsPosition.map((p) => p.row))].sort((a, b) => a - b);
+
+        const sheetId = getters.getActiveSheetId();
+        const cellPositions = rowsIndex.map((row) =>
+          columnsIndex.map((col) => ({ col, row, sheetId }))
+        );
+
+        return {
+          cellPositions,
+          isCutOperation,
+        };
+      },
+      paste: (
+        target: Zone[],
+        clippedContent: any,
+        getters: Getters,
+        dispatch: CommandDispatcher["dispatch"],
+        options?: ClipboardOptions | undefined
+      ) => {
+        if (!clippedContent?.cellPositions) {
+          return;
+        }
+        if (options?.pasteOption === "onlyValue" || !options?.shouldPasteCF) {
+          return;
+        }
+        this.paste(target, clippedContent, getters);
+      },
+      isPasteAllowed: (target: Zone[], content: any, option?: ClipboardOptions) =>
+        CommandResult.Success,
+      shouldBeUsed: (data: ClipboardData) => {
+        return "zones" in data && data.zones.length > 0;
+      },
+      isCutAllowed: (data: ClipboardData) => {
+        return CommandResult.Success;
+      },
+    });
+  }
+
+  /**
+   * Paste the clipboard content in the given target
+   */
+  paste(target: Zone[], content: any, getters: Getters) {
+    if (!content.isCutOperation) {
+      this.pasteFromCopy(target, content, getters);
+    } else {
+      this.pasteFromCut(target, content, getters);
+    }
+  }
+
+  private pasteFromCopy(target: Zone[], content: any, getters: Getters) {
+    const sheetId = getters.getActiveSheetId();
+    if (target.length === 1) {
+      // in this specific case, due to the isPasteAllowed function:
+      // state.cells can contains several cells.
+      // So if the target zone is larger than the copied zone,
+      // we duplicate each cells as many times as possible to fill the zone.
+      const height = content.cellPositions.length;
+      const width = content.cellPositions[0].length;
+      const pasteZones = this.pastedZones(target, width, height);
+      for (const zone of pasteZones) {
+        this.pasteZone(sheetId, zone.left, zone.top, content);
+      }
+    } else {
+      // in this case, due to the isPasteAllowed function: state.cells contains
+      // only one cell
+      for (const zone of target) {
+        for (let col = zone.left; col <= zone.right; col++) {
+          for (let row = zone.top; row <= zone.bottom; row++) {
+            this.pasteZone(sheetId, col, row, content);
+          }
+        }
+      }
+    }
+  }
+
+  private pasteFromCut(target: Zone[], content: any, getters: Getters) {
+    const sheetId = getters.getActiveSheetId();
+    const selection = target[0];
+    this.pasteZone(sheetId, selection.left, selection.top, content);
+  }
+
+  /**
+   * The clipped zone is copied as many times as it fits in the target.
+   * This returns the list of zones where the clipped zone is copy-pasted.
+   */
+  private pastedZones(target: Zone[], originWidth: number, originHeight: number): Zone[] {
+    const selection = target[0];
+    const repeatHorizontally = Math.max(
+      1,
+      Math.floor((selection.right + 1 - selection.left) / originWidth)
+    );
+    const repeatVertically = Math.max(
+      1,
+      Math.floor((selection.bottom + 1 - selection.top) / originHeight)
+    );
+    const zones: Zone[] = [];
+    for (let x = 0; x < repeatHorizontally; x++) {
+      for (let y = 0; y < repeatVertically; y++) {
+        const top = selection.top + y * originHeight;
+        const left = selection.left + x * originWidth;
+        zones.push({
+          left,
+          top,
+          bottom: top + originHeight - 1,
+          right: left + originWidth - 1,
+        });
+      }
+    }
+    return zones;
+  }
+
+  private pasteZone(sheetId: UID, col: HeaderIndex, row: HeaderIndex, content: any) {
+    for (const [r, rowCells] of content.cellPositions.entries()) {
+      for (const [c, origin] of rowCells.entries()) {
+        const position = { col: col + c, row: row + r, sheetId };
+        this.pasteCf(origin, position, content);
+      }
+    }
+  }
+
+  private pasteCf(origin: CellPosition, target: CellPosition, content: any) {
+    const xc = toXC(target.col, target.row);
+    for (const rule of this.getters.getConditionalFormats(origin.sheetId)) {
+      for (const range of rule.ranges) {
+        if (
+          isInside(
+            origin.col,
+            origin.row,
+            this.getters.getRangeFromSheetXC(origin.sheetId, range).zone
+          )
+        ) {
+          const toRemoveRange: string[] = [];
+          if (content.isCutOperation) {
+            //remove from current rule
+            toRemoveRange.push(toXC(origin.col, origin.row));
+          }
+          if (origin.sheetId === target.sheetId) {
+            this.adaptCFRules(origin.sheetId, rule, [xc], toRemoveRange);
+          } else {
+            this.adaptCFRules(target.sheetId, rule, [xc], []);
+            this.adaptCFRules(origin.sheetId, rule, [], toRemoveRange);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Add or remove cells to a given conditional formatting rule.
+   */
+  private adaptCFRules(sheetId: UID, cf: ConditionalFormat, toAdd: string[], toRemove: string[]) {
+    const newRangesXC = this.getters.getAdaptedCfRanges(sheetId, cf, toAdd, toRemove);
+    if (!newRangesXC) {
+      return;
+    }
+    this.dispatch("ADD_CONDITIONAL_FORMAT", {
+      cf: {
+        id: cf.id,
+        rule: cf.rule,
+        stopIfTrue: cf.stopIfTrue,
+      },
+      ranges: newRangesXC.map((xc) => this.getters.getRangeDataFromXc(sheetId, xc)),
+      sheetId,
+    });
+  }
 
   loopThroughRangesOfSheet(sheetId: UID, applyChange: ApplyRangeChange) {
     for (const rule of this.cfRules[sheetId]) {

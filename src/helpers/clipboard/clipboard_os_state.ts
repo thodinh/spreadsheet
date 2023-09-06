@@ -18,14 +18,42 @@ export class ClipboardOsState extends ClipboardCellsAbstractState {
   constructor(
     content: string,
     getters: Getters,
-    dispatch: CommandDispatcher["dispatch"],
-    selection: SelectionStreamProcessor
+    private dispatch: CommandDispatcher["dispatch"],
+    private selection: SelectionStreamProcessor
   ) {
-    super("COPY", getters, dispatch, selection);
+    super("COPY", getters);
     this.values = content
       .replace(/\r/g, "")
       .split("\n")
       .map((vals) => vals.split("\t"));
+  }
+
+  /**
+   * Add columns and/or rows to ensure that col + width and row + height are still
+   * in the sheet
+   */
+  protected addMissingDimensions(width: number, height: number, col: number, row: number) {
+    const sheetId = this.getters.getActiveSheetId();
+    const missingRows = height + row - this.getters.getNumberRows(sheetId);
+    if (missingRows > 0) {
+      this.dispatch("ADD_COLUMNS_ROWS", {
+        dimension: "ROW",
+        base: this.getters.getNumberRows(sheetId) - 1,
+        sheetId,
+        quantity: missingRows,
+        position: "after",
+      });
+    }
+    const missingCols = width + col - this.getters.getNumberCols(sheetId);
+    if (missingCols > 0) {
+      this.dispatch("ADD_COLUMNS_ROWS", {
+        dimension: "COL",
+        base: this.getters.getNumberCols(sheetId) - 1,
+        sheetId,
+        quantity: missingCols,
+        position: "after",
+      });
+    }
   }
 
   isPasteAllowed(target: Zone[], clipboardOption?: ClipboardOptions | undefined): CommandResult {

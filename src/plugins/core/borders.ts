@@ -1,5 +1,15 @@
 import { DEFAULT_BORDER_DESC } from "../../constants";
-import { isDefined, range, stringify, toCartesian, toXC, toZone } from "../../helpers/index";
+import {
+  isDefined,
+  mergeOverlappingZones,
+  positions,
+  range,
+  stringify,
+  toCartesian,
+  toXC,
+  toZone,
+} from "../../helpers/index";
+import { clipboardHandlersRegistries } from "../../registries/clipboard_handlers";
 import {
   AddColumnsRowsCommand,
   Border,
@@ -7,15 +17,20 @@ import {
   BorderDescription,
   BorderPosition,
   CellPosition,
+  ClipboardData,
+  ClipboardOptions,
   Color,
   Command,
+  CommandDispatcher,
+  CommandResult,
   ExcelWorkbookData,
+  Getters,
   HeaderIndex,
   UID,
   WorkbookData,
   Zone,
 } from "../../types/index";
-import { CorePlugin } from "../core_plugin";
+import { CorePlugin, CorePluginConfig } from "../core_plugin";
 
 interface BordersPluginState {
   readonly borders: Record<UID, (BorderDescription[] | undefined)[] | undefined>;
@@ -30,6 +45,49 @@ export class BordersPlugin extends CorePlugin<BordersPluginState> implements Bor
   static getters = ["getCellBorder", "getBordersColors"] as const;
 
   public readonly borders: BordersPluginState["borders"] = {};
+  private clipboardState?: _ClipboardBordersState;
+
+  constructor(config: CorePluginConfig) {
+    super(config);
+    clipboardHandlersRegistries.cellHandlers.add("BORDER", {
+      copy: (
+        getters: Getters,
+        dispatch: CommandDispatcher["dispatch"],
+        isCutOperation: boolean,
+        data: ClipboardData
+      ) => {
+        if (!("zones" in data)) {
+          this.clipboardState = undefined;
+          return;
+        }
+        this.clipboardState = new _ClipboardBordersState(getters, dispatch);
+        return { ...this.clipboardState.copy(data.zones), isCutOperation };
+      },
+      paste: (
+        target: Zone[],
+        clippedContent: any,
+        getters: Getters,
+        dispatch: CommandDispatcher["dispatch"],
+        options?: ClipboardOptions | undefined
+      ) => {
+        if (!this.clipboardState) {
+          return;
+        }
+        if (options?.pasteOption === "onlyValue") {
+          return;
+        }
+        this.clipboardState.paste(target, clippedContent);
+      },
+      isPasteAllowed: (target: Zone[], content: any, option?: ClipboardOptions) =>
+        CommandResult.Success,
+      shouldBeUsed: (data: ClipboardData) => {
+        return "zones" in data && data.zones.length > 0;
+      },
+      isCutAllowed: (data: ClipboardData) => {
+        return CommandResult.Success;
+      },
+    });
+  }
 
   // ---------------------------------------------------------------------------
   // Command Handling
@@ -586,5 +644,140 @@ export class BordersPlugin extends CorePlugin<BordersPluginState> implements Bor
 
   exportForExcel(data: ExcelWorkbookData) {
     this.export(data);
+  }
+}
+
+/** State of the clipboard when copying/cutting cells */
+class _ClipboardBordersState {
+  constructor(private getters: Getters, private dispatch: CommandDispatcher["dispatch"]) {}
+  copy(zones: Zone[]): {} {
+    if (!zones.length) {
+      return { borders: [[]] };
+    }
+    const lefts = new Set(zones.map((z) => z.left));
+    const rights = new Set(zones.map((z) => z.right));
+    const tops = new Set(zones.map((z) => z.top));
+    const bottoms = new Set(zones.map((z) => z.bottom));
+
+    const areZonesCompatible =
+      (tops.size === 1 && bottoms.size === 1) || (lefts.size === 1 && rights.size === 1);
+
+    // In order to don't paste several times the same cells in intersected zones
+    // --> we merge zones that have common cells
+    const clippedZones = areZonesCompatible
+      ? mergeOverlappingZones(zones)
+      : [zones[zones.length - 1]];
+
+    const cellsPosition = clippedZones.map((zone) => positions(zone)).flat();
+    const columnsIndex = [...new Set(cellsPosition.map((p) => p.col))].sort((a, b) => a - b);
+    const rowsIndex = [...new Set(cellsPosition.map((p) => p.row))].sort((a, b) => a - b);
+
+    const borders: (Border | null)[][] = [];
+    const sheetId = this.getters.getActiveSheetId();
+
+    for (const row of rowsIndex) {
+      const bordersInRow: (Border | null)[] = [];
+      for (const col of columnsIndex) {
+        const position = { col, row, sheetId };
+        bordersInRow.push(this.getters.getCellBorder(position));
+      }
+      borders.push(bordersInRow);
+    }
+    return { borders };
+  }
+
+  /**
+   * Paste the clipboard content in the given target
+   */
+  paste(target: Zone[], content: any) {
+    if (!content.isCutOperation) {
+      this.pasteFromCopy(target, content);
+    } else {
+      const selection = target[0];
+      this.pasteZone(selection.left, selection.top, content);
+    }
+  }
+
+  private pasteFromCopy(target: Zone[], content: any) {
+    if (target.length === 1) {
+      // in this specific case, due to the isPasteAllowed function:
+      // state.cells can contains several cells.
+      // So if the target zone is larger than the copied zone,
+      // we duplicate each cells as many times as possible to fill the zone.
+      const height = content.borders.length;
+      const width = content.borders[0].length;
+      const pasteZones = this.pastedZones(target, width, height);
+      for (const zone of pasteZones) {
+        this.pasteZone(zone.left, zone.top, content);
+      }
+    } else {
+      // in this case, due to the isPasteAllowed function: state.cells contains
+      // only one cell
+      for (const zone of target) {
+        for (let col = zone.left; col <= zone.right; col++) {
+          for (let row = zone.top; row <= zone.bottom; row++) {
+            this.pasteZone(col, row, content);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * The clipped zone is copied as many times as it fits in the target.
+   * This returns the list of zones where the clipped zone is copy-pasted.
+   */
+  private pastedZones(target: Zone[], originWidth: number, originHeight: number): Zone[] {
+    const selection = target[0];
+    const repeatHorizontally = Math.max(
+      1,
+      Math.floor((selection.right + 1 - selection.left) / originWidth)
+    );
+    const repeatVertically = Math.max(
+      1,
+      Math.floor((selection.bottom + 1 - selection.top) / originHeight)
+    );
+    const zones: Zone[] = [];
+    for (let x = 0; x < repeatHorizontally; x++) {
+      for (let y = 0; y < repeatVertically; y++) {
+        const top = selection.top + y * originHeight;
+        const left = selection.left + x * originWidth;
+        zones.push({
+          left,
+          top,
+          bottom: top + originHeight - 1,
+          right: left + originWidth - 1,
+        });
+      }
+    }
+    return zones;
+  }
+
+  private pasteZone(col: HeaderIndex, row: HeaderIndex, content: any) {
+    const sheetId = this.getters.getActiveSheetId();
+    for (const [r, rowBorders] of content.borders.entries()) {
+      for (const [c, originBorders] of rowBorders.entries()) {
+        const position = { col: col + c, row: row + r, sheetId };
+        this.pasteBorder(originBorders, position);
+      }
+    }
+  }
+
+  /**
+   * Paste the border at the given position to the target position
+   */
+  private pasteBorder(originBorders: Border | undefined, target: CellPosition) {
+    const { sheetId, col, row } = target;
+    const targetBorders = this.getters.getCellBorder(target);
+    const border = {
+      ...targetBorders,
+      ...originBorders,
+      /*top: targetBorders?.top || originBorders?.top,
+      bottom: targetBorders?.bottom || originBorders?.bottom,
+      left: targetBorders?.left || originBorders?.left,
+      right: targetBorders?.right || originBorders?.right,    const selection = target[0];
+*/
+    };
+    this.dispatch("SET_BORDER", { sheetId, col, row, border });
   }
 }

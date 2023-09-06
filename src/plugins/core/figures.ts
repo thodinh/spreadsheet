@@ -1,11 +1,21 @@
-import { isDefined } from "../../helpers/index";
 import {
+  ClipboardFigureChart,
+  ClipboardFigureImage,
+} from "../../helpers/clipboard/clipboard_figure_state";
+import { UuidGenerator, isDefined } from "../../helpers/index";
+import { clipboardHandlersRegistries } from "../../registries/clipboard_handlers";
+import {
+  ClipboardData,
+  ClipboardOptions,
+  CommandDispatcher,
   CommandResult,
   CoreCommand,
   ExcelWorkbookData,
   Figure,
+  Getters,
   UID,
   WorkbookData,
+  Zone,
 } from "../../types/index";
 import { CorePlugin } from "../core_plugin";
 import { DEFAULT_CELL_HEIGHT } from "./../../constants";
@@ -187,3 +197,86 @@ export class FigurePlugin extends CorePlugin<FigureState> implements FigureState
     this.export(data);
   }
 }
+
+clipboardHandlersRegistries.figureHandlers.add("FIGURE", {
+  copy: (
+    getters: Getters,
+    dispatch: CommandDispatcher["dispatch"],
+    isCutOperation: boolean,
+    data: ClipboardData
+  ) => {
+    const sheetId = getters.getActiveSheetId();
+    if (!("figureId" in data)) {
+      return;
+    }
+    const figure = getters.getFigure(sheetId, data.figureId);
+    if (!figure) {
+      throw new Error(`No figure for the given id: ${data.figureId}`);
+    }
+    const copiedFigure = { ...figure };
+    let copiedFigureContent: ClipboardFigureChart | ClipboardFigureImage | undefined = undefined;
+    switch (figure.tag) {
+      case "chart":
+        copiedFigureContent = new ClipboardFigureChart(dispatch, getters, sheetId, data.figureId);
+        break;
+      case "image":
+        copiedFigureContent = new ClipboardFigureImage(dispatch, getters, sheetId, data.figureId);
+        break;
+      default:
+        throw new Error(`Unknow tag '${figure.tag}' for the given figure id: ${data.figureId}`);
+    }
+    return {
+      figureId: data.figureId,
+      copiedFigure,
+      copiedFigureContent,
+      isCutOperation,
+    };
+  },
+  paste: (
+    target: Zone[],
+    clippedContent: any,
+    getters: Getters,
+    dispatch: CommandDispatcher["dispatch"]
+  ) => {
+    if (!clippedContent?.copiedFigure || !clippedContent?.copiedFigureContent) {
+      return;
+    }
+    const sheetId = getters.getActiveSheetId();
+    const numCols = getters.getNumberCols(sheetId);
+    const numRows = getters.getNumberRows(sheetId);
+    const targetX = getters.getColDimensions(sheetId, target[0].left).start;
+    const targetY = getters.getRowDimensions(sheetId, target[0].top).start;
+    const maxX = getters.getColDimensions(sheetId, numCols - 1).end;
+    const maxY = getters.getRowDimensions(sheetId, numRows - 1).end;
+    const { width, height } = clippedContent.copiedFigure;
+    const position = {
+      x: maxX < width ? 0 : Math.min(targetX, maxX - width),
+      y: maxY < height ? 0 : Math.min(targetY, maxY - height),
+    };
+    const newId = new UuidGenerator().uuidv4();
+    clippedContent.copiedFigureContent.paste(sheetId, newId, position, { height, width });
+
+    if (clippedContent.isCutOperation) {
+      dispatch("DELETE_FIGURE", {
+        sheetId: clippedContent.copiedFigureContent.sheetId,
+        id: clippedContent.copiedFigure.id,
+      });
+    }
+    dispatch("SELECT_FIGURE", { id: newId });
+  },
+  isPasteAllowed: (target: Zone[], content: any, option?: ClipboardOptions) => {
+    if (target.length === 0) {
+      return CommandResult.EmptyTarget;
+    }
+    if (option?.pasteOption !== undefined) {
+      return CommandResult.WrongFigurePasteOption;
+    }
+    return CommandResult.Success;
+  },
+  shouldBeUsed: (data: ClipboardData) => {
+    return "figureId" in data;
+  },
+  isCutAllowed: (data: ClipboardData) => {
+    return CommandResult.Success;
+  },
+});

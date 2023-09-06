@@ -2,10 +2,14 @@ import { ClipboardCellsState } from "../../helpers/clipboard/clipboard_cells_sta
 import { ClipboardFigureState } from "../../helpers/clipboard/clipboard_figure_state";
 import { ClipboardOsState } from "../../helpers/clipboard/clipboard_os_state";
 import { isZoneValid, positions } from "../../helpers/index";
+import { clipboardHandlersRegistries } from "../../registries/clipboard_handlers";
 import {
   ClipboardContent,
+  ClipboardData,
+  ClipboardHandlersImplementation,
   ClipboardMIMEType,
   ClipboardOperation,
+  ClipboardOptions,
   ClipboardState,
 } from "../../types/clipboard";
 import {
@@ -43,9 +47,9 @@ export class ClipboardPlugin extends UIPlugin {
 
   private status: "visible" | "invisible" = "invisible";
   private state?: ClipboardState;
-  private lastPasteState?: ClipboardState;
   private paintFormatStatus: "inactive" | "oneOff" | "persistent" = "inactive";
   private originSheetId?: UID;
+  private copiedData?: any;
 
   // ---------------------------------------------------------------------------
   // Command Handling
@@ -55,28 +59,27 @@ export class ClipboardPlugin extends UIPlugin {
     switch (cmd.type) {
       case "CUT":
         const zones = cmd.cutTarget || this.getters.getSelectedZones();
-        const state = this.getClipboardState(zones, cmd.type);
-        return state.isCutAllowed(zones);
+        return this.isCutAllowedOnAnyPlugin(zones);
       case "PASTE":
         if (!this.state) {
           return CommandResult.EmptyClipboard;
         }
         const pasteOption =
           cmd.pasteOption || (this.paintFormatStatus !== "inactive" ? "onlyFormat" : undefined);
-        return this.state.isPasteAllowed(cmd.target, { pasteOption });
+        return this.isPasteAllowedOnAnyPlugin(cmd.target, this.copiedData, { pasteOption });
       case "PASTE_FROM_OS_CLIPBOARD": {
         const state = new ClipboardOsState(cmd.text, this.getters, this.dispatch, this.selection);
         return state.isPasteAllowed(cmd.target, { pasteOption: cmd.pasteOption });
       }
       case "INSERT_CELL": {
         const { cut, paste } = this.getInsertCellsTargets(cmd.zone, cmd.shiftDimension);
-        const state = this.getClipboardStateForCopyCells(cut, "CUT");
-        return state.isPasteAllowed(paste);
+        const copiedData = this.callCopyOnAllPlugins("CUT", cut);
+        return this.isPasteAllowedOnAnyPlugin(paste, copiedData, {});
       }
       case "DELETE_CELL": {
         const { cut, paste } = this.getDeleteCellsTargets(cmd.zone, cmd.shiftDimension);
-        const state = this.getClipboardStateForCopyCells(cut, "CUT");
-        return state.isPasteAllowed(paste);
+        const copiedData = this.callCopyOnAllPlugins("CUT", cut);
+        return this.isPasteAllowedOnAnyPlugin(paste, copiedData, {});
       }
       case "ACTIVATE_PAINT_FORMAT": {
         if (this.paintFormatStatus !== "inactive") {
@@ -95,6 +98,7 @@ export class ClipboardPlugin extends UIPlugin {
         this.state = this.getClipboardState(zones, cmd.type);
         this.status = "visible";
         this.originSheetId = this.getters.getActiveSheetId();
+        this.copiedData = this.callCopyOnAllPlugins(cmd.type, zones);
         break;
       case "PASTE":
         if (!this.state) {
@@ -102,8 +106,11 @@ export class ClipboardPlugin extends UIPlugin {
         }
         const pasteOption =
           cmd.pasteOption || (this.paintFormatStatus !== "inactive" ? "onlyFormat" : undefined);
-        this.state.paste(cmd.target, { pasteOption, shouldPasteCF: true, selectTarget: true });
-        this.lastPasteState = this.state;
+        this.callPasteOnAllPlugins(cmd.target, {
+          pasteOption,
+          shouldPasteCF: true,
+          selectTarget: true,
+        });
         if (this.paintFormatStatus === "oneOff") {
           this.paintFormatStatus = "inactive";
           this.status = "invisible";
@@ -120,14 +127,14 @@ export class ClipboardPlugin extends UIPlugin {
           }
           break;
         }
-        const state = this.getClipboardStateForCopyCells(cut, "CUT");
-        state.paste(paste);
+        this.copiedData = this.callCopyOnAllPlugins("CUT", cut);
+        this.callPasteOnAllPlugins(paste, { shouldPasteCF: false });
         break;
       }
       case "INSERT_CELL": {
         const { cut, paste } = this.getInsertCellsTargets(cmd.zone, cmd.shiftDimension);
-        const state = this.getClipboardStateForCopyCells(cut, "CUT");
-        state.paste(paste);
+        this.copiedData = this.callCopyOnAllPlugins("CUT", cut);
+        this.callPasteOnAllPlugins(paste, { shouldPasteCF: false });
         break;
       }
       case "ADD_COLUMNS_ROWS": {
@@ -164,13 +171,13 @@ export class ClipboardPlugin extends UIPlugin {
         break;
       }
       case "PASTE_FROM_OS_CLIPBOARD":
-        this.state = new ClipboardOsState(cmd.text, this.getters, this.dispatch, this.selection);
-        this.state.paste(cmd.target, { pasteOption: cmd.pasteOption });
-        this.lastPasteState = this.state;
+        const state = new ClipboardOsState(cmd.text, this.getters, this.dispatch, this.selection);
+        state.paste(cmd.target, { pasteOption: cmd.pasteOption });
+        this.state = state;
         this.status = "invisible";
         break;
       case "REPEAT_PASTE": {
-        this.lastPasteState?.paste(cmd.target, {
+        this.callPasteOnAllPlugins(cmd.target, {
           pasteOption: cmd.pasteOption,
           shouldPasteCF: true,
           selectTarget: true,
@@ -179,6 +186,7 @@ export class ClipboardPlugin extends UIPlugin {
       }
       case "ACTIVATE_PAINT_FORMAT": {
         const zones = this.getters.getSelectedZones();
+        this.copiedData = this.callCopyOnAllPlugins("COPY", zones);
         this.state = this.getClipboardStateForCopyCells(zones, "COPY");
         this.status = "visible";
         if (cmd.persistent) {
@@ -209,6 +217,62 @@ export class ClipboardPlugin extends UIPlugin {
     }
   }
 
+  private selectClipboardHandlers(data: {}): ClipboardHandlersImplementation[] {
+    if ("figureId" in data) {
+      return clipboardHandlersRegistries.figureHandlers.getAll();
+    }
+    return clipboardHandlersRegistries.cellHandlers.getAll();
+  }
+
+  private isCutAllowedOnAnyPlugin(zones: Zone[]) {
+    const clipboardData = this.getClipboardData(zones);
+    for (const clipboardHandlers of this.selectClipboardHandlers(clipboardData)) {
+      const result = clipboardHandlers.isCutAllowed(clipboardData);
+      if (result !== CommandResult.Success) {
+        return result;
+      }
+    }
+    return CommandResult.Success;
+  }
+
+  private isPasteAllowedOnAnyPlugin(
+    target: Zone[],
+    copiedData: {},
+    options: ClipboardOptions | undefined
+  ) {
+    for (const clipboardHandlers of this.selectClipboardHandlers(copiedData)) {
+      const result = clipboardHandlers.isPasteAllowed(target, copiedData, options);
+      if (result !== CommandResult.Success) {
+        return result;
+      }
+    }
+    return CommandResult.Success;
+  }
+
+  private callCopyOnAllPlugins(operation: "COPY" | "CUT", zones: Zone[]): {} {
+    let copiedData = {};
+    const clipboardData = this.getClipboardData(zones);
+    for (const clipboardHandlers of this.selectClipboardHandlers(clipboardData)) {
+      if (!clipboardHandlers.shouldBeUsed(clipboardData)) {
+        continue;
+      }
+      const data = clipboardHandlers.copy(
+        this.getters,
+        this.dispatch,
+        operation === "CUT",
+        clipboardData
+      );
+      copiedData = { ...copiedData, ...data };
+    }
+    return copiedData;
+  }
+
+  private callPasteOnAllPlugins(target: Zone[], options: ClipboardOptions | undefined) {
+    for (const clipboardHandlers of this.selectClipboardHandlers(this.copiedData)) {
+      clipboardHandlers.paste(target, this.copiedData, this.getters, this.dispatch, options);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Getters
   // ---------------------------------------------------------------------------
@@ -233,7 +297,7 @@ export class ClipboardPlugin extends UIPlugin {
   }
 
   isCutOperation(): boolean {
-    return this.state ? this.state.operation === "CUT" : false;
+    return this?.copiedData?.isCutOperation;
   }
 
   isPaintingFormat(): boolean {
@@ -288,7 +352,7 @@ export class ClipboardPlugin extends UIPlugin {
   }
 
   private getClipboardStateForCopyCells(zones: Zone[], operation: ClipboardOperation) {
-    return new ClipboardCellsState(zones, operation, this.getters, this.dispatch, this.selection);
+    return new ClipboardCellsState(zones, operation, this.getters);
   }
 
   /**
@@ -297,9 +361,17 @@ export class ClipboardPlugin extends UIPlugin {
   private getClipboardState(zones: Zone[], operation: ClipboardOperation): ClipboardState {
     const selectedFigureId = this.getters.getSelectedFigureId();
     if (selectedFigureId) {
-      return new ClipboardFigureState(operation, this.getters, this.dispatch);
+      return new ClipboardFigureState();
     }
-    return new ClipboardCellsState(zones, operation, this.getters, this.dispatch, this.selection);
+    return new ClipboardCellsState(zones, operation, this.getters);
+  }
+
+  private getClipboardData(zones: Zone[]): ClipboardData {
+    const selectedFigureId = this.getters.getSelectedFigureId();
+    if (selectedFigureId) {
+      return { figureId: selectedFigureId };
+    }
+    return { zones, selection: this.selection };
   }
 
   // ---------------------------------------------------------------------------
