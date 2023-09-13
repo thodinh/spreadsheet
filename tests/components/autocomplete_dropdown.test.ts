@@ -251,9 +251,9 @@ describe("Functions autocomplete", () => {
     });
     test("= and CTRL+Space show autocomplete", async () => {
       await typeInComposer("=");
-      await keyDown({ key: " ", ctrlKey: true });
-      //TODO Need a second nextTick to wait the re-render of SelectionInput (onMounted => uuid assignation). But why not before ?
-      await nextTick();
+      keyDown({ key: " ", ctrlKey: true });
+      await keyUp({ key: " ", ctrlKey: true });
+
       expect(fixture.querySelectorAll(".o-autocomplete-value")).toHaveLength(3);
       await keyDown({ key: "Tab" });
       expect(composerEl.textContent).toBe("=IF(");
