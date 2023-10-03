@@ -230,6 +230,9 @@ export function visitNumbers(args: ArgValue[], cb: (arg: number) => void, locale
       if (typeof cellValue === "number") {
         cb(cellValue);
       }
+      if (cellValue instanceof Error) {
+        throw cellValue;
+      }
     },
     (argValue) => {
       cb(strictToNumber(argValue, locale));
@@ -322,6 +325,8 @@ export function reduceNumbersTextAs0(
           return cb(acc, ArgValue);
         } else if (typeof ArgValue === "boolean") {
           return cb(acc, toNumber(ArgValue, locale));
+        } else if (ArgValue instanceof Error) {
+          throw ArgValue;
         } else {
           return cb(acc, 0);
         }
@@ -410,6 +415,9 @@ export function conditionalVisitBoolean(args: ArgValue[], cb: (a: boolean) => bo
       }
       if (typeof ArgValue === "number") {
         return cb(ArgValue ? true : false);
+      }
+      if (ArgValue instanceof EvaluationError) {
+        throw ArgValue;
       }
       return true;
     },
@@ -642,6 +650,9 @@ export function dichotomicSearch<T>(
   if (target === null || target === undefined) {
     return -1;
   }
+  if (target instanceof EvaluationError) {
+    throw target;
+  }
   const _target = normalizeValue(target);
   const targetType = typeof _target;
 
@@ -744,6 +755,10 @@ export function linearSearch<T>(
   reverseSearch = false
 ): number {
   if (target === null || target === undefined) return -1;
+
+  if (target instanceof EvaluationError) {
+    throw target;
+  }
 
   const _target = normalizeValue(target);
   const getValue = reverseSearch
