@@ -16,7 +16,7 @@ import {
   ClientMovedMessage,
   CollaborationMessage,
   RemoteRevisionMessage,
-  StateUpdateMessage,
+  RevisionMessage,
   TransportService,
 } from "../types/collaborative/transport_service";
 import { Command, CommandTypes } from "./../types/commands";
@@ -36,7 +36,7 @@ export class Session extends EventBus<CollaborativeEvent> {
    * Id of the server revision
    */
   private debouncedMove: Session["move"];
-  private pendingMessages: StateUpdateMessage[] = [];
+  private pendingMessages: RevisionMessage[] = [];
 
   private waitingAck: boolean = false;
   /**
@@ -91,7 +91,7 @@ export class Session extends EventBus<CollaborativeEvent> {
       Date.now()
     );
     this.revisions.append(revision.id, revision);
-    this.trigger("new-local-state-update", { id: revision.id });
+    this.trigger("new-local-revision", { id: revision.id });
     this.sendUpdateMessage({
       type: "REMOTE_REVISION",
       version: MESSAGE_VERSION,
@@ -142,7 +142,7 @@ export class Session extends EventBus<CollaborativeEvent> {
     this.transportService.onNewMessage(this.clientId, this.onMessageReceived.bind(this));
   }
 
-  loadInitialMessages(messages: StateUpdateMessage[]) {
+  loadInitialRevisions(messages: RevisionMessage[]) {
     this.isReplayingInitialRevisions = true;
     for (const message of messages) {
       this.onMessageReceived(message);
@@ -348,7 +348,7 @@ export class Session extends EventBus<CollaborativeEvent> {
     }
   }
 
-  private sendUpdateMessage(message: StateUpdateMessage) {
+  private sendUpdateMessage(message: RevisionMessage) {
     this.pendingMessages.push(message);
     if (this.waitingAck) {
       return;

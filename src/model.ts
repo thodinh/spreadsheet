@@ -9,7 +9,7 @@ import {
   createEmptyExcelWorkbookData,
   createEmptyWorkbookData,
   load,
-  repairInitialMessages,
+  repairInitialRevisions,
 } from "./migrations/data";
 import { BasePlugin } from "./plugins/base_plugin";
 import { RangeAdapter } from "./plugins/core/range";
@@ -27,7 +27,7 @@ import {
 } from "./selection_stream/selection_stream_processor";
 import { StateObserver } from "./state_observer";
 import { _t } from "./translation";
-import { StateUpdateMessage, TransportService } from "./types/collaborative/transport_service";
+import { RevisionMessage, TransportService } from "./types/collaborative/transport_service";
 import { CommandTypes } from "./types/commands";
 import { FileStore } from "./types/files";
 import {
@@ -187,13 +187,13 @@ export class Model extends EventBus<any> implements CommandDispatcher {
   constructor(
     data: any = {},
     config: Partial<ModelConfig> = {},
-    stateUpdateMessages: StateUpdateMessage[] = [],
+    initialRevisions: RevisionMessage[] = [],
     uuidGenerator: UuidGenerator = new UuidGenerator(),
     verboseImport = true
   ) {
     super();
 
-    stateUpdateMessages = repairInitialMessages(data, stateUpdateMessages);
+    initialRevisions = repairInitialRevisions(data, initialRevisions);
 
     const workbookData = load(data, verboseImport);
 
@@ -238,7 +238,7 @@ export class Model extends EventBus<any> implements CommandDispatcher {
     }
     Object.assign(this.getters, this.coreGetters);
 
-    this.session.loadInitialMessages(stateUpdateMessages);
+    this.session.loadInitialRevisions(initialRevisions);
 
     for (let Plugin of coreViewsPluginRegistry.getAll()) {
       const plugin = this.setupUiPlugin(Plugin);

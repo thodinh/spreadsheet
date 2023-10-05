@@ -4,7 +4,7 @@ import { toZone } from "../../src/helpers";
 import { featurePluginRegistry } from "../../src/plugins";
 import { CommandResult, UpdateCellCommand } from "../../src/types";
 import { LineChartDefinition } from "../../src/types/chart/line_chart";
-import { StateUpdateMessage } from "../../src/types/collaborative/transport_service";
+import { RevisionMessage } from "../../src/types/collaborative/transport_service";
 import { MockTransportService } from "../__mocks__/transport_service";
 import {
   addColumns,
@@ -157,7 +157,7 @@ describe("Collaborative local history", () => {
   });
 
   test("Load model with a simple initial messages", () => {
-    const initialMessages: StateUpdateMessage[] = [
+    const initialMessages: RevisionMessage[] = [
       {
         type: "REMOTE_REVISION",
         version: MESSAGE_VERSION,
@@ -183,7 +183,7 @@ describe("Collaborative local history", () => {
   });
 
   test("Load empty model with initial messages, with wrong sheetId", () => {
-    const initialMessages: StateUpdateMessage[] = [
+    const initialMessages: RevisionMessage[] = [
       {
         type: "REMOTE_REVISION",
         nextRevisionId: "1",
@@ -200,7 +200,7 @@ describe("Collaborative local history", () => {
   });
 
   test("Load empty model with initial messages, with multiple sheets and wrong sheetIds", () => {
-    const initialMessages: StateUpdateMessage[] = [
+    const initialMessages: RevisionMessage[] = [
       {
         type: "REMOTE_REVISION",
         serverRevisionId: DEFAULT_REVISION_ID,
@@ -251,7 +251,7 @@ describe("Collaborative local history", () => {
   });
 
   test("Load model with initial messages, with undo", () => {
-    const initialMessages: StateUpdateMessage[] = [
+    const initialMessages: RevisionMessage[] = [
       {
         type: "REMOTE_REVISION",
         nextRevisionId: "1",
@@ -284,7 +284,7 @@ describe("Collaborative local history", () => {
   });
 
   test("Load model with initial messages, with redo", () => {
-    const initialMessages: StateUpdateMessage[] = [
+    const initialMessages: RevisionMessage[] = [
       {
         type: "REMOTE_REVISION",
         version: MESSAGE_VERSION,
@@ -324,7 +324,7 @@ describe("Collaborative local history", () => {
   });
 
   test("Initial sort command is dropped", () => {
-    const initialMessages: StateUpdateMessage[] = [
+    const initialMessages: RevisionMessage[] = [
       {
         type: "REMOTE_REVISION",
         version: MESSAGE_VERSION,
@@ -360,7 +360,7 @@ describe("Collaborative local history", () => {
   });
 
   test("Initial set decimal command is dropped", () => {
-    const initialMessages: StateUpdateMessage[] = [
+    const initialMessages: RevisionMessage[] = [
       {
         type: "REMOTE_REVISION",
         version: MESSAGE_VERSION,
@@ -392,7 +392,7 @@ describe("Collaborative local history", () => {
   });
 
   test("Update chart revisions contain the full definition", () => {
-    const initialMessages: StateUpdateMessage[] = [
+    const initialMessages: RevisionMessage[] = [
       {
         type: "REMOTE_REVISION",
         version: MESSAGE_VERSION,
