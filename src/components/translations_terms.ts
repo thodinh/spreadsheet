@@ -73,6 +73,7 @@ export const ChartTerms = {
       "The upper inflection point value must be a number"
     ),
   },
+  NegativeValue: _t("Negative values are not displayed in pie chart."),
 };
 
 export const CustomCurrencyTerms = {

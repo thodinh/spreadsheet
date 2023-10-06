@@ -10,6 +10,7 @@ import {
   createGaugeChart,
   createScorecardChart,
   createSheet,
+  setCellContent,
   setStyle,
   updateChart,
 } from "../../test_helpers/commands_helpers";
@@ -822,6 +823,28 @@ describe("charts", () => {
       expect(document.querySelector(".o-data-labels input")?.classList).toContain("o-invalid");
     });
 
+    test("warning for exclude negative data in pie chart", async () => {
+      setCellContent(model, "A1", "12");
+      setCellContent(model, "A2", "-22");
+      createChart(
+        model,
+        {
+          dataSets: ["A1:A2"],
+          type: "pie",
+        },
+        "1"
+      );
+      await nextTick();
+      await simulateClick(".o-figure");
+      await simulateClick(".o-figure-menu-item");
+      await simulateClick(".o-menu div[data-name='edit']");
+
+      expect(fixture.querySelector(".o-validation-warning")).toBeTruthy();
+
+      setCellContent(model, "A2", "22");
+      await nextTick();
+      expect(fixture.querySelector(".o-validation-warning")).toBeFalsy();
+    });
     describe("gauge > error displayed on input fields", () => {
       beforeEach(async () => {
         createTestChart("gauge");

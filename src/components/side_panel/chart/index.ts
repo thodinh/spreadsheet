@@ -4,10 +4,10 @@ import { BarConfigPanel } from "./bar_chart/bar_chart_config_panel";
 import { BarChartDesignPanel } from "./bar_chart/bar_chart_design_panel";
 import { GaugeChartConfigPanel } from "./gauge_chart_panel/gauge_chart_config_panel";
 import { GaugeChartDesignPanel } from "./gauge_chart_panel/gauge_chart_design_panel";
-import { LineBarPieConfigPanel } from "./line_bar_pie_panel/config_panel";
 import { LineBarPieDesignPanel } from "./line_bar_pie_panel/design_panel";
 import { LineConfigPanel } from "./line_chart/line_chart_config_panel";
 import { LineChartDesignPanel } from "./line_chart/line_chart_design_panel";
+import { PieConfigPanel } from "./pie_chart/pie_chart_config_panel";
 import { ScorecardChartConfigPanel } from "./scorecard_chart_panel/scorecard_chart_config_panel";
 import { ScorecardChartDesignPanel } from "./scorecard_chart_panel/scorecard_chart_design_panel";
 
@@ -19,6 +19,7 @@ export { LineBarPieConfigPanel } from "./line_bar_pie_panel/config_panel";
 export { LineBarPieDesignPanel } from "./line_bar_pie_panel/design_panel";
 export { LineConfigPanel } from "./line_chart/line_chart_config_panel";
 export { LineChartDesignPanel } from "./line_chart/line_chart_design_panel";
+export { PieConfigPanel } from "./pie_chart/pie_chart_config_panel";
 export { ScorecardChartConfigPanel } from "./scorecard_chart_panel/scorecard_chart_config_panel";
 export { ScorecardChartDesignPanel } from "./scorecard_chart_panel/scorecard_chart_design_panel";
 
@@ -39,7 +40,7 @@ chartSidePanelComponentRegistry
     design: BarChartDesignPanel,
   })
   .add("pie", {
-    configuration: LineBarPieConfigPanel,
+    configuration: PieConfigPanel,
     design: LineBarPieDesignPanel,
   })
   .add("gauge", {

@@ -54,6 +54,10 @@ export class LineBarPieConfigPanel extends Component<Props, SpreadsheetChildEnv>
     );
   }
 
+  get warningMessages(): string[] {
+    return [ChartTerms.NegativeValue];
+  }
+
   get isDatasetInvalid(): boolean {
     return !!this.state.datasetDispatchResult?.isCancelledBecause(CommandResult.InvalidDataSet);
   }
