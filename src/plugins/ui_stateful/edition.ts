@@ -28,6 +28,7 @@ import {
   Format,
   HeaderIndex,
   Highlight,
+  isMatrix,
   LocalCommand,
   Locale,
   Range,
@@ -452,6 +453,7 @@ export class EditionPlugin extends UIPlugin {
         } else if (cell.link) {
           content = markdownLink(content, cell.link.url);
         }
+        this.addRowsForSpreadingFormula(content);
         this.dispatch("UPDATE_CELL", {
           sheetId: this.sheetId,
           col,
@@ -690,6 +692,32 @@ export class EditionPlugin extends UIPlugin {
       colorsToKeep[xc] = colorIndex;
     }
     this.colorIndexByRange = colorsToKeep;
+  }
+
+  private addRowsForSpreadingFormula(content: string) {
+    if (!content.startsWith("=")) {
+      return;
+    }
+
+    try {
+      const evaluated = this.getters.evaluateFormula(this.sheetId, content);
+      if (!isMatrix(evaluated)) {
+        return;
+      }
+
+      const numberOfRows = this.getters.getNumberRows(this.sheetId);
+      const rowsInEvaluated = evaluated[0].length;
+      const missingRows = this.row + rowsInEvaluated - numberOfRows;
+      if (missingRows > 0) {
+        this.dispatch("ADD_COLUMNS_ROWS", {
+          sheetId: this.sheetId,
+          dimension: "ROW",
+          base: numberOfRows - 1,
+          position: "after",
+          quantity: missingRows,
+        });
+      }
+    } catch (_) {}
   }
 
   /**

@@ -1,4 +1,4 @@
-import { getCanonicalSheetName, jsDateToRoundNumber, toZone } from "../../src/helpers";
+import { getCanonicalSheetName, jsDateToRoundNumber, toXC, toZone } from "../../src/helpers";
 import { Model } from "../../src/model";
 import { CellValueType, CommandResult, DEFAULT_LOCALE } from "../../src/types";
 import {
@@ -29,6 +29,12 @@ import {
 } from "../test_helpers/getters_helpers"; // to have getcontext mocks
 import "../test_helpers/helpers";
 import { target } from "../test_helpers/helpers";
+
+function editCell(model: Model, xc: string, content: string) {
+  selectCell(model, xc);
+  model.dispatch("START_EDITION", { text: content });
+  model.dispatch("STOP_EDITION");
+}
 
 describe("edition", () => {
   test("adding and removing a cell (by setting its content to empty string", () => {
@@ -1037,12 +1043,6 @@ describe("edition", () => {
       model = new Model();
     });
 
-    function editCell(model: Model, xc: string, content: string) {
-      selectCell(model, xc);
-      model.dispatch("START_EDITION", { text: content });
-      model.dispatch("STOP_EDITION");
-    }
-
     describe("Number litterals", () => {
       test("Decimal number detected with decimal separator of locale", () => {
         editCell(model, "A1", "3,14");
@@ -1159,5 +1159,17 @@ describe("edition", () => {
         );
       });
     });
+  });
+
+  test("Adding a spreading formula at the bottom of the sheet add enough rows for the formula to spread", () => {
+    const model = new Model();
+    const sheetId = model.getters.getActiveSheetId();
+    const numberOfRows = model.getters.getNumberRows(sheetId);
+
+    const cellOnLastRow = toXC(0, numberOfRows - 1);
+    editCell(model, cellOnLastRow, "=TRANSPOSE(A1:E1)");
+
+    expect(model.getters.getNumberRows(sheetId)).toBe(numberOfRows + 4);
+    expect(getCellContent(model, cellOnLastRow)).toBe("0");
   });
 });
