@@ -14,9 +14,11 @@ export class HighlightPlugin extends UIPlugin {
   // ---------------------------------------------------------------------------
 
   getHighlights(): Highlight[] {
-    return this.prepareHighlights(
-      this.getters.getComposerHighlights().concat(this.getters.getSelectionInputHighlights())
-    );
+    return this.prepareHighlights([
+      ...this.getters.getSelectionHighlights(),
+      ...this.getters.getComposerHighlights(),
+      ...this.getters.getSelectionInputHighlights(),
+    ]);
   }
 
   // ---------------------------------------------------------------------------
@@ -54,8 +56,9 @@ export class HighlightPlugin extends UIPlugin {
     const { ctx, thinLineWidth } = renderingContext;
 
     const sheetId = this.getters.getActiveSheetId();
-    const lineWidth = 3 * thinLineWidth;
+    const lineWidth = 1.5 * thinLineWidth;
     ctx.lineWidth = lineWidth;
+
     /**
      * We only need to draw the highlights of the current sheet.
      *
@@ -73,10 +76,12 @@ export class HighlightPlugin extends UIPlugin {
       const { x, y, width, height } = this.getters.getVisibleRect(h.zone);
       if (width > 0 && height > 0) {
         ctx.strokeStyle = h.color!;
-        ctx.strokeRect(x + lineWidth / 2, y + lineWidth / 2, width - lineWidth, height - lineWidth);
+        ctx.strokeRect(x, y, width, height);
         ctx.globalCompositeOperation = "source-over";
         ctx.fillStyle = h.color! + "20";
-        ctx.fillRect(x + lineWidth, y + lineWidth, width - 2 * lineWidth, height - 2 * lineWidth);
+        if (!h.noFill) {
+          ctx.fillRect(x, y, width, height);
+        }
       }
     }
   }

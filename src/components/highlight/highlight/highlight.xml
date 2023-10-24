@@ -6,16 +6,20 @@
           onMoveHighlight="(x, y) => this.onMoveHighlight(x,y)"
           isMoving='highlightState.shiftingMode === "isMoving"'
           orientation="orientation"
-          zone="props.zone"
+          zone="props.highlight.zone"
         />
       </t>
-      <t t-foreach="['nw', 'ne', 'sw', 'se']" t-as="orientation" t-key="orientation">
+      <t
+        t-foreach="['nw', 'ne', 'sw', 'se']"
+        t-as="orientation"
+        t-key="orientation"
+        t-if="!props.highlight.noCorners">
         <Corner
           onResizeHighlight="(isLeft, isTop) => this.onResizeHighlight(isLeft, isTop)"
           isResizing='highlightState.shiftingMode === "isResizing"'
           orientation="orientation"
-          zone="props.zone"
-          color="props.color"
+          zone="props.highlight.zone"
+          color="props.highlight.color"
         />
       </t>
     </div>

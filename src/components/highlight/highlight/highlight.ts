@@ -1,7 +1,13 @@
 import { Component, useState } from "@odoo/owl";
 import { ComponentsImportance } from "../../../constants";
 import { clip, isEqual } from "../../../helpers";
-import { Color, HeaderIndex, Pixel, SpreadsheetChildEnv, Zone } from "../../../types";
+import {
+  HeaderIndex,
+  Highlight as HighlightObject,
+  Pixel,
+  SpreadsheetChildEnv,
+  Zone,
+} from "../../../types";
 import { css } from "../../helpers/css";
 import { gridOverlayPosition } from "../../helpers/dom_helpers";
 import { dragAndDropBeyondTheViewport } from "../../helpers/drag_and_drop";
@@ -15,8 +21,7 @@ css/*SCSS*/ `
 `;
 
 interface Props {
-  zone: Zone;
-  color: Color;
+  highlight: HighlightObject;
 }
 
 interface HighlightState {
@@ -36,7 +41,7 @@ export class Highlight extends Component<Props, SpreadsheetChildEnv> {
   onResizeHighlight(isLeft: boolean, isTop: boolean) {
     const activeSheetId = this.env.model.getters.getActiveSheetId();
     this.highlightState.shiftingMode = "isResizing";
-    const z = this.props.zone;
+    const z = this.props.highlight.zone;
 
     const pivotCol = isLeft ? z.right : z.left;
     const pivotRow = isTop ? z.bottom : z.top;
@@ -88,7 +93,7 @@ export class Highlight extends Component<Props, SpreadsheetChildEnv> {
 
   onMoveHighlight(clientX: Pixel, clientY: Pixel) {
     this.highlightState.shiftingMode = "isMoving";
-    const z = this.props.zone;
+    const z = this.props.highlight.zone;
 
     const position = gridOverlayPosition();
     const activeSheetId = this.env.model.getters.getActiveSheetId();
@@ -144,6 +149,5 @@ export class Highlight extends Component<Props, SpreadsheetChildEnv> {
 }
 
 Highlight.props = {
-  zone: Object,
-  color: String,
+  highlight: Object,
 };

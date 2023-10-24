@@ -7,7 +7,7 @@ import {
   getDefaultSheetViewSize,
 } from "../../src/constants";
 import { toHex, toZone } from "../../src/helpers";
-import { Color, Zone } from "../../src/types";
+import { Color, Highlight as HighlightObject } from "../../src/types";
 import { merge } from "../test_helpers/commands_helpers";
 import { edgeScrollDelay, triggerMouseEvent } from "../test_helpers/dom_helper";
 import {
@@ -107,26 +107,26 @@ let spyDispatch: jest.SpyInstance;
 let spyHandleEvent: jest.Mock;
 
 interface Props {
-  zone: Zone;
+  highlight: HighlightObject;
   model: Model;
-  color: Color;
 }
 
 class Parent extends Component<Props> {
   static components = { Highlight };
   static template = xml/*xml*/ `
-    <Highlight zone="props.zone" color="props.color"/>
+    <Highlight highlight="props.highlight"/>
   `;
   setup() {
     spyDispatch = jest.spyOn(model, "dispatch");
     spyHandleEvent = jest.fn();
     // register component to listen to selection changes
 
+    const zone = this.props.highlight.zone;
     model.selection.capture(
       this,
       {
-        cell: { col: this.props.zone.left, row: this.props.zone.top },
-        zone: this.props.zone,
+        cell: { col: zone.left, row: zone.top },
+        zone,
       },
       {
         handleEvent: spyHandleEvent.bind(this),
@@ -143,8 +143,9 @@ async function mountHighlight(
   color: Color
 ): Promise<{ parent: Parent; model: Model }> {
   let parent: Component;
+  const sheetId = model.getters.getActiveSheetId();
   ({ fixture, parent } = await mountComponent(Parent, {
-    props: { zone: toZone(zone), color, model },
+    props: { highlight: { sheetId, zone: toZone(zone), color }, model },
   }));
   return { parent: parent as Parent, model };
 }

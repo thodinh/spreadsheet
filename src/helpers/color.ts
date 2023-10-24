@@ -6,9 +6,7 @@ const HEX_MATCH = /^#([A-F\d]{2}){3,4}$/;
 
 export const colors = [
   "#eb6d00",
-  "#0074d9",
   "#ad8e00",
-  "#169ed4",
   "#b10dc9",
   "#00a82d",
   "#00a3a3",

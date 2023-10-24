@@ -25,8 +25,8 @@ import {
   CommandResult,
   Dimension,
   EvaluatedCell,
-  GridRenderingContext,
   HeaderIndex,
+  Highlight,
   LAYERS,
   LocalCommand,
   Locale,
@@ -98,6 +98,7 @@ export class GridSelectionPlugin extends UIPlugin {
     "getSelectedZones",
     "getSelectedZone",
     "getSelectedCells",
+    "getSelectionHighlights",
     "getStatisticFnResults",
     "getAggregate",
     "getSelectedFigureId",
@@ -540,6 +541,26 @@ export class GridSelectionPlugin extends UIPlugin {
     return [...new Set(elements)].sort();
   }
 
+  getSelectionHighlights(): Highlight[] {
+    if (this.getters.isDashboard()) {
+      return [];
+    }
+    const sheetId = this.getters.getActiveSheetId();
+    const highLights: Highlight[] = [];
+    const color = SELECTION_BORDER_COLOR;
+
+    const position = this.getActivePosition();
+    const anchorZone = this.getters.isInMerge(position)
+      ? this.getters.getMerge(position)!
+      : positionToZone(position);
+    highLights.push({ sheetId, color, zone: anchorZone, noFill: true, noCorners: true });
+
+    for (const zone of this.getSelectedZones()) {
+      highLights.push({ sheetId, color, zone, noCorners: true });
+    }
+    return highLights;
+  }
+
   // ---------------------------------------------------------------------------
   // Other
   // ---------------------------------------------------------------------------
@@ -757,48 +778,5 @@ export class GridSelectionPlugin extends UIPlugin {
         zone: anchorZone,
       },
     };
-  }
-
-  // ---------------------------------------------------------------------------
-  // Grid rendering
-  // ---------------------------------------------------------------------------
-
-  drawGrid(renderingContext: GridRenderingContext) {
-    if (this.getters.isDashboard()) {
-      return;
-    }
-    const { ctx, thinLineWidth } = renderingContext;
-    // selection
-    const zones = this.getSelectedZones();
-    ctx.fillStyle = "#f3f7fe";
-    const onlyOneCell =
-      zones.length === 1 && zones[0].left === zones[0].right && zones[0].top === zones[0].bottom;
-    ctx.fillStyle = onlyOneCell ? "#f3f7fe" : "#e9f0ff";
-    ctx.strokeStyle = SELECTION_BORDER_COLOR;
-    ctx.lineWidth = 1.5 * thinLineWidth;
-    for (const zone of zones) {
-      const { x, y, width, height } = this.getters.getVisibleRect(zone);
-      ctx.globalCompositeOperation = "multiply";
-      ctx.fillRect(x, y, width, height);
-      ctx.globalCompositeOperation = "source-over";
-      ctx.strokeRect(x, y, width, height);
-    }
-
-    ctx.globalCompositeOperation = "source-over";
-    // active zone
-    const position = this.getActivePosition();
-
-    ctx.strokeStyle = SELECTION_BORDER_COLOR;
-    ctx.lineWidth = 3 * thinLineWidth;
-    let zone: Zone;
-    if (this.getters.isInMerge(position)) {
-      zone = this.getters.getMerge(position)!;
-    } else {
-      zone = positionToZone(position);
-    }
-    const { x, y, width, height } = this.getters.getVisibleRect(zone);
-    if (width > 0 && height > 0) {
-      ctx.strokeRect(x, y, width, height);
-    }
   }
 }
