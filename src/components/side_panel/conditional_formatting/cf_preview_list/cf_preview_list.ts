@@ -1,4 +1,5 @@
-import { Component, onWillUpdateProps, useRef } from "@odoo/owl";
+import { Component, onWillUnmount, onWillUpdateProps, useRef } from "@odoo/owl";
+import { LIGHT_HIGHLIGHT_COLOR } from "../../../../constants";
 import { colorNumberString, deepEquals } from "../../../../helpers";
 import { _t } from "../../../../translation";
 import {
@@ -90,12 +91,16 @@ export class ConditionalFormatPreviewList extends Component<Props, SpreadsheetCh
 
   private dragAndDrop = useDragAndDropListItems();
   private cfListRef = useRef("cfList");
+  private highlightId = this.env.model.uuidGenerator.uuidv4();
 
   setup() {
     onWillUpdateProps((nextProps: Props) => {
       if (!deepEquals(this.props.conditionalFormats, nextProps.conditionalFormats)) {
         this.dragAndDrop.cancel();
       }
+    });
+    onWillUnmount(() => {
+      this.env.model.dispatch("REMOVE_HIGHLIGHTS", { id: this.highlightId });
     });
   }
 
@@ -161,6 +166,22 @@ export class ConditionalFormatPreviewList extends Component<Props, SpreadsheetCh
       containerEl: this.cfListRef.el!,
       onDragEnd: (cfId: UID, finalIndex: number) => this.onDragEnd(cfId, finalIndex),
     });
+  }
+
+  onPreviewMouseEnter(cf: ConditionalFormat) {
+    const sheetId = this.env.model.getters.getActiveSheetId();
+
+    const highlights = cf.ranges.map((range) => ({
+      sheetId,
+      zone: this.env.model.getters.getRangeFromSheetXC(sheetId, range).zone,
+      color: LIGHT_HIGHLIGHT_COLOR,
+      noninteractive: true,
+    }));
+    this.env.model.dispatch("ADD_HIGHLIGHTS", { id: this.highlightId, highlights });
+  }
+
+  onPreviewMouseLeave() {
+    this.env.model.dispatch("REMOVE_HIGHLIGHTS", { id: this.highlightId });
   }
 
   private onDragEnd(cfId: UID, finalIndex: number) {

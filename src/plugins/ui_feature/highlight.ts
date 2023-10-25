@@ -1,5 +1,5 @@
 import { isEqual, zoneToDimension } from "../../helpers/index";
-import { GridRenderingContext, Highlight, LAYERS } from "../../types/index";
+import { Command, GridRenderingContext, Highlight, LAYERS, UID } from "../../types/index";
 import { UIPlugin } from "../ui_plugin";
 
 /**
@@ -9,14 +9,29 @@ export class HighlightPlugin extends UIPlugin {
   static layers = [LAYERS.Highlights];
   static getters = ["getHighlights"] as const;
 
+  private highlights: Record<UID, Highlight[]> = {};
+
+  handle(cmd: Command) {
+    switch (cmd.type) {
+      case "ADD_HIGHLIGHTS":
+        this.highlights[cmd.id] = cmd.highlights;
+        break;
+      case "REMOVE_HIGHLIGHTS":
+        delete this.highlights[cmd.id];
+        break;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Getters
   // ---------------------------------------------------------------------------
 
   getHighlights(): Highlight[] {
-    return this.prepareHighlights(
-      this.getters.getComposerHighlights().concat(this.getters.getSelectionInputHighlights())
-    );
+    return this.prepareHighlights([
+      ...Object.values(this.highlights).flat(),
+      ...this.getters.getComposerHighlights(),
+      ...this.getters.getSelectionInputHighlights(),
+    ]);
   }
 
   // ---------------------------------------------------------------------------

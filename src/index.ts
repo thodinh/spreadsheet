@@ -27,6 +27,7 @@ import {
   DEFAULT_CELL_WIDTH,
   HEADER_HEIGHT,
   HEADER_WIDTH,
+  LIGHT_HIGHLIGHT_COLOR,
   MIN_COL_WIDTH,
   MIN_ROW_HEIGHT,
   SCROLLBAR_WIDTH,
@@ -54,6 +55,7 @@ import {
   numberToLetters,
   parseMarkdownLink,
   positionToZone,
+  recomputeZones,
   rgbaToHex,
   toCartesian,
   toUnboundedZone,
@@ -216,6 +218,7 @@ export const helpers = {
   createAction,
   createActions,
   transformRangeData,
+  recomputeZones,
 };
 
 export const links = {
@@ -259,4 +262,5 @@ export function addFunction(functionName: string, functionDescription: AddFuncti
 
 export const constants = {
   DEFAULT_LOCALE,
+  LIGHT_HIGHLIGHT_COLOR,
 };

@@ -20,6 +20,7 @@ import {
   Color,
   Dimension,
   HeaderIndex,
+  Highlight,
   Pixel,
   SetDecimalStep,
   SortOptions,
@@ -1006,6 +1007,17 @@ export interface SplitTextIntoColumnsCommand {
   force?: boolean;
 }
 
+export interface AddHighlightsCommand {
+  type: "ADD_HIGHLIGHTS";
+  id: UID;
+  highlights: Highlight[];
+}
+
+export interface RemoveHighlightsCommand {
+  type: "REMOVE_HIGHLIGHTS";
+  id: UID;
+}
+
 export type CoreCommand =
   // /** History */
   // | SelectiveUndoCommand
@@ -1157,7 +1169,9 @@ export type LocalCommand =
   | UpdateFilterCommand
   | SplitTextIntoColumnsCommand
   | RemoveDuplicatesCommand
-  | TrimWhitespaceCommand;
+  | TrimWhitespaceCommand
+  | AddHighlightsCommand
+  | RemoveHighlightsCommand;
 
 export type Command = CoreCommand | LocalCommand;
 

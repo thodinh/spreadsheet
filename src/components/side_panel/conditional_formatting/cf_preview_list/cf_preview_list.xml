@@ -19,7 +19,9 @@
       t-att-style="getPreviewDivStyle(cf)"
       t-att-data-id="cf.id"
       t-on-click="(ev) => props.onPreviewClick(cf)"
-      t-on-mousedown="(ev) => this.onMouseDown(cf, ev)">
+      t-on-mousedown="(ev) => this.onMouseDown(cf, ev)"
+      t-on-mouseenter="() => this.onPreviewMouseEnter(cf)"
+      t-on-mouseleave="() => this.onPreviewMouseLeave(cf)">
       <div class="position-relative h-100 w-100 d-flex align-items-center">
         <div class="o-cf-drag-handle h-100 position-absolute d-flex align-items-center text-muted">
           <t t-call="o-spreadsheet-Icon.THIN_DRAG_HANDLE"/>

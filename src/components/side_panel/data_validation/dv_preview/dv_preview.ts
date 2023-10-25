@@ -1,5 +1,5 @@
-import { Component } from "@odoo/owl";
-import { FIGURE_BORDER_COLOR } from "../../../../constants";
+import { Component, onWillUnmount } from "@odoo/owl";
+import { FIGURE_BORDER_COLOR, LIGHT_HIGHLIGHT_COLOR } from "../../../../constants";
 import { dataValidationEvaluatorRegistry } from "../../../../registries/data_validation_registry";
 import { DataValidationRule, SpreadsheetChildEnv } from "../../../../types";
 import { css } from "../../../helpers";
@@ -38,9 +38,31 @@ interface Props {
 export class DataValidationPreview extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-DataValidationPreview";
 
+  private highlightId = this.env.model.uuidGenerator.uuidv4();
+
+  setup() {
+    onWillUnmount(() => {
+      this.env.model.dispatch("REMOVE_HIGHLIGHTS", { id: this.highlightId });
+    });
+  }
+
   deleteDataValidation() {
     const sheetId = this.env.model.getters.getActiveSheetId();
     this.env.model.dispatch("REMOVE_DATA_VALIDATION_RULE", { sheetId, id: this.props.rule.id });
+  }
+
+  onMouseEnter() {
+    const highlights = this.props.rule.ranges.map((range) => ({
+      sheetId: this.env.model.getters.getActiveSheetId(),
+      zone: range.zone,
+      color: LIGHT_HIGHLIGHT_COLOR,
+      noninteractive: true,
+    }));
+    this.env.model.dispatch("ADD_HIGHLIGHTS", { id: this.highlightId, highlights });
+  }
+
+  onMouseLeave() {
+    this.env.model.dispatch("REMOVE_HIGHLIGHTS", { id: this.highlightId });
   }
 
   get rangesString(): string {

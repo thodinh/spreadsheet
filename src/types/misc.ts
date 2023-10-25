@@ -226,6 +226,7 @@ export interface Highlight {
   zone: Zone;
   sheetId: UID;
   color: Color | null;
+  noninteractive?: boolean;
 }
 
 export interface PaneDivision {
