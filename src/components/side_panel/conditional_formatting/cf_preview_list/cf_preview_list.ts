@@ -1,10 +1,12 @@
 import { Component, onWillUnmount, onWillUpdateProps, useRef } from "@odoo/owl";
 import { LIGHT_HIGHLIGHT_COLOR } from "../../../../constants";
 import { colorNumberString, deepEquals } from "../../../../helpers";
+import { highlightRegistry } from "../../../../registries/highlight_registry";
 import { _t } from "../../../../translation";
 import {
   ColorScaleRule,
   ConditionalFormat,
+  Highlight,
   SingleColorRules,
   SpreadsheetChildEnv,
   UID,
@@ -91,16 +93,18 @@ export class ConditionalFormatPreviewList extends Component<Props, SpreadsheetCh
 
   private dragAndDrop = useDragAndDropListItems();
   private cfListRef = useRef("cfList");
-  private highlightId = this.env.model.uuidGenerator.uuidv4();
+  private hoveredCf: ConditionalFormat | undefined;
 
   setup() {
+    highlightRegistry.add("ConditionalFormatPreviewList", this.getHighlights.bind(this));
     onWillUpdateProps((nextProps: Props) => {
       if (!deepEquals(this.props.conditionalFormats, nextProps.conditionalFormats)) {
         this.dragAndDrop.cancel();
       }
     });
     onWillUnmount(() => {
-      this.env.model.dispatch("REMOVE_HIGHLIGHTS", { id: this.highlightId });
+      highlightRegistry.remove("ConditionalFormatPreviewList");
+      this.env.model.dispatch("RENDER_CANVAS");
     });
   }
 
@@ -169,19 +173,26 @@ export class ConditionalFormatPreviewList extends Component<Props, SpreadsheetCh
   }
 
   onPreviewMouseEnter(cf: ConditionalFormat) {
-    const sheetId = this.env.model.getters.getActiveSheetId();
+    this.hoveredCf = cf;
+    this.env.model.dispatch("RENDER_CANVAS");
+  }
 
-    const highlights = cf.ranges.map((range) => ({
+  onPreviewMouseLeave() {
+    this.hoveredCf = undefined;
+    this.env.model.dispatch("RENDER_CANVAS");
+  }
+
+  private getHighlights(): Highlight[] {
+    if (!this.hoveredCf) {
+      return [];
+    }
+    const sheetId = this.env.model.getters.getActiveSheetId();
+    return this.hoveredCf.ranges.map((range) => ({
       sheetId,
       zone: this.env.model.getters.getRangeFromSheetXC(sheetId, range).zone,
       color: LIGHT_HIGHLIGHT_COLOR,
       noninteractive: true,
     }));
-    this.env.model.dispatch("ADD_HIGHLIGHTS", { id: this.highlightId, highlights });
-  }
-
-  onPreviewMouseLeave() {
-    this.env.model.dispatch("REMOVE_HIGHLIGHTS", { id: this.highlightId });
   }
 
   private onDragEnd(cfId: UID, finalIndex: number) {

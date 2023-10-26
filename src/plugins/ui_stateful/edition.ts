@@ -20,6 +20,7 @@ import {
 } from "../../helpers/index";
 import { canonicalizeNumberContent, localizeFormula } from "../../helpers/locale";
 import { loopThroughReferenceType } from "../../helpers/reference_type";
+import { highlightRegistry } from "../../registries/highlight_registry";
 import { _t } from "../../translation";
 import {
   AddColumnsRowsCommand,
@@ -41,7 +42,7 @@ import {
   Zone,
 } from "../../types";
 import { SelectionEvent } from "../../types/event_stream";
-import { UIPlugin } from "../ui_plugin";
+import { UIPlugin, UIPluginConfig } from "../ui_plugin";
 
 export type EditionMode =
   | "editing"
@@ -64,7 +65,6 @@ export class EditionPlugin extends UIPlugin {
     "getComposerSelection",
     "getCurrentTokens",
     "getTokenAtCursor",
-    "getComposerHighlights",
     "getCurrentEditedCell",
     "getCycledReference",
     "getAutoCompleteDataValidationValues",
@@ -80,6 +80,11 @@ export class EditionPlugin extends UIPlugin {
   private selectionEnd: number = 0;
   private initialContent: string | undefined = "";
   private colorIndexByRange: { [xc: string]: number } = {};
+
+  constructor(args: UIPluginConfig) {
+    super(args);
+    highlightRegistry.add("composer", this.getComposerHighlights.bind(this));
+  }
 
   // ---------------------------------------------------------------------------
   // Command Handling
@@ -705,7 +710,7 @@ export class EditionPlugin extends UIPlugin {
   /**
    * Highlight all ranges that can be found in the composer content.
    */
-  getComposerHighlights(): Highlight[] {
+  private getComposerHighlights(): Highlight[] {
     if (!this.currentContent.startsWith("=") || this.mode === "inactive") {
       return [];
     }

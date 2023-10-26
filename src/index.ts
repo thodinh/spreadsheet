@@ -27,7 +27,6 @@ import {
   DEFAULT_CELL_WIDTH,
   HEADER_HEIGHT,
   HEADER_WIDTH,
-  LIGHT_HIGHLIGHT_COLOR,
   MIN_COL_WIDTH,
   MIN_ROW_HEIGHT,
   SCROLLBAR_WIDTH,
@@ -46,6 +45,7 @@ import {
   colorToRGBA,
   computeTextWidth,
   createCurrencyFormat,
+  deepEquals,
   formatValue,
   isDefined,
   isMarkdownLink,
@@ -53,14 +53,15 @@ import {
   lettersToNumber,
   markdownLink,
   numberToLetters,
+  overlap,
   parseMarkdownLink,
   positionToZone,
-  recomputeZones,
   rgbaToHex,
   toCartesian,
   toUnboundedZone,
   toXC,
   toZone,
+  union,
 } from "./helpers/index";
 import { openLink, urlRegistry, urlRepresentation } from "./helpers/links";
 import {
@@ -218,7 +219,9 @@ export const helpers = {
   createAction,
   createActions,
   transformRangeData,
-  recomputeZones,
+  deepEquals,
+  overlap,
+  union,
 };
 
 export const links = {
@@ -262,5 +265,4 @@ export function addFunction(functionName: string, functionDescription: AddFuncti
 
 export const constants = {
   DEFAULT_LOCALE,
-  LIGHT_HIGHLIGHT_COLOR,
 };

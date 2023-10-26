@@ -1,7 +1,8 @@
 import { Component, onWillUnmount } from "@odoo/owl";
 import { FIGURE_BORDER_COLOR, LIGHT_HIGHLIGHT_COLOR } from "../../../../constants";
 import { dataValidationEvaluatorRegistry } from "../../../../registries/data_validation_registry";
-import { DataValidationRule, SpreadsheetChildEnv } from "../../../../types";
+import { highlightRegistry } from "../../../../registries/highlight_registry";
+import { DataValidationRule, Highlight, SpreadsheetChildEnv } from "../../../../types";
 import { css } from "../../../helpers";
 
 css/* scss */ `
@@ -38,11 +39,14 @@ interface Props {
 export class DataValidationPreview extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-DataValidationPreview";
 
-  private highlightId = this.env.model.uuidGenerator.uuidv4();
+  private isHovered: boolean = false;
 
   setup() {
+    const id = this.props.rule.id;
+    highlightRegistry.add(id, this.getHighlights.bind(this));
     onWillUnmount(() => {
-      this.env.model.dispatch("REMOVE_HIGHLIGHTS", { id: this.highlightId });
+      highlightRegistry.remove(id);
+      this.env.model.dispatch("RENDER_CANVAS");
     });
   }
 
@@ -52,17 +56,25 @@ export class DataValidationPreview extends Component<Props, SpreadsheetChildEnv>
   }
 
   onMouseEnter() {
-    const highlights = this.props.rule.ranges.map((range) => ({
+    this.isHovered = true;
+    this.env.model.dispatch("RENDER_CANVAS");
+  }
+
+  onMouseLeave() {
+    this.isHovered = false;
+    this.env.model.dispatch("RENDER_CANVAS");
+  }
+
+  private getHighlights(): Highlight[] {
+    if (!this.isHovered) {
+      return [];
+    }
+    return this.props.rule.ranges.map((range) => ({
       sheetId: this.env.model.getters.getActiveSheetId(),
       zone: range.zone,
       color: LIGHT_HIGHLIGHT_COLOR,
       noninteractive: true,
     }));
-    this.env.model.dispatch("ADD_HIGHLIGHTS", { id: this.highlightId, highlights });
-  }
-
-  onMouseLeave() {
-    this.env.model.dispatch("REMOVE_HIGHLIGHTS", { id: this.highlightId });
   }
 
   get rangesString(): string {
