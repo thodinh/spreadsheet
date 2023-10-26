@@ -1,4 +1,11 @@
-import { Component, onWillUpdateProps, useExternalListener, useRef, useState } from "@odoo/owl";
+import {
+  Component,
+  onWillUnmount,
+  onWillUpdateProps,
+  useExternalListener,
+  useRef,
+  useState,
+} from "@odoo/owl";
 import { Action } from "../../actions/action";
 import {
   BG_HOVER_COLOR,
@@ -111,6 +118,8 @@ export class Menu extends Component<Props, SpreadsheetChildEnv> {
     menuItems: [],
   });
   private menuRef = useRef("menu");
+  private hoveredMenu: Action | undefined = undefined;
+
   private position: DOMCoordinates = useAbsoluteBoundingRect(this.menuRef);
 
   setup() {
@@ -120,6 +129,9 @@ export class Menu extends Component<Props, SpreadsheetChildEnv> {
       if (nextProps.menuItems !== this.props.menuItems) {
         this.closeSubMenu();
       }
+    });
+    onWillUnmount(() => {
+      this.hoveredMenu?.onStopHover?.(this.env);
     });
   }
 
@@ -232,7 +244,7 @@ export class Menu extends Component<Props, SpreadsheetChildEnv> {
    * If the given menu is not disabled, open it's submenu at the
    * correct position according to available surrounding space.
    */
-  openSubMenu(menu: Action, menuIndex: number, ev: MouseEvent) {
+  openSubMenu(menu: Action, ev: MouseEvent) {
     const parentMenuEl = ev.currentTarget as HTMLElement;
     if (!parentMenuEl) return;
     const y = parentMenuEl.getBoundingClientRect().top;
@@ -255,24 +267,31 @@ export class Menu extends Component<Props, SpreadsheetChildEnv> {
     this.subMenu.parentMenu = undefined;
   }
 
-  onClickMenu(menu: Action, menuIndex: number, ev: MouseEvent) {
+  onClickMenu(menu: Action, ev: MouseEvent) {
     if (this.isEnabled(menu)) {
       if (this.isRoot(menu)) {
-        this.openSubMenu(menu, menuIndex, ev);
+        this.openSubMenu(menu, ev);
       } else {
         this.activateMenu(menu);
       }
     }
   }
 
-  onMouseOver(menu: Action, position: Pixel, ev: MouseEvent) {
+  onMouseEnter(menu: Action, ev: MouseEvent) {
+    this.hoveredMenu = menu;
+    menu.onStartHover?.(this.env);
     if (this.isEnabled(menu)) {
       if (this.isRoot(menu)) {
-        this.openSubMenu(menu, position, ev);
+        this.openSubMenu(menu, ev);
       } else {
         this.closeSubMenu();
       }
     }
+  }
+
+  onMouseLeave(menu: Action) {
+    this.hoveredMenu = undefined;
+    menu.onStopHover?.(this.env);
   }
 }
 

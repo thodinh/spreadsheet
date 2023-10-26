@@ -7,6 +7,7 @@ import { ChartFigure } from "./components/figures/figure_chart/figure_chart";
 import { Grid } from "./components/grid/grid";
 import { GridOverlay } from "./components/grid_overlay/grid_overlay";
 import { useDragAndDropListItems } from "./components/helpers/drag_and_drop_hook";
+import { useHighlights, useHighlightsOnHover } from "./components/helpers/highlight_hook";
 import { Menu } from "./components/menu/menu";
 import { SelectionInput } from "./components/selection_input/selection_input";
 import {
@@ -27,6 +28,7 @@ import {
   DEFAULT_CELL_WIDTH,
   HEADER_HEIGHT,
   HEADER_WIDTH,
+  HIGHLIGHT_COLOR,
   MIN_COL_WIDTH,
   MIN_ROW_HEIGHT,
   SCROLLBAR_WIDTH,
@@ -45,6 +47,7 @@ import {
   colorToRGBA,
   computeTextWidth,
   createCurrencyFormat,
+  deepEquals,
   formatValue,
   isDefined,
   isMarkdownLink,
@@ -52,6 +55,7 @@ import {
   lettersToNumber,
   markdownLink,
   numberToLetters,
+  overlap,
   parseMarkdownLink,
   positionToZone,
   rgbaToHex,
@@ -59,6 +63,7 @@ import {
   toUnboundedZone,
   toXC,
   toZone,
+  union,
 } from "./helpers/index";
 import { openLink, urlRegistry, urlRepresentation } from "./helpers/links";
 import {
@@ -73,6 +78,7 @@ import {
   statefulUIPluginRegistry,
 } from "./plugins/index";
 import { clickableCellRegistry } from "./registries/cell_clickable_registry";
+import { highlightRegistry } from "./registries/highlight_registry";
 import {
   autofillModifiersRegistry,
   autofillRulesRegistry,
@@ -187,6 +193,7 @@ export const registries = {
   numberFormatMenuRegistry,
   repeatLocalCommandTransformRegistry,
   repeatCommandTransformRegistry,
+  highlightRegistry,
 };
 export const helpers = {
   arg,
@@ -222,6 +229,9 @@ export const helpers = {
   createAction,
   createActions,
   transformRangeData,
+  deepEquals,
+  overlap,
+  union,
 };
 
 export const links = {
@@ -253,6 +263,8 @@ export const components = {
 
 export const hooks = {
   useDragAndDropListItems,
+  useHighlights,
+  useHighlightsOnHover,
 };
 
 export function addFunction(functionName: string, functionDescription: AddFunctionDescription) {
@@ -265,4 +277,5 @@ export function addFunction(functionName: string, functionDescription: AddFuncti
 
 export const constants = {
   DEFAULT_LOCALE,
+  HIGHLIGHT_COLOR,
 };

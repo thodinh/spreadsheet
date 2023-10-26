@@ -57,6 +57,8 @@ export interface ActionSpec {
    */
   separator?: boolean;
   textColor?: Color;
+  onStartHover?: (env: SpreadsheetChildEnv) => void;
+  onStopHover?: (env: SpreadsheetChildEnv) => void;
 }
 
 export interface Action {
@@ -73,6 +75,8 @@ export interface Action {
   children: (env: SpreadsheetChildEnv) => Action[];
   separator: boolean;
   textColor?: Color;
+  onStartHover?: (env: SpreadsheetChildEnv) => void;
+  onStopHover?: (env: SpreadsheetChildEnv) => void;
 }
 
 export type ActionBuilder = (env: SpreadsheetChildEnv) => ActionSpec[];
@@ -110,5 +114,7 @@ export function createAction(item: ActionSpec): Action {
     description: typeof description === "function" ? description : () => description || "",
     textColor: item.textColor,
     sequence: item.sequence || 0,
+    onStartHover: item.onStartHover,
+    onStopHover: item.onStopHover,
   };
 }
