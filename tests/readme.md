@@ -28,3 +28,9 @@ tests/
 │  ├─ find_and_replace_component.test.ts
 ├─ readme.md
 ```
+
+## Owl Templates
+
+In an effort to run the tests faster, we pre-compile the owl templates before running the tests. This is done by running the `compileOwlTemplates` script in the `package.json` file. This script will compile all the owl templates in the `src` folder into the `tools/owl_templates/_compiled/owl_compiled_templates.cjs` file.
+
+We base ourselves on the parent process id to determine whether or not we should recompile the templates when running the tests. This isn't perfect as on some OS there might be pid recycling. We judged that the occasional inconvenience of having to sometimes delete the compiled templates/re-lanching the tests was worth the speed gain.
