@@ -28,3 +28,15 @@ tests/
 │  ├─ find_and_replace_component.test.ts
 ├─ readme.md
 ```
+
+## Owl Templates
+
+In an effort to run the tests faster, we pre-compile the owl templates before running the tests. This is done by running the `compileOwlTemplates` script in the `package.json` file. This script will compile all the owl templates in the `src` folder into the `tools/owl_templates/_compiled/owl_compiled_templates.cjs` file.
+
+### JestRunner
+
+Add this to your settings.json to compile the owl templates before running a test:
+
+```json
+"jestrunner.jestCommand": "npm run compileOwlTemplates; node node_modules/jest/bin/jest.js
+```
