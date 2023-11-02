@@ -73,12 +73,13 @@ function writeTemplatesToFile() {
 }
 
 function getCompiledTemplates() {
-  if (!fs.existsSync(TEMPLATE_FILE_PATH)) {
-    const templates = compileTemplates();
-    return templates;
-  }
-  const { templates } = require(TEMPLATE_FILE_PATH);
-  return templates;
+  return compileTemplates();
+  // if (!fs.existsSync(TEMPLATE_FILE_PATH)) {
+  //   const templates = compileTemplates();
+  //   return templates;
+  // }
+  // const { templates } = require(TEMPLATE_FILE_PATH);
+  // return templates;
 }
 
 exports.writeTemplatesToFile = writeTemplatesToFile;
