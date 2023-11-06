@@ -6,7 +6,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
 >
   
   <div
-    class="o-menu-item d-flex align-items-center"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="cut"
     title="Cut"
   >
@@ -43,7 +43,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   </div>
   
   <div
-    class="o-menu-item d-flex align-items-center"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="copy"
     title="Copy"
   >
@@ -80,7 +80,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   </div>
   
   <div
-    class="o-menu-item d-flex align-items-center"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="paste"
     title="Paste"
   >
@@ -117,7 +117,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   </div>
   
   <div
-    class="o-menu-item d-flex align-items-center o-menu-root"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="paste_special"
     title="Paste special"
   >
@@ -171,7 +171,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   
   
   <div
-    class="o-menu-item d-flex align-items-center"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="add_row_before"
     title="Insert row"
   >
@@ -203,7 +203,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   </div>
   
   <div
-    class="o-menu-item d-flex align-items-center"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="add_column_before"
     title="Insert column"
   >
@@ -235,7 +235,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   </div>
   
   <div
-    class="o-menu-item d-flex align-items-center o-menu-root"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="insert_cell"
     title="Insert cells"
   >
@@ -289,7 +289,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   
   
   <div
-    class="o-menu-item d-flex align-items-center"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="delete_row"
     title="Delete row 8"
   >
@@ -321,7 +321,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   </div>
   
   <div
-    class="o-menu-item d-flex align-items-center"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="delete_column"
     title="Delete column C"
   >
@@ -353,7 +353,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   </div>
   
   <div
-    class="o-menu-item d-flex align-items-center o-menu-root"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="delete_cell"
     title="Delete cells"
   >
@@ -407,7 +407,7 @@ exports[`Context Menu integration tests context menu simple rendering 1`] = `
   
   
   <div
-    class="o-menu-item d-flex align-items-center"
+    class="o-menu-item d-flex justify-content-between align-items-center"
     data-name="insert_link"
     title="Insert link"
   >

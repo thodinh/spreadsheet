@@ -14,6 +14,7 @@ import { DOMCoordinates, MenuMouseEvent, Pixel, SpreadsheetChildEnv, UID } from 
 import { css } from "../helpers/css";
 import { getOpenedMenus, isChildEvent } from "../helpers/dom_helpers";
 import { useAbsoluteBoundingRect } from "../helpers/position_hook";
+import { useTimeOut } from "../helpers/time_hooks";
 import { Popover, PopoverProps } from "../popover/popover";
 
 //------------------------------------------------------------------------------
@@ -70,6 +71,8 @@ css/* scss */ `
 
 type MenuItemOrSeparator = Action | "separator";
 
+const TIMEOUT_DELAY = 250;
+
 interface Props {
   position: DOMCoordinates;
   menuItems: Action[];
@@ -86,7 +89,9 @@ export interface MenuState {
   position: null | DOMCoordinates;
   scrollOffset?: Pixel;
   menuItems: Action[];
+  hoveredMenuItem?: Action;
 }
+
 export class Menu extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-Menu";
 
@@ -102,6 +107,8 @@ export class Menu extends Component<Props, SpreadsheetChildEnv> {
   });
   private menuRef = useRef("menu");
   private position: DOMCoordinates = useAbsoluteBoundingRect(this.menuRef);
+
+  private openingTimeOut = useTimeOut();
 
   setup() {
     useExternalListener(window, "click", this.onExternalClick, { capture: true });
@@ -214,6 +221,10 @@ export class Menu extends Component<Props, SpreadsheetChildEnv> {
     return false;
   }
 
+  isActive(menuItem: Action): boolean {
+    return !this.subMenu.hoveredMenuItem && this.isParentMenu(this.subMenu, menuItem);
+  }
+
   onScroll(ev) {
     this.subMenu.scrollOffset = ev.target.scrollTop;
   }
@@ -222,9 +233,10 @@ export class Menu extends Component<Props, SpreadsheetChildEnv> {
    * If the given menu is not disabled, open it's submenu at the
    * correct position according to available surrounding space.
    */
-  openSubMenu(menu: Action, menuIndex: number, ev: MouseEvent) {
-    const parentMenuEl = ev.currentTarget as HTMLElement;
-    if (!parentMenuEl) return;
+  private openSubMenu(menu: Action, parentMenuEl: HTMLElement) {
+    if (!parentMenuEl) {
+      return;
+    }
     const y = parentMenuEl.getBoundingClientRect().top;
 
     this.subMenu.position = {
@@ -240,29 +252,42 @@ export class Menu extends Component<Props, SpreadsheetChildEnv> {
     return subMenu.parentMenu?.id === menuItem.id;
   }
 
-  closeSubMenu() {
+  private closeSubMenu() {
     this.subMenu.isOpen = false;
     this.subMenu.parentMenu = undefined;
   }
 
-  onClickMenu(menu: Action, menuIndex: number, ev: MouseEvent) {
+  onClickMenu(menu: Action, ev: MouseEvent) {
     if (this.isEnabled(menu)) {
       if (this.isRoot(menu)) {
-        this.openSubMenu(menu, menuIndex, ev);
+        this.openSubMenu(menu, ev.currentTarget as HTMLElement);
       } else {
         this.activateMenu(menu);
       }
     }
   }
 
-  onMouseOver(menu: Action, position: Pixel, ev: MouseEvent) {
+  onMouseOver(menu: Action, ev: MouseEvent) {
+    this.subMenu.hoveredMenuItem = menu;
     if (this.isEnabled(menu)) {
+      if (this.isParentMenu(this.subMenu, menu)) {
+        return;
+      }
+      const currentTarget = ev.currentTarget as HTMLElement;
+      this.openingTimeOut.clear();
       if (this.isRoot(menu)) {
-        this.openSubMenu(menu, position, ev);
+        this.openingTimeOut.schedule(() => {
+          this.openSubMenu(menu, currentTarget);
+        }, TIMEOUT_DELAY);
       } else {
-        this.closeSubMenu();
+        this.openingTimeOut.schedule(this.closeSubMenu.bind(this), TIMEOUT_DELAY);
       }
     }
+  }
+
+  onMouseLeave() {
+    this.subMenu.hoveredMenuItem = undefined;
+    this.openingTimeOut.clear();
   }
 }
 
