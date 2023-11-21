@@ -90,7 +90,7 @@ abstract class AbstractResizer extends Component<ResizerProps, SpreadsheetChildE
 
   abstract _moveElements(): void;
 
-  abstract _selectElement(index: HeaderIndex, ctrlKey: boolean): void;
+  abstract _selectElement(index: HeaderIndex, addDistinctHeader: boolean): void;
 
   abstract _increaseSelection(index: HeaderIndex): void;
 
@@ -443,8 +443,11 @@ export class ColResizer extends AbstractResizer {
     }
   }
 
-  _selectElement(index: HeaderIndex, ctrlKey: boolean): void {
-    this.env.model.selection.selectColumn(index, ctrlKey ? "newAnchor" : "overrideSelection");
+  _selectElement(index: HeaderIndex, addDistinctHeader: boolean): void {
+    this.env.model.selection.selectColumn(
+      index,
+      addDistinctHeader ? "newAnchor" : "overrideSelection"
+    );
   }
 
   _increaseSelection(index: HeaderIndex): void {
@@ -640,8 +643,11 @@ export class RowResizer extends AbstractResizer {
     }
   }
 
-  _selectElement(index: HeaderIndex, ctrlKey: boolean): void {
-    this.env.model.selection.selectRow(index, ctrlKey ? "newAnchor" : "overrideSelection");
+  _selectElement(index: HeaderIndex, addDistinctHeader: boolean): void {
+    this.env.model.selection.selectRow(
+      index,
+      addDistinctHeader ? "newAnchor" : "overrideSelection"
+    );
   }
 
   _increaseSelection(index: HeaderIndex): void {
