@@ -37,6 +37,10 @@ interface State {
 
 export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-DataValidationEditor";
+  static props = {
+    rule: { type: Object, optional: true },
+    onExit: "*" as const,
+  };
   static components = { SelectionInput, SelectMenu };
 
   state = useState<State>({ rule: this.defaultDataValidationRule });
@@ -132,8 +136,3 @@ export class DataValidationEditor extends Component<Props, SpreadsheetChildEnv> 
     return dataValidationPanelCriteriaRegistry.get(this.state.rule.criterion.type).component;
   }
 }
-
-DataValidationEditor.props = {
-  rule: { type: Object, optional: true },
-  onExit: Function,
-};

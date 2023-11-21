@@ -46,6 +46,9 @@ interface ResizerProps {
 }
 
 abstract class AbstractResizer extends Component<ResizerProps, SpreadsheetChildEnv> {
+  static props = {
+    onOpenContextMenu: "*" as const,
+  };
   PADDING: number = 0;
   MAX_SIZE_MARGIN: number = 0;
   MIN_ELEMENT_SIZE: number = 0;
@@ -353,11 +356,11 @@ css/* scss */ `
   }
 `;
 
-AbstractResizer.props = {
-  onOpenContextMenu: Function,
-};
-
 export class ColResizer extends AbstractResizer {
+  static props = {
+    onOpenContextMenu: "*" as const,
+  };
+
   static template = "o-spreadsheet-ColResizer";
 
   private colResizerRef!: Ref<HTMLElement>;
@@ -554,11 +557,10 @@ css/* scss */ `
   }
 `;
 
-ColResizer.props = {
-  onOpenContextMenu: Function,
-};
-
 export class RowResizer extends AbstractResizer {
+  static props = {
+    onOpenContextMenu: "*" as const,
+  };
   static template = "o-spreadsheet-RowResizer";
 
   setup() {
@@ -705,11 +707,10 @@ css/* scss */ `
   }
 `;
 
-RowResizer.props = {
-  onOpenContextMenu: Function,
-};
-
 export class HeadersOverlay extends Component<any, SpreadsheetChildEnv> {
+  static props = {
+    onOpenContextMenu: "*" as const,
+  };
   static template = "o-spreadsheet-HeadersOverlay";
   static components = { ColResizer, RowResizer };
 
@@ -717,7 +718,3 @@ export class HeadersOverlay extends Component<any, SpreadsheetChildEnv> {
     this.env.model.selection.selectAll();
   }
 }
-
-HeadersOverlay.props = {
-  onOpenContextMenu: Function,
-};

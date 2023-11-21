@@ -99,6 +99,15 @@ export interface MenuState {
 }
 export class Menu extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-Menu";
+  static props = {
+    position: Object,
+    menuItems: Array,
+    depth: { type: Number, optional: true },
+    maxHeight: { type: Number, optional: true },
+    onClose: "*" as const,
+    onMenuClicked: { type: "*" as const, optional: true },
+    menuId: { type: String, optional: true },
+  };
 
   static components = { Menu, Popover };
   static defaultProps = {
@@ -275,13 +284,3 @@ export class Menu extends Component<Props, SpreadsheetChildEnv> {
     }
   }
 }
-
-Menu.props = {
-  position: Object,
-  menuItems: Array,
-  depth: { type: Number, optional: true },
-  maxHeight: { type: Number, optional: true },
-  onClose: Function,
-  onMenuClicked: { type: Function, optional: true },
-  menuId: { type: String, optional: true },
-};

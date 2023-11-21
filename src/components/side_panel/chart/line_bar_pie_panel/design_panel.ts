@@ -25,6 +25,12 @@ interface State {
 
 export class LineBarPieDesignPanel extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-LineBarPieDesignPanel";
+  static props = {
+    figureId: String,
+    definition: Object,
+    updateChart: "*" as const,
+    canUpdateChart: "*" as const,
+  };
   static components = { ColorPickerWidget };
 
   private state: State = useState({
@@ -63,10 +69,3 @@ export class LineBarPieDesignPanel extends Component<Props, SpreadsheetChildEnv>
     });
   }
 }
-
-LineBarPieDesignPanel.props = {
-  figureId: String,
-  definition: Object,
-  updateChart: Function,
-  canUpdateChart: Function,
-};

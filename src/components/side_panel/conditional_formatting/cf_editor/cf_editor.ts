@@ -223,6 +223,10 @@ interface State {
 
 export class ConditionalFormattingEditor extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-ConditionalFormattingEditor";
+  static props = {
+    editedCf: { type: Object, optional: true },
+    onExitEdition: "*" as const,
+  };
   static components = {
     SelectionInput,
     IconPicker,
@@ -538,8 +542,3 @@ export class ConditionalFormattingEditor extends Component<Props, SpreadsheetChi
     this.state.rules.iconSet.icons[target] = icon;
   }
 }
-
-ConditionalFormattingEditor.props = {
-  editedCf: { type: Object, optional: true },
-  onExitEdition: Function,
-};

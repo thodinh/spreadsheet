@@ -68,6 +68,12 @@ interface PanelState {
 
 export class GaugeChartDesignPanel extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-GaugeChartDesignPanel";
+  static props = {
+    figureId: String,
+    definition: Object,
+    updateChart: "*" as const,
+    canUpdateChart: "*" as const,
+  };
   static components = { ColorPickerWidget, ValidationMessages };
 
   private state: PanelState = useState({
@@ -179,10 +185,3 @@ export class GaugeChartDesignPanel extends Component<Props, SpreadsheetChildEnv>
     this.state.openedMenu = undefined;
   }
 }
-
-GaugeChartDesignPanel.props = {
-  figureId: String,
-  definition: Object,
-  updateChart: Function,
-  canUpdateChart: Function,
-};

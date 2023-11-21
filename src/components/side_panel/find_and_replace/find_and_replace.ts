@@ -39,6 +39,9 @@ interface FindAndReplaceState {
 
 export class FindAndReplacePanel extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-FindAndReplacePanel";
+  static props = {
+    onCloseSidePanel: "*" as const,
+  };
   private state: FindAndReplaceState = useState(this.initialState());
   private debounceTimeoutId;
   private showFormulaState: boolean = false;
@@ -150,7 +153,3 @@ export class FindAndReplacePanel extends Component<Props, SpreadsheetChildEnv> {
     };
   }
 }
-
-FindAndReplacePanel.props = {
-  onCloseSidePanel: Function,
-};

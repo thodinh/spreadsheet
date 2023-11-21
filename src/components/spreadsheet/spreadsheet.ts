@@ -244,6 +244,9 @@ interface ComposerState {
 
 export class Spreadsheet extends Component<SpreadsheetProps, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-Spreadsheet";
+  static props = {
+    model: Object,
+  };
   static components = {
     TopBar,
     Grid,
@@ -483,7 +486,3 @@ export class Spreadsheet extends Component<SpreadsheetProps, SpreadsheetChildEnv
     return this.env.model.getters.getVisibleGroupLayers(sheetId, "COL");
   }
 }
-
-Spreadsheet.props = {
-  model: Object,
-};

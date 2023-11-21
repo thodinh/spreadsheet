@@ -29,6 +29,12 @@ interface ChartPanelState {
 
 export class LineBarPieConfigPanel extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-LineBarPieConfigPanel";
+  static props = {
+    figureId: String,
+    definition: Object,
+    updateChart: "*" as const,
+    canUpdateChart: "*" as const,
+  };
   static components = { SelectionInput, ValidationMessages };
 
   private state: ChartPanelState = useState({
@@ -138,10 +144,3 @@ export class LineBarPieConfigPanel extends Component<Props, SpreadsheetChildEnv>
     return undefined;
   }
 }
-
-LineBarPieConfigPanel.props = {
-  figureId: String,
-  definition: Object,
-  updateChart: Function,
-  canUpdateChart: Function,
-};

@@ -111,6 +111,13 @@ interface Props {
 // -----------------------------------------------------------------------------
 export class Grid extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-Grid";
+  static props = {
+    sidePanelIsOpen: Boolean,
+    exposeFocus: "*" as const,
+    focusComposer: String,
+    onComposerContentFocused: "*" as const,
+    onGridComposerCellFocused: "*" as const,
+  };
   static components = {
     GridComposer,
     GridOverlay,
@@ -773,11 +780,3 @@ export class Grid extends Component<Props, SpreadsheetChildEnv> {
     }
   }
 }
-
-Grid.props = {
-  sidePanelIsOpen: Boolean,
-  exposeFocus: Function,
-  focusComposer: String,
-  onComposerContentFocused: Function,
-  onGridComposerCellFocused: Function,
-};

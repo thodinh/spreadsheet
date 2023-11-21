@@ -19,6 +19,12 @@ interface PanelState {
 
 export class ScorecardChartConfigPanel extends Component<Props, SpreadsheetChildEnv> {
   static template = "o-spreadsheet-ScorecardChartConfigPanel";
+  static props = {
+    figureId: String,
+    definition: Object,
+    updateChart: "*" as const,
+    canUpdateChart: "*" as const,
+  };
   static components = { SelectionInput, ValidationMessages };
 
   private state: PanelState = useState({
@@ -89,10 +95,3 @@ export class ScorecardChartConfigPanel extends Component<Props, SpreadsheetChild
     this.props.updateChart(this.props.figureId, { baselineMode: ev.target.value });
   }
 }
-
-ScorecardChartConfigPanel.props = {
-  figureId: String,
-  definition: Object,
-  updateChart: Function,
-  canUpdateChart: Function,
-};
