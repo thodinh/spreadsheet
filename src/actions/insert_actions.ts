@@ -1,5 +1,5 @@
 import { functionRegistry } from "../functions";
-import { isDefined } from "../helpers";
+import { isDefined, toXC } from "../helpers";
 import { handlePasteResult } from "../helpers/ui/paste_interactive";
 import { _t } from "../translation";
 import { ActionBuilder, ActionSpec } from "./action";
@@ -246,6 +246,26 @@ export const insertLink: ActionSpec = {
   name: _t("Link"),
   execute: ACTIONS.INSERT_LINK,
   icon: "o-spreadsheet-Icon.INSERT_LINK",
+};
+
+export const insertCheckbox: ActionSpec = {
+  name: _t("Checkbox"),
+  execute: (env) => {
+    const { sheetId, col, row } = env.model.getters.getActivePosition();
+    const ranges = [env.model.getters.getRangeDataFromXc(sheetId, toXC(col, row))];
+    env.model.dispatch("ADD_DATA_VALIDATION_RULE", {
+      ranges,
+      sheetId,
+      rule: {
+        id: env.model.uuidGenerator.uuidv4(),
+        criterion: {
+          type: "isBoolean",
+          values: [],
+        },
+      },
+    });
+  },
+  icon: "o-spreadsheet-Icon.INSERT_CHECKBOX",
 };
 
 export const insertSheet: ActionSpec = {

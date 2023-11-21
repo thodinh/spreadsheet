@@ -4,6 +4,7 @@ import {
   getCellPositionsInRanges,
   isInside,
   recomputeZones,
+  toXC,
 } from "../../helpers";
 import { dataValidationEvaluatorRegistry } from "../../registries/data_validation_registry";
 import {
@@ -122,6 +123,24 @@ export class DataValidationPlugin
         this.addDataValidationRule(cmd.sheetId, { ...cmd.rule, ranges });
         break;
       }
+      case "DELETE_CONTENT": {
+        const zones = cmd.target;
+        const sheetId = cmd.sheetId;
+        for (const zone of zones) {
+          for (let row = zone.top; row <= zone.bottom; row++) {
+            for (let col = zone.left; col <= zone.right; col++) {
+              const dataValidation = this.getValidationRuleForCell({ sheetId, col, row });
+              if (!dataValidation || dataValidation.criterion.type !== "isBoolean") {
+                continue;
+              }
+              const rules = this.rules[sheetId];
+              const ranges = [this.getters.getRangeFromSheetXC(sheetId, toXC(col, row))];
+              const adaptedRules = this.removeRangesFromRules(sheetId, ranges, rules);
+              this.history.update("rules", sheetId, adaptedRules);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -161,7 +180,7 @@ export class DataValidationPlugin
     const rules = this.rules[sheetId];
 
     if (newRule.criterion.type === "isBoolean") {
-      this.setCenterStyleToBooleanCells(newRule);
+      this.setStyleAndContentToBooleanCells(newRule);
     }
     const adaptedRules = this.removeRangesFromRules(sheetId, newRule.ranges, rules);
     const ruleIndex = adaptedRules.findIndex((rule) => rule.id === newRule.id);
@@ -192,7 +211,7 @@ export class DataValidationPlugin
     this.history.update("rules", sheetId, newRules);
   }
 
-  private setCenterStyleToBooleanCells(rule: DataValidationRule) {
+  private setStyleAndContentToBooleanCells(rule: DataValidationRule) {
     for (const position of getCellPositionsInRanges(rule.ranges)) {
       const cell = this.getters.getCell(position);
       const { sheetId, col, row } = position;
@@ -201,7 +220,7 @@ export class DataValidationPlugin
         align: cell?.style?.align ?? "center",
         verticalAlign: cell?.style?.verticalAlign ?? "middle",
       };
-      this.dispatch("UPDATE_CELL", { sheetId, col, row, style });
+      this.dispatch("UPDATE_CELL", { sheetId, col, row, style, content: "FALSE" });
     }
   }
 

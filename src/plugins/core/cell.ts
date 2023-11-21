@@ -129,7 +129,6 @@ export class CellPlugin extends CorePlugin<CoreState> implements CoreState {
       case "UPDATE_CELL":
         this.updateCell(cmd.sheetId, cmd.col, cmd.row, cmd);
         break;
-
       case "CLEAR_CELL":
         this.dispatch("UPDATE_CELL", {
           sheetId: cmd.sheetId,

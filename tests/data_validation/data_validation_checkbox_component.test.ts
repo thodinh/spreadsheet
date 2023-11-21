@@ -1,5 +1,10 @@
 import { Model } from "../../src";
-import { addDataValidation, setCellContent, setStyle } from "../test_helpers/commands_helpers";
+import {
+  addDataValidation,
+  deleteContent,
+  setCellContent,
+  setStyle,
+} from "../test_helpers/commands_helpers";
 import { getStyle } from "../test_helpers/getters_helpers";
 import { MockGridRenderingContext } from "../test_helpers/renderer_helpers";
 
@@ -26,6 +31,24 @@ describe("Checkbox in model", () => {
       align: "center",
       verticalAlign: "middle",
     });
+  });
+
+  test("Checkbox are removed when clearing the content of the cell", () => {
+    addDataValidation(model, "A1", "id", { type: "isBoolean", values: [] });
+    expect(model.getters.getDataValidationCheckBoxCellPositions()).toEqual([
+      { sheetId: model.getters.getActiveSheetId(), col: 0, row: 0 },
+    ]);
+    deleteContent(model, ["A1"]);
+    expect(model.getters.getDataValidationCheckBoxCellPositions()).toHaveLength(0);
+  });
+
+  test("Checkbox are kept when emptying the content of the cell", () => {
+    addDataValidation(model, "A1", "id", { type: "isBoolean", values: [] });
+    expect(model.getters.getDataValidationCheckBoxCellPositions()).toEqual([
+      { sheetId: model.getters.getActiveSheetId(), col: 0, row: 0 },
+    ]);
+    setCellContent(model, "A1", "");
+    expect(model.getters.getDataValidationCheckBoxCellPositions()).toHaveLength(1);
   });
 
   describe("renderer", () => {

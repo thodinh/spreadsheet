@@ -627,6 +627,10 @@ export class ClipboardCellsState extends ClipboardCellsAbstractState {
   private pasteDataValidation(origin: CellPosition, target: CellPosition) {
     const rule = this.getters.getValidationRuleForCell(origin);
     if (!rule) {
+      const targetRul = this.getters.getValidationRuleForCell(target);
+      if (targetRul) {
+        this.adaptDataValidationRule(target.sheetId, targetRul, [], [toXC(target.col, target.row)]);
+      }
       return;
     }
     const xc = toXC(target.col, target.row);

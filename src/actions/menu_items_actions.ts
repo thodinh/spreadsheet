@@ -436,7 +436,7 @@ export const OPEN_CF_SIDEPANEL_ACTION = (env: SpreadsheetChildEnv) => {
 };
 
 export const INSERT_LINK = (env: SpreadsheetChildEnv) => {
-  let { col, row } = env.model.getters.getActivePosition();
+  const { col, row } = env.model.getters.getActivePosition();
   env.model.dispatch("OPEN_CELL_POPOVER", { col, row, popoverType: "LinkEditor" });
 };
 
