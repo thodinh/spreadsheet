@@ -176,6 +176,29 @@ describe("Spreadsheet", () => {
     expect(document.querySelectorAll(".o-sidePanel").length).toBe(0);
   });
 
+  test("Mac user use metaKey, not CtrlKey", async () => {
+    ({ model, parent, fixture } = await mountSpreadsheet({
+      model: new Model({ sheets: [{ id: "sh1" }] }),
+    }));
+    Object.defineProperty(window, "navigator", {
+      value: {
+        userAgent:
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/119.0",
+      },
+    });
+    document.activeElement!.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "F", ctrlKey: true, bubbles: true })
+    );
+    await nextTick();
+    expect(document.querySelectorAll(".o-sidePanel").length).toBe(0);
+    await nextTick();
+    document.activeElement!.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "F", metaKey: true, bubbles: true })
+    );
+    await nextTick();
+    expect(document.querySelectorAll(".o-sidePanel").length).toBe(1);
+  });
+
   test("Can instantiate a spreadsheet with a given client id-name", async () => {
     const client = { id: "alice", name: "Alice" };
     ({ model } = await mountSpreadsheet({ model: new Model({}, { client }) }));

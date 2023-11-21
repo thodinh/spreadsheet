@@ -1,3 +1,5 @@
+const macRegex = /Mac/i;
+
 /**
  * Return true if the event was triggered from
  * a child element.
@@ -17,4 +19,17 @@ export function gridOverlayPosition() {
 
 export function getOpenedMenus(): HTMLElement[] {
   return Array.from(document.querySelectorAll<HTMLElement>(".o-spreadsheet .o-menu"));
+}
+
+function isMacOS(): boolean {
+  return Boolean(navigator.userAgent.match(macRegex));
+}
+
+/**
+ * @param {KeyboardEvent | MouseEvent} ev
+ * @returns Returns true if the event was triggered with the "ctrl" modifier pressed.
+ * On Mac, this is the "meta" or "command" key.
+ */
+export function isCtrlKey(ev: KeyboardEvent | MouseEvent): boolean {
+  return isMacOS() ? ev.metaKey : ev.ctrlKey;
 }
