@@ -61,26 +61,31 @@ function checkBaseline(definition: ScorecardChartDefinition): CommandResult {
     : CommandResult.Success;
 }
 
-export class ScorecardChart extends AbstractChart {
+export class ScorecardChart extends AbstractChart<ScorecardChartDefinition> {
   readonly keyValue?: Range;
   readonly baseline?: Range;
-  readonly baselineMode: BaselineMode;
-  readonly baselineDescr?: string;
-  readonly background?: Color;
-  readonly baselineColorUp: Color;
-  readonly baselineColorDown: Color;
-  readonly fontColor?: Color;
   readonly type = "scorecard";
 
   constructor(definition: ScorecardChartDefinition, sheetId: UID, getters: CoreGetters) {
     super(definition, sheetId, getters);
     this.keyValue = createRange(getters, sheetId, definition.keyValue);
     this.baseline = createRange(getters, sheetId, definition.baseline);
-    this.baselineMode = definition.baselineMode;
-    this.baselineDescr = definition.baselineDescr;
-    this.background = definition.background;
-    this.baselineColorUp = definition.baselineColorUp;
-    this.baselineColorDown = definition.baselineColorDown;
+  }
+
+  get baselineMode(): BaselineMode {
+    return this._definition.baselineMode;
+  }
+
+  get baselineDescr(): string | undefined {
+    return this._definition.baselineDescr;
+  }
+
+  get baselineColorUp(): Color {
+    return this._definition.baselineColorUp;
+  }
+
+  get baselineColorDown(): Color {
+    return this._definition.baselineColorDown;
   }
 
   static validateChartDefinition(

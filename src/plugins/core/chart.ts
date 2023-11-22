@@ -167,7 +167,7 @@ export class ChartPlugin extends CorePlugin<ChartState> implements ChartState {
           // figure data should be external IMO => chart should be in sheet.chart
           // instead of in figure.data
           if (figure.tag === "chart") {
-            this.charts[figure.id] = this.createChart(figure.id, figure.data, sheet.id);
+            this.charts[figure.id] = this.createChart(figure.data, sheet.id);
           }
         }
       }
@@ -253,7 +253,7 @@ export class ChartPlugin extends CorePlugin<ChartState> implements ChartState {
   private addChart(id: UID, definition: ChartDefinition) {
     const sheetId = this.getters.getFigureSheetId(id);
     if (sheetId) {
-      this.history.update("charts", id, this.createChart(id, definition, sheetId));
+      this.history.update("charts", id, this.createChart(definition, sheetId));
     }
   }
 

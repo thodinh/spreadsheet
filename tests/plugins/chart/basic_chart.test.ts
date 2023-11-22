@@ -197,7 +197,7 @@ describe("datasource tests", function () {
       "1"
     );
     expect(model.getters.getChartDefinition("1")).toMatchObject({
-      dataSets: [],
+      dataSets: ["B8"],
       labelRange: "Sheet1!B7:D7",
       title: "test",
       type: "line",
@@ -856,7 +856,7 @@ describe("datasource tests", function () {
     expect(newChart.labelRange?.sheetId).toEqual(secondSheetId);
     expect(zoneToXc(newChart.labelRange!.zone)).toEqual("A2:A4");
 
-    newChart.dataSets?.map((ds, index) => {
+    newChart.getDataSets()?.map((ds, index) => {
       expect(ds.dataRange.sheetId).toEqual(secondSheetId);
       expect(zoneToXc(ds.dataRange.zone)).toEqual(dataSets[index]);
     });

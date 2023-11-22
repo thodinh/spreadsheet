@@ -13,7 +13,6 @@ import {
   ApplyRangeChange,
   Color,
   CommandResult,
-  CoreGetters,
   Getters,
   Range,
   RemoveColumnsRowsCommand,
@@ -66,24 +65,23 @@ chartRegistry.add("pie", {
   name: _lt("Pie"),
 });
 
-export class PieChart extends AbstractChart {
-  readonly dataSets: DataSet[];
-  readonly labelRange?: Range | undefined;
-  readonly background?: Color;
-  readonly legendPosition: LegendPosition;
+export class PieChart extends AbstractChart<PieChartDefinition> {
   readonly type = "pie";
 
-  constructor(definition: PieChartDefinition, sheetId: UID, getters: CoreGetters) {
-    super(definition, sheetId, getters);
-    this.dataSets = createDataSets(
-      getters,
-      definition.dataSets,
-      sheetId,
-      definition.dataSetsHaveTitle
-    );
-    this.labelRange = createRange(getters, sheetId, definition.labelRange);
-    this.background = definition.background;
-    this.legendPosition = definition.legendPosition;
+  getDataSets(dataSetsHaveTitle: boolean = this.dataSetsHaveTitle): DataSet[] {
+    return createDataSets(this.getters, this._definition.dataSets, this.sheetId, dataSetsHaveTitle);
+  }
+
+  get dataSetsHaveTitle(): boolean {
+    return this._definition.dataSetsHaveTitle;
+  }
+
+  get legendPosition(): LegendPosition {
+    return this._definition.legendPosition;
+  }
+
+  get labelRange(): Range | undefined {
+    return createRange(this.getters, this.sheetId, this._definition.labelRange);
   }
 
   static transformDefinition(
@@ -113,16 +111,14 @@ export class PieChart extends AbstractChart {
   }
 
   getDefinition(): PieChartDefinition {
-    return this.getDefinitionWithSpecificDataSets(this.dataSets, this.labelRange);
+    return this.getDefinitionWithSpecificDataSets(this.getDataSets(false), this.labelRange);
   }
 
   getContextCreation(): ChartCreationContext {
     return {
       background: this.background,
       title: this.title,
-      range: this.dataSets.map((ds: DataSet) =>
-        this.getters.getRangeString(ds.dataRange, this.sheetId)
-      ),
+      range: this._definition.dataSets,
       auxiliaryRange: this.labelRange
         ? this.getters.getRangeString(this.labelRange, this.sheetId)
         : undefined,
@@ -136,7 +132,7 @@ export class PieChart extends AbstractChart {
   ): PieChartDefinition {
     return {
       type: "pie",
-      dataSetsHaveTitle: dataSets.length ? Boolean(dataSets[0].labelCell) : false,
+      dataSetsHaveTitle: this.dataSetsHaveTitle,
       background: this.background,
       dataSets: dataSets.map((ds: DataSet) =>
         this.getters.getRangeString(ds.dataRange, targetSheetId || this.sheetId)
@@ -150,7 +146,7 @@ export class PieChart extends AbstractChart {
   }
 
   copyForSheetId(sheetId: UID): PieChart {
-    const dataSets = copyDataSetsWithNewSheetId(this.sheetId, sheetId, this.dataSets);
+    const dataSets = copyDataSetsWithNewSheetId(this.sheetId, sheetId, this.getDataSets());
     const labelRange = copyLabelRangeWithNewSheetId(this.sheetId, sheetId, this.labelRange);
     const definition = this.getDefinitionWithSpecificDataSets(dataSets, labelRange, sheetId);
     return new PieChart(definition, sheetId, this.getters);
@@ -158,7 +154,7 @@ export class PieChart extends AbstractChart {
 
   copyInSheetId(sheetId: UID): PieChart {
     const definition = this.getDefinitionWithSpecificDataSets(
-      this.dataSets,
+      this.getDataSets(),
       this.labelRange,
       sheetId
     );
@@ -166,7 +162,7 @@ export class PieChart extends AbstractChart {
   }
 
   getDefinitionForExcel(): ExcelChartDefinition {
-    const dataSets: ExcelChartDataset[] = this.dataSets
+    const dataSets: ExcelChartDataset[] = this.getDataSets()
       .map((ds: DataSet) => toExcelDataset(this.getters, ds))
       .filter((ds) => ds.range !== ""); // && range !== INCORRECT_RANGE_STRING ? show incorrect #ref ?
     return {
@@ -182,7 +178,7 @@ export class PieChart extends AbstractChart {
     const { dataSets, labelRange, isStale } = updateChartRangesWithDataSets(
       this.getters,
       applyChange,
-      this.dataSets,
+      this.getDataSets(),
       this.labelRange
     );
     if (!isStale) {
@@ -199,7 +195,7 @@ function getPieConfiguration(chart: PieChart, labels: string[]): ChartConfigurat
   const legend: ChartLegendOptions = {
     labels: { fontColor },
   };
-  if ((!chart.labelRange && chart.dataSets.length === 1) || chart.legendPosition === "none") {
+  if ((!chart.labelRange && chart.getDataSets().length === 1) || chart.legendPosition === "none") {
     legend.display = false;
   } else {
     legend.position = chart.legendPosition;
@@ -229,9 +225,9 @@ function getPieColors(colors: ChartColors, dataSetsValues: DatasetValues[]): Col
 }
 
 function createPieChartRuntime(chart: PieChart, getters: Getters): PieChartRuntime {
-  const labelValues = getChartLabelValues(getters, chart.dataSets, chart.labelRange);
+  const labelValues = getChartLabelValues(getters, chart.getDataSets(), chart.labelRange);
   let labels = labelValues.formattedValues;
-  let dataSetsValues = getChartDatasetValues(getters, chart.dataSets);
+  let dataSetsValues = getChartDatasetValues(getters, chart.getDataSets());
 
   ({ labels, dataSetsValues } = filterEmptyDataPoints(labels, dataSetsValues));
   const config = getPieConfiguration(chart, labels);

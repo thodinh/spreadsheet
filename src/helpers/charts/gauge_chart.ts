@@ -148,17 +148,17 @@ function checkNaN(value: string, valueName: string) {
   return CommandResult.Success;
 }
 
-export class GaugeChart extends AbstractChart {
+export class GaugeChart extends AbstractChart<GaugeChartDefinition> {
   readonly dataRange?: Range;
-  readonly sectionRule: SectionRule;
-  readonly background?: Color;
   readonly type = "gauge";
 
   constructor(definition: GaugeChartDefinition, sheetId: UID, getters: CoreGetters) {
     super(definition, sheetId, getters);
     this.dataRange = createRange(this.getters, this.sheetId, definition.dataRange);
-    this.sectionRule = definition.sectionRule;
-    this.background = definition.background;
+  }
+
+  get sectionRule(): SectionRule {
+    return this._definition.sectionRule;
   }
 
   static validateChartDefinition(

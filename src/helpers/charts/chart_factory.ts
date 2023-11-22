@@ -15,7 +15,7 @@ import { AbstractChart } from "./abstract_chart";
  */
 export function chartFactory(getters: CoreGetters) {
   const builders = chartRegistry.getAll();
-  function createChart(id: UID, definition: ChartDefinition, sheetId: UID): AbstractChart {
+  function createChart(definition: ChartDefinition, sheetId: UID): AbstractChart {
     const builder = builders.find((builder) => builder.match(definition.type));
     if (!builder) {
       throw new Error(`No builder for this chart: ${definition.type}`);

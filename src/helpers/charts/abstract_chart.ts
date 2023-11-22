@@ -18,16 +18,20 @@ import { Validator } from "../../types/validator";
  * AbstractChart is the class from which every Chart should inherit.
  * The role of this class is to maintain the state of each chart.
  */
-export abstract class AbstractChart {
-  readonly sheetId: UID;
+export abstract class AbstractChart<T extends ChartDefinition = ChartDefinition> {
   readonly title: string;
   abstract readonly type: ChartType;
-  protected readonly getters: CoreGetters;
 
-  constructor(definition: ChartDefinition, sheetId: UID, getters: CoreGetters) {
-    this.title = definition.title;
-    this.sheetId = sheetId;
-    this.getters = getters;
+  constructor(
+    protected _definition: T,
+    readonly sheetId: UID,
+    protected readonly getters: CoreGetters
+  ) {
+    this.title = _definition.title;
+  }
+
+  get background(): string | undefined {
+    return this._definition.background;
   }
 
   /**

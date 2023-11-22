@@ -5,9 +5,7 @@ import { _lt } from "../../translation";
 import {
   AddColumnsRowsCommand,
   ApplyRangeChange,
-  Color,
   CommandResult,
-  CoreGetters,
   Getters,
   Range,
   RemoveColumnsRowsCommand,
@@ -60,28 +58,31 @@ chartRegistry.add("bar", {
   name: _lt("Bar"),
 });
 
-export class BarChart extends AbstractChart {
-  readonly dataSets: DataSet[];
-  readonly labelRange?: Range | undefined;
-  readonly background?: Color;
-  readonly verticalAxisPosition: VerticalAxisPosition;
-  readonly legendPosition: LegendPosition;
-  readonly stacked: boolean;
+export class BarChart extends AbstractChart<BarChartDefinition> {
   readonly type = "bar";
 
-  constructor(definition: BarChartDefinition, sheetId: UID, getters: CoreGetters) {
-    super(definition, sheetId, getters);
-    this.dataSets = createDataSets(
-      getters,
-      definition.dataSets,
-      sheetId,
-      definition.dataSetsHaveTitle
-    );
-    this.labelRange = createRange(getters, sheetId, definition.labelRange);
-    this.background = definition.background;
-    this.verticalAxisPosition = definition.verticalAxisPosition;
-    this.legendPosition = definition.legendPosition;
-    this.stacked = definition.stacked;
+  getDataSets(dataSetsHaveTitle: boolean = this.dataSetsHaveTitle): DataSet[] {
+    return createDataSets(this.getters, this._definition.dataSets, this.sheetId, dataSetsHaveTitle);
+  }
+
+  get dataSetsHaveTitle(): boolean {
+    return this._definition.dataSetsHaveTitle;
+  }
+
+  get stacked(): boolean {
+    return this._definition.stacked;
+  }
+
+  get legendPosition(): LegendPosition {
+    return this._definition.legendPosition;
+  }
+
+  get labelRange(): Range | undefined {
+    return createRange(this.getters, this.sheetId, this._definition.labelRange);
+  }
+
+  get verticalAxisPosition(): VerticalAxisPosition {
+    return this._definition.verticalAxisPosition;
   }
 
   static transformDefinition(
@@ -116,9 +117,7 @@ export class BarChart extends AbstractChart {
     return {
       background: this.background,
       title: this.title,
-      range: this.dataSets.map((ds: DataSet) =>
-        this.getters.getRangeString(ds.dataRange, this.sheetId)
-      ),
+      range: this._definition.dataSets,
       auxiliaryRange: this.labelRange
         ? this.getters.getRangeString(this.labelRange, this.sheetId)
         : undefined,
@@ -126,7 +125,7 @@ export class BarChart extends AbstractChart {
   }
 
   copyForSheetId(sheetId: UID): BarChart {
-    const dataSets = copyDataSetsWithNewSheetId(this.sheetId, sheetId, this.dataSets);
+    const dataSets = copyDataSetsWithNewSheetId(this.sheetId, sheetId, this.getDataSets());
     const labelRange = copyLabelRangeWithNewSheetId(this.sheetId, sheetId, this.labelRange);
     const definition = this.getDefinitionWithSpecificDataSets(dataSets, labelRange, sheetId);
     return new BarChart(definition, sheetId, this.getters);
@@ -134,7 +133,7 @@ export class BarChart extends AbstractChart {
 
   copyInSheetId(sheetId: UID): BarChart {
     const definition = this.getDefinitionWithSpecificDataSets(
-      this.dataSets,
+      this.getDataSets(),
       this.labelRange,
       sheetId
     );
@@ -142,7 +141,7 @@ export class BarChart extends AbstractChart {
   }
 
   getDefinition(): BarChartDefinition {
-    return this.getDefinitionWithSpecificDataSets(this.dataSets, this.labelRange);
+    return this.getDefinitionWithSpecificDataSets(this.getDataSets(false), this.labelRange);
   }
 
   private getDefinitionWithSpecificDataSets(
@@ -152,7 +151,7 @@ export class BarChart extends AbstractChart {
   ): BarChartDefinition {
     return {
       type: "bar",
-      dataSetsHaveTitle: dataSets.length ? Boolean(dataSets[0].labelCell) : false,
+      dataSetsHaveTitle: this.dataSetsHaveTitle,
       background: this.background,
       dataSets: dataSets.map((ds: DataSet) =>
         this.getters.getRangeString(ds.dataRange, targetSheetId || this.sheetId)
@@ -168,7 +167,7 @@ export class BarChart extends AbstractChart {
   }
 
   getDefinitionForExcel(): ExcelChartDefinition {
-    const dataSets: ExcelChartDataset[] = this.dataSets
+    const dataSets: ExcelChartDataset[] = this.getDataSets()
       .map((ds: DataSet) => toExcelDataset(this.getters, ds))
       .filter((ds) => ds.range !== ""); // && range !== INCORRECT_RANGE_STRING ? show incorrect #ref ?
     return {
@@ -183,7 +182,7 @@ export class BarChart extends AbstractChart {
     const { dataSets, labelRange, isStale } = updateChartRangesWithDataSets(
       this.getters,
       applyChange,
-      this.dataSets,
+      this.getDataSets(),
       this.labelRange
     );
     if (!isStale) {
@@ -194,13 +193,17 @@ export class BarChart extends AbstractChart {
   }
 }
 
-function getBarConfiguration(chart: BarChart, labels: string[]): ChartConfiguration {
+function getBarConfiguration(
+  chart: BarChart,
+  dataSets: DataSet[],
+  labels: string[]
+): ChartConfiguration {
   const fontColor = chartFontColor(chart.background);
   const config: ChartConfiguration = getDefaultChartJsRuntime(chart, labels, fontColor);
   const legend: ChartLegendOptions = {
     labels: { fontColor },
   };
-  if ((!chart.labelRange && chart.dataSets.length === 1) || chart.legendPosition === "none") {
+  if ((!chart.labelRange && dataSets.length === 1) || chart.legendPosition === "none") {
     legend.display = false;
   } else {
     legend.position = chart.legendPosition;
@@ -242,12 +245,13 @@ function getBarConfiguration(chart: BarChart, labels: string[]): ChartConfigurat
 }
 
 function createBarChartRuntime(chart: BarChart, getters: Getters): BarChartRuntime {
-  const labelValues = getChartLabelValues(getters, chart.dataSets, chart.labelRange);
+  const dataSets = chart.getDataSets();
+  const labelValues = getChartLabelValues(getters, dataSets, chart.labelRange);
   let labels = labelValues.formattedValues;
-  let dataSetsValues = getChartDatasetValues(getters, chart.dataSets);
+  let dataSetsValues = getChartDatasetValues(getters, dataSets);
 
   ({ labels, dataSetsValues } = filterEmptyDataPoints(labels, dataSetsValues));
-  const config = getBarConfiguration(chart, labels);
+  const config = getBarConfiguration(chart, dataSets, labels);
   const colors = new ChartColors();
 
   for (let { label, data } of dataSetsValues) {

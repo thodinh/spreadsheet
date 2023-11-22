@@ -5,9 +5,7 @@ import { _lt } from "../../translation";
 import {
   AddColumnsRowsCommand,
   ApplyRangeChange,
-  Color,
   CommandResult,
-  CoreGetters,
   Getters,
   Range,
   RemoveColumnsRowsCommand,
@@ -68,32 +66,39 @@ chartRegistry.add("line", {
   name: _lt("Line"),
 });
 
-export class LineChart extends AbstractChart {
-  readonly dataSets: DataSet[];
-  readonly labelRange?: Range | undefined;
-  readonly background?: Color;
-  readonly verticalAxisPosition: VerticalAxisPosition;
-  readonly legendPosition: LegendPosition;
-  readonly labelsAsText: boolean;
-  readonly stacked: boolean;
+export class LineChart extends AbstractChart<LineChartDefinition> {
   readonly type = "line";
-  readonly cumulative: boolean;
 
-  constructor(definition: LineChartDefinition, sheetId: UID, getters: CoreGetters) {
-    super(definition, sheetId, getters);
-    this.dataSets = createDataSets(
-      this.getters,
-      definition.dataSets,
-      sheetId,
-      definition.dataSetsHaveTitle
-    );
-    this.labelRange = createRange(this.getters, sheetId, definition.labelRange);
-    this.background = definition.background;
-    this.verticalAxisPosition = definition.verticalAxisPosition;
-    this.legendPosition = definition.legendPosition;
-    this.labelsAsText = definition.labelsAsText;
-    this.stacked = definition.stacked;
-    this.cumulative = definition.cumulative;
+  getDataSets(dataSetsHaveTitle: boolean = this.dataSetsHaveTitle): DataSet[] {
+    return createDataSets(this.getters, this._definition.dataSets, this.sheetId, dataSetsHaveTitle);
+  }
+
+  get dataSetsHaveTitle(): boolean {
+    return this._definition.dataSetsHaveTitle;
+  }
+
+  get stacked(): boolean {
+    return this._definition.stacked;
+  }
+
+  get legendPosition(): LegendPosition {
+    return this._definition.legendPosition;
+  }
+
+  get labelRange(): Range | undefined {
+    return createRange(this.getters, this.sheetId, this._definition.labelRange);
+  }
+
+  get verticalAxisPosition(): VerticalAxisPosition {
+    return this._definition.verticalAxisPosition;
+  }
+
+  get labelsAsText(): boolean {
+    return this._definition.labelsAsText;
+  }
+
+  get cumulative(): boolean {
+    return this._definition.cumulative;
   }
 
   static validateChartDefinition(
@@ -127,7 +132,7 @@ export class LineChart extends AbstractChart {
   }
 
   getDefinition(): LineChartDefinition {
-    return this.getDefinitionWithSpecificDataSets(this.dataSets, this.labelRange);
+    return this.getDefinitionWithSpecificDataSets(this.getDataSets(false), this.labelRange);
   }
 
   private getDefinitionWithSpecificDataSets(
@@ -137,7 +142,7 @@ export class LineChart extends AbstractChart {
   ): LineChartDefinition {
     return {
       type: "line",
-      dataSetsHaveTitle: dataSets.length ? Boolean(dataSets[0].labelCell) : false,
+      dataSetsHaveTitle: this.dataSetsHaveTitle,
       background: this.background,
       dataSets: dataSets.map((ds: DataSet) =>
         this.getters.getRangeString(ds.dataRange, targetSheetId || this.sheetId)
@@ -158,9 +163,7 @@ export class LineChart extends AbstractChart {
     return {
       background: this.background,
       title: this.title,
-      range: this.dataSets.map((ds: DataSet) =>
-        this.getters.getRangeString(ds.dataRange, this.sheetId)
-      ),
+      range: this._definition.dataSets,
       auxiliaryRange: this.labelRange
         ? this.getters.getRangeString(this.labelRange, this.sheetId)
         : undefined,
@@ -171,7 +174,7 @@ export class LineChart extends AbstractChart {
     const { dataSets, labelRange, isStale } = updateChartRangesWithDataSets(
       this.getters,
       applyChange,
-      this.dataSets,
+      this.getDataSets(),
       this.labelRange
     );
     if (!isStale) {
@@ -182,7 +185,7 @@ export class LineChart extends AbstractChart {
   }
 
   getDefinitionForExcel(): ExcelChartDefinition {
-    const dataSets: ExcelChartDataset[] = this.dataSets
+    const dataSets: ExcelChartDataset[] = this.getDataSets()
       .map((ds: DataSet) => toExcelDataset(this.getters, ds))
       .filter((ds) => ds.range !== ""); // && range !== INCORRECT_RANGE_STRING ? show incorrect #ref ?
     return {
@@ -194,18 +197,15 @@ export class LineChart extends AbstractChart {
   }
 
   copyForSheetId(sheetId: UID): LineChart {
-    const dataSets = copyDataSetsWithNewSheetId(this.sheetId, sheetId, this.dataSets);
+    const dataSets = copyDataSetsWithNewSheetId(this.sheetId, sheetId, this.getDataSets());
     const labelRange = copyLabelRangeWithNewSheetId(this.sheetId, sheetId, this.labelRange);
     const definition = this.getDefinitionWithSpecificDataSets(dataSets, labelRange, sheetId);
     return new LineChart(definition, sheetId, this.getters);
   }
 
   copyInSheetId(sheetId: UID): LineChart {
-    const definition = this.getDefinitionWithSpecificDataSets(
-      this.dataSets,
-      this.labelRange,
-      sheetId
-    );
+    const dataSets = copyDataSetsWithNewSheetId(this.sheetId, sheetId, this.getDataSets());
+    const definition = this.getDefinitionWithSpecificDataSets(dataSets, this.labelRange, sheetId);
     return new LineChart(definition, sheetId, this.getters);
   }
 }
@@ -253,7 +253,7 @@ function isLinearChart(chart: LineChart, getters: Getters): boolean {
 }
 
 function canBeDateChart(chart: LineChart, getters: Getters): boolean {
-  if (!chart.labelRange || !chart.dataSets || !canBeLinearChart(chart, getters)) {
+  if (!chart.labelRange || !chart.getDataSets() || !canBeLinearChart(chart, getters)) {
     return false;
   }
   const labelFormat = getters.getCell(
@@ -265,7 +265,7 @@ function canBeDateChart(chart: LineChart, getters: Getters): boolean {
 }
 
 function canBeLinearChart(chart: LineChart, getters: Getters): boolean {
-  if (!chart.labelRange || !chart.dataSets) {
+  if (!chart.labelRange || !chart.getDataSets()) {
     return false;
   }
 
@@ -296,7 +296,7 @@ function getLineConfiguration(chart: LineChart, labels: string[]): ChartConfigur
       },
     },
   };
-  if ((!chart.labelRange && chart.dataSets.length === 1) || chart.legendPosition === "none") {
+  if ((!chart.labelRange && chart.getDataSets().length === 1) || chart.legendPosition === "none") {
     legend.display = false;
   } else {
     legend.position = chart.legendPosition;
@@ -338,9 +338,10 @@ function getLineConfiguration(chart: LineChart, labels: string[]): ChartConfigur
 
 function createLineChartRuntime(chart: LineChart, getters: Getters): LineChartRuntime {
   const axisType = getChartAxisType(chart, getters);
-  const labelValues = getChartLabelValues(getters, chart.dataSets, chart.labelRange);
+  const dataSets = chart.getDataSets();
+  const labelValues = getChartLabelValues(getters, dataSets, chart.labelRange);
   let labels = axisType === "linear" ? labelValues.values : labelValues.formattedValues;
-  let dataSetsValues = getChartDatasetValues(getters, chart.dataSets);
+  let dataSetsValues = getChartDatasetValues(getters, dataSets);
 
   ({ labels, dataSetsValues } = filterEmptyDataPoints(labels, dataSetsValues));
   if (axisType === "time") {
