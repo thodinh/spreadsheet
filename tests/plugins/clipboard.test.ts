@@ -1059,23 +1059,6 @@ describe("clipboard", () => {
     expect(getBorder(model, "C2")).toBeNull();
   });
 
-  test("can copy a cell with a format and paste value only", () => {
-    const model = new Model();
-    setCellContent(model, "B2", "0.451");
-    selectCell(model, "B2");
-    model.dispatch("SET_FORMATTING", {
-      sheetId: model.getters.getActiveSheetId(),
-      target: model.getters.getSelectedZones(),
-      format: "0.00%",
-    });
-    expect(getCellContent(model, "B2")).toBe("45.10%");
-
-    copy(model, "B2");
-    paste(model, "C2", "onlyValue");
-
-    expect(getCellContent(model, "C2")).toBe("0.451");
-  });
-
   test("can copy a cell with a conditional format and paste value only", () => {
     const model = new Model({
       sheets: [
@@ -1148,22 +1131,29 @@ describe("clipboard", () => {
     expect(getBorder(model, "C3")).toEqual({ bottom: ["thin", "#000"] });
   });
 
-  test("paste value only does not remove formating", () => {
+  test("paste value only does not remove number format", () => {
     const model = new Model();
-    setCellContent(model, "B2", "42");
-    setCellContent(model, "C3", "0.451");
-    selectCell(model, "C3");
+    setCellContent(model, "B2", "0.451");
+    selectCell(model, "B2");
     model.dispatch("SET_FORMATTING", {
       sheetId: model.getters.getActiveSheetId(),
       target: model.getters.getSelectedZones(),
       format: "0.00%",
     });
-    expect(getCellContent(model, "C3")).toBe("45.10%");
+    expect(getCellContent(model, "B2")).toBe("45.10%");
+
+    setCellContent(model, "C3", "42");
+    selectCell(model, "C3");
+    model.dispatch("SET_FORMATTING", {
+      sheetId: model.getters.getActiveSheetId(),
+      target: model.getters.getSelectedZones(),
+      format: "#,##0.00",
+    });
+    expect(getCellContent(model, "C3")).toBe("42.00");
 
     copy(model, "B2");
     paste(model, "C3", "onlyValue");
-
-    expect(getCellContent(model, "C3")).toBe("4200.00%");
+    expect(getCellContent(model, "C3")).toBe("45.10%");
   });
 
   test("can copy a formula and paste value only", () => {

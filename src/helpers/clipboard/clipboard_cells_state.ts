@@ -358,18 +358,19 @@ export class ClipboardCellsState extends ClipboardCellsAbstractState {
       this.dispatch("SET_BORDER", { sheetId, col, row, border });
     }
     if (origin.cell) {
+      const format = origin.cell.evaluated.format || origin.cell.format;
       if (clipboardOption?.pasteOption === "onlyFormat") {
         this.dispatch("UPDATE_CELL", {
           ...target,
           style: origin.cell.style,
-          format: origin.cell.evaluated.format || origin.cell.format,
+          format,
         });
         return;
       }
 
       if (clipboardOption?.pasteOption === "onlyValue") {
         const content = formatValue(origin.cell.evaluated.value);
-        this.dispatch("UPDATE_CELL", { ...target, content });
+        this.dispatch("UPDATE_CELL", { ...target, content, format });
         return;
       }
       let content = origin.cell.content;
