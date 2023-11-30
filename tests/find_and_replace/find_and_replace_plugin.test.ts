@@ -312,37 +312,48 @@ describe("basic search", () => {
     expect(getMatches(model)).toHaveLength(2);
     expect(getMatchIndex(model)).toStrictEqual(0);
   });
-});
 
-test("simple search with array formula", () => {
-  model = new Model({ sheets: [{ id: "sh1" }] });
-  setCellContent(model, "A1", "hell0");
-  setCellContent(model, "A2", "hello");
-  setCellContent(model, "A3", "=1");
-  setCellContent(model, "B1", "=TRANSPOSE(A1:A3)");
-  updateSearch(model, "hello");
-  expect(getMatchIndex(model)).toStrictEqual(0);
-  expect(getMatches(model)).toStrictEqual([match("sh1", "C1"), match("sh1", "A2")]);
-});
+  test("simple search with array formula", () => {
+    model = new Model({ sheets: [{ id: "sh1" }] });
+    setCellContent(model, "A1", "hell0");
+    setCellContent(model, "A2", "hello");
+    setCellContent(model, "A3", "=1");
+    setCellContent(model, "B1", "=TRANSPOSE(A1:A3)");
+    updateSearch(model, "hello");
+    expect(getMatchIndex(model)).toStrictEqual(0);
+    expect(getMatches(model)).toStrictEqual([match("sh1", "C1"), match("sh1", "A2")]);
+  });
 
-test("replace don't replace value resulting from array formula", () => {
-  model = new Model();
-  setCellContent(model, "A1", "hell0");
-  setCellContent(model, "A2", "hello");
-  setCellContent(model, "A3", "=1");
-  setCellContent(model, "B1", "=TRANSPOSE(A1:A3)");
-  updateSearch(model, "hello");
-  model.dispatch("REPLACE_ALL_SEARCH", { replaceWith: "kikou" });
-  expect(getMatches(model)).toHaveLength(0);
-  expect(getMatchIndex(model)).toStrictEqual(null);
-  // Check that the original value has correctly been replaced
-  expect(getCellContent(model, "A2")).toBe("kikou");
-  // Check that the array formula has not been modified : If nothing has
-  // been written in C1, B1 should still be an array formula (not errored)
-  expect(getCellContent(model, "B1")).not.toBe("#ERROR");
-  expect(getCell(model, "C1")?.content).toBe(undefined);
-  // Check that the spread value has been updated according to the modified value of A2
-  expect(getCellContent(model, "C1")).toBe("kikou");
+  test("replace don't replace value resulting from array formula", () => {
+    model = new Model();
+    setCellContent(model, "A1", "hell0");
+    setCellContent(model, "A2", "hello");
+    setCellContent(model, "A3", "=1");
+    setCellContent(model, "B1", "=TRANSPOSE(A1:A3)");
+    updateSearch(model, "hello");
+    model.dispatch("REPLACE_ALL_SEARCH", { replaceWith: "kikou" });
+    expect(getMatches(model)).toHaveLength(0);
+    expect(getMatchIndex(model)).toStrictEqual(null);
+    // Check that the original value has correctly been replaced
+    expect(getCellContent(model, "A2")).toBe("kikou");
+    // Check that the array formula has not been modified : If nothing has
+    // been written in C1, B1 should still be an array formula (not errored)
+    expect(getCellContent(model, "B1")).not.toBe("#ERROR");
+    expect(getCell(model, "C1")?.content).toBe(undefined);
+    // Check that the spread value has been updated according to the modified value of A2
+    expect(getCellContent(model, "C1")).toBe("kikou");
+  });
+
+  test("Only change sheet on search related command", () => {
+    model = new Model();
+    setCellContent(model, "A1", "hello");
+    updateSearch(model, "hello");
+    createSheet(model, { sheetId: "sh2", activate: true });
+    expect(getMatches(model)).toHaveLength(1);
+    expect(getMatchIndex(model)).toStrictEqual(0);
+    setCellContent(model, "A1", "test");
+    expect(model.getters.getActiveSheetId()).toBe("sh2");
+  });
 });
 
 describe("next/previous cycle", () => {

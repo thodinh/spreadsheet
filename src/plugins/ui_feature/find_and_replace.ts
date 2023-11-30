@@ -52,6 +52,7 @@ export class FindAndReplacePlugin extends UIPlugin {
   };
   private toSearch: string = "";
   private isSearchDirty = false;
+  private jumpToMatchSheet = true;
 
   get searchMatches(): CellPosition[] {
     switch (this.searchOptions.searchScope) {
@@ -101,6 +102,7 @@ export class FindAndReplacePlugin extends UIPlugin {
       case "EVALUATE_CELLS":
       case "UPDATE_CELL":
         this.isSearchDirty = true;
+        this.jumpToMatchSheet = false;
         break;
       case "ACTIVATE_SHEET":
         if (this.searchOptions.searchScope === "activeSheet") {
@@ -114,6 +116,7 @@ export class FindAndReplacePlugin extends UIPlugin {
     if (this.isSearchDirty) {
       this.refreshSearch();
       this.isSearchDirty = false;
+      this.jumpToMatchSheet = true;
     }
   }
 
@@ -288,7 +291,7 @@ export class FindAndReplacePlugin extends UIPlugin {
     const selectedMatch = matches[nextIndex];
 
     // Switch to the sheet where the match is located
-    if (this.getters.getActiveSheetId() !== selectedMatch.sheetId) {
+    if (this.jumpToMatchSheet && this.getters.getActiveSheetId() !== selectedMatch.sheetId) {
       this.dispatch("ACTIVATE_SHEET", {
         sheetIdFrom: this.getters.getActiveSheetId(),
         sheetIdTo: selectedMatch.sheetId,
