@@ -1,4 +1,5 @@
-import { canChartParseLabels, LineChart } from "../../../../helpers/figures/charts";
+import { LineChart } from "../../../../helpers/figures/charts";
+import { canChartParseLabels } from "../../../../helpers/figures/charts/chart_common_line_scatter";
 import { LineBarPieConfigPanel } from "../line_bar_pie_panel/config_panel";
 
 export class LineConfigPanel extends LineBarPieConfigPanel {
